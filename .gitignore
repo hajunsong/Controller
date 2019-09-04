@@ -1,0 +1,6 @@
+build-*/
+RobotControllerCMakeOld/
+RobotControllerOld/
+RobotControllerTemp/
+**/*.pro.user
+**/build/
