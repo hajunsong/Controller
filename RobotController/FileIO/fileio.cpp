@@ -1,8 +1,16 @@
+/*
+ * fileio.cpp
+ *
+ *  Created on: 2019. 5. 27.
+ *      Author: keti-hajun
+ */
+
 #include "fileio.h"
 
 void load_data(string file_name, vector< vector<double> > *data)
 {
     data->clear();
+    ifstream filestream("data/inverse_kinematics_result.txt");
     FILE *fp_in;
     const int buffer = 1000000;
     char *ptr, basic[buffer];

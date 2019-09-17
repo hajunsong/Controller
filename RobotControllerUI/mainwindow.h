@@ -12,6 +12,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QFileDialog>
+#include <QListWidgetItem>
 
 #include "TcpSocket/tcpclient.h"
 #include "Settings/customsettings.h"
@@ -41,16 +42,16 @@ private:
     DataControl *dataControl;
 
     QStandardItemModel *model;
-    QStandardItemModel *jointPathModel, *cartPathModel;
+//    QStandardItemModel *jointPathModel, *cartPathModel;
     QByteArray txData;
-    int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
+//    int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
 
     void componentEnable(bool enable);
 
-    QVector<QLineEdit*> txtCmdRel, txtCmdAbs;
+    QVector<QLineEdit*> txtJCmd, txtCCmd;
     void setTxtCommandClear();
 
-    vector< vector<double> > jointPathTxtData, cartPathTxtData;
+    bool cmdJointRel, cmdJointAbs, cmdCartRel, cmdCartAbs;
 
 public slots:
     // button event
@@ -60,17 +61,24 @@ public slots:
     void btnServOnClicked();
     void btnServoOffClicked();
     void btnJogMoveClicked();
-    void btnSetCommandClicked();
+    void btnSetJCommandClicked();
+    void btnSetCCommandClicked();
     void btnFileLoadClicked();
-    void btnPathApplyClicked();
-    void btnPathClearClicked();
-    void btnPathInsertClicked();
-    void btnPathDeleteClicked();
-    void btnPathAppendClicked();
+//    void btnPathApplyClicked();
+//    void btnPathClearClicked();
+//    void btnPathInsertClicked();
+//    void btnPathDeleteClicked();
+//    void btnPathAppendClicked();
+    void btnRunClicked();
+    void btnStopClicked();
 
     // checkbox event
-    void cbJointPathClicked();
-    void cbCartesianPathClicked();
+//    void cbJointPathClicked();
+//    void cbCartesianPathClicked();
+    void cbJointRelChanged(int arg);
+    void cbJointAbsChanged(int arg);
+    void cbCartRelChanged(int arg);
+    void cbCartAbsChanged(int arg);
 
     // server event
     void onConnectServer();
@@ -78,11 +86,11 @@ public slots:
     void readMessage();
 
     // tableview event
-    void tvCellClicked(const QModelIndex &index);
-    void verticalSectionClicked(int index);
-    void horizontalSectionClicked(int index);
-    void verticalSectionPressed(int index);
-    void horizontalSectionPressed(int index);
+//    void tvCellClicked(const QModelIndex &index);
+//    void verticalSectionClicked(int index);
+//    void horizontalSectionClicked(int index);
+//    void verticalSectionPressed(int index);
+//    void horizontalSectionPressed(int index);
 };
 
 #endif // MAINWINDOW_H

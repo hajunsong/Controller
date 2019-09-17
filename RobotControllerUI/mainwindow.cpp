@@ -35,52 +35,30 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnJ6N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
     connect(ui->btnJ6P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
 
-    txtCmdAbs.push_back(ui->txtJCmdAbs1);
-    txtCmdAbs.push_back(ui->txtJCmdAbs2);
-    txtCmdAbs.push_back(ui->txtJCmdAbs3);
-    txtCmdAbs.push_back(ui->txtJCmdAbs4);
-    txtCmdAbs.push_back(ui->txtJCmdAbs5);
-    txtCmdAbs.push_back(ui->txtJCmdAbs6);
-    txtCmdAbs.push_back(ui->txtCCmdAbs1);
-    txtCmdAbs.push_back(ui->txtCCmdAbs2);
-    txtCmdAbs.push_back(ui->txtCCmdAbs3);
-    txtCmdAbs.push_back(ui->txtCCmdAbs4);
-    txtCmdAbs.push_back(ui->txtCCmdAbs5);
-    txtCmdAbs.push_back(ui->txtCCmdAbs6);
-    txtCmdRel.push_back(ui->txtJCmdRel1);
-    txtCmdRel.push_back(ui->txtJCmdRel2);
-    txtCmdRel.push_back(ui->txtJCmdRel3);
-    txtCmdRel.push_back(ui->txtJCmdRel4);
-    txtCmdRel.push_back(ui->txtJCmdRel5);
-    txtCmdRel.push_back(ui->txtJCmdRel6);
-    txtCmdRel.push_back(ui->txtCCmdRel1);
-    txtCmdRel.push_back(ui->txtCCmdRel2);
-    txtCmdRel.push_back(ui->txtCCmdRel3);
-    txtCmdRel.push_back(ui->txtCCmdRel4);
-    txtCmdRel.push_back(ui->txtCCmdRel5);
-    txtCmdRel.push_back(ui->txtCCmdRel6);
-    for(int i = 0; i < txtCmdRel.length(); i++)
+    txtJCmd.push_back(ui->txtJCmd1);
+    txtJCmd.push_back(ui->txtJCmd2);
+    txtJCmd.push_back(ui->txtJCmd3);
+    txtJCmd.push_back(ui->txtJCmd4);
+    txtJCmd.push_back(ui->txtJCmd5);
+    txtJCmd.push_back(ui->txtJCmd6);
+    txtCCmd.push_back(ui->txtCCmd1);
+    txtCCmd.push_back(ui->txtCCmd2);
+    txtCCmd.push_back(ui->txtCCmd3);
+    txtCCmd.push_back(ui->txtCCmd4);
+    txtCCmd.push_back(ui->txtCCmd5);
+    txtCCmd.push_back(ui->txtCCmd6);
+
+    for(int i = 0; i < txtJCmd.length(); i++)
     {
-        txtCmdRel[i]->setText("0");
+        txtJCmd[i]->setText("0");
     }
-    for(int i = 0; i < txtCmdAbs.length(); i++)
+    for(int i = 0; i < txtCCmd.length(); i++)
     {
-        txtCmdAbs[i]->setText("0");
+        txtCCmd[i]->setText("0");
     }
 
-    connect(ui->btnJSet1, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnJSet2, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnJSet3, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnJSet4, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnJSet5, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnJSet6, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-
-    connect(ui->btnCSet1, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnCSet2, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnCSet3, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnCSet4, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnCSet5, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
-    connect(ui->btnCSet6, SIGNAL(clicked()), this, SLOT(btnSetCommandClicked()));
+    connect(ui->btnJSet, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnCSet, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
 
     connect(ui->btnC1N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
     connect(ui->btnC2N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
@@ -95,29 +73,50 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnC5P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
     connect(ui->btnC6P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
 
-    connect(ui->cbJointPath, SIGNAL(clicked()), this, SLOT(cbJointPathClicked()));
-    connect(ui->cbCartesianPath, SIGNAL(clicked()), this, SLOT(cbCartesianPathClicked()));
+//    connect(ui->cbJointPath, SIGNAL(clicked()), this, SLOT(cbJointPathClicked()));
+//    connect(ui->cbCartesianPath, SIGNAL(clicked()), this, SLOT(cbCartesianPathClicked()));
 
 //    connect(ui->btnFileLoad, SIGNAL(clicked()), this, SLOT(btnFileLoadClicked()));
-    ui->btnFileLoad->hide();
-    connect(ui->btnPathClear, SIGNAL(clicked()), this, SLOT(btnPathClearClicked()));
-    connect(ui->btnPathApply, SIGNAL(clicked()), this, SLOT(btnPathApplyClicked()));
-    connect(ui->btnPathInsert, SIGNAL(clicked()), this, SLOT(btnPathInsertClicked()));
-    connect(ui->btnPathDelete, SIGNAL(clicked()), this, SLOT(btnPathDeleteClicked()));
-    connect(ui->btnPathAppend, SIGNAL(clicked()), this, SLOT(btnPathAppendClicked()));
+//    ui->btnFileLoad->hide();
+//    connect(ui->btnPathClear, SIGNAL(clicked()), this, SLOT(btnPathClearClicked()));
+//    connect(ui->btnPathApply, SIGNAL(clicked()), this, SLOT(btnPathApplyClicked()));
+//    connect(ui->btnPathInsert, SIGNAL(clicked()), this, SLOT(btnPathInsertClicked()));
+//    connect(ui->btnPathDelete, SIGNAL(clicked()), this, SLOT(btnPathDeleteClicked()));
+//    connect(ui->btnPathAppend, SIGNAL(clicked()), this, SLOT(btnPathAppendClicked()));
 
-    jointPathModel = new QStandardItemModel(0, NUM_JOINT + 1, this);
-    cartPathModel = new QStandardItemModel(0, NUM_DOF + 1, this);
-    connect(ui->tvPathData, SIGNAL(clicked(QModelIndex)), this, SLOT(tvCellClicked(QModelIndex)));
-    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(horizontalSectionClicked(int)));
-    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(verticalSectionClicked(int)));
-    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
-    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
+//    jointPathModel = new QStandardItemModel(0, NUM_JOINT + 1, this);
+//    cartPathModel = new QStandardItemModel(0, NUM_DOF + 1, this);
+//    connect(ui->tvPathData, SIGNAL(clicked(QModelIndex)), this, SLOT(tvCellClicked(QModelIndex)));
+//    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(horizontalSectionClicked(int)));
+//    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(verticalSectionClicked(int)));
+//    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
+//    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
 
     ui->txtNumJoint->setText(QString::number(NUM_JOINT));
     ui->txtNumDof->setText(QString::number(NUM_DOF));
     ui->txtModuleType->setText(MODULE_TYPE == 1 ? "FAR" : MODULE_TYPE == 2 ? "SEA" : "JS-R8");
     ui->txtCommType->setText(COMM_TYPE == 1 ? "RS485" : "RS232");
+
+    QStringList items;
+    items.append("");
+    items.append("pick up motion (joint path command)");
+    items.append("pick up motion (cartesian path command)");
+    items.append("rectangle motion (joint path command)");
+    items.append("rectangle motion (cartesian path command)");
+    ui->cbPlaylist->addItems(items);
+
+    connect(ui->btnRun, SIGNAL(clicked()), this, SLOT(btnRunClicked()));
+    connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(btnStopClicked()));
+
+    connect(ui->cbJointRel, SIGNAL(stateChanged(int)), this, SLOT(cbJointRelChanged(int)));
+    connect(ui->cbJointAbs, SIGNAL(stateChanged(int)), this, SLOT(cbJointAbsChanged(int)));
+    connect(ui->cbCartRel, SIGNAL(stateChanged(int)), this, SLOT(cbCartRelChanged(int)));
+    connect(ui->cbCartAbs, SIGNAL(stateChanged(int)), this, SLOT(cbCartAbsChanged(int)));
+
+    cmdJointRel = false;
+    cmdJointAbs = false;
+    cmdCartRel = false;
+    cmdCartAbs = false;
 
     customSettings = new CustomSettings(ui);
     customSettings->loadConfigFile();
@@ -126,13 +125,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow()
 {
     customSettings->saveConfigFile();
-    txtCmdRel.clear();
-    txtCmdAbs.clear();
+    txtJCmd.clear();
+    txtCCmd.clear();
     delete ui;
     delete tcpClient;
     delete dataControl;
-    delete jointPathModel;
-    delete cartPathModel;
 }
 
 void MainWindow::btnConnectClicked(){
@@ -144,7 +141,6 @@ void MainWindow::btnConnectClicked(){
 void MainWindow::btnDisconnectClicked(){
     ui->btnConnect->setEnabled(true);
     ui->btnDisconnect->setEnabled(false);
-//    ui->btnSetInit->setEnabled(false);
     ui->gbRobotConfig->setEnabled(false);
     componentEnable(false);
     tcpClient->socket->close();
@@ -165,7 +161,7 @@ void MainWindow::btnSetInitClicked()
 
     tcpClient->socket->write(txData);
 
-    int row = 2;
+    int row = 5;
     model = new QStandardItemModel(row, NUM_JOINT, this);
     ui->tvRobotInfor->setModel(model);
 
@@ -177,8 +173,11 @@ void MainWindow::btnSetInitClicked()
     }
 
     QStringList vHeader;
-    vHeader.append("Pos [deg]");
-    vHeader.append("Pose [mm, deg]");
+    vHeader.append("Actual Pos [deg]");
+    vHeader.append("Actual Pose [mm, deg]");
+    vHeader.append("Command Pos [deg]");
+    vHeader.append("Desired Pose [mm, deg]");
+    vHeader.append("Calculate Pose [mm, deg]");
     model->setVerticalHeaderLabels(vHeader);
 }
 
@@ -283,51 +282,21 @@ void MainWindow::btnJogMoveClicked()
     tcpClient->socket->write(txData);
 }
 
-void MainWindow::btnSetCommandClicked()
+void MainWindow::btnSetJCommandClicked()
 {
-    QString objName = sender()->objectName();
-    QString moduleStr = objName.at(objName.length() - 1);
-    int moduleIndex = moduleStr.toInt();
-    QString CJ = objName.at(3);
-    int objIndex = -1;
-    QString RA = nullptr;
-    double value = 0;
+    if (cmdJointRel || cmdJointAbs)
+    {
+        dataControl->ClientToServer.opMode = DataControl::OpMode::JointMove;
 
-    if (CJ == "J"){
-        objIndex = moduleIndex - 1;
-    }
-    else if(CJ == "C"){
-        objIndex = moduleIndex + 6 - 1;
-    }
-
-    if (txtCmdRel[objIndex]->text().toInt() != 0  && txtCmdAbs[objIndex]->text().toInt() == 0){
-        RA = "R";
-    }
-    else if (txtCmdRel[objIndex]->text().toInt() == 0  && txtCmdAbs[objIndex]->text().toInt() != 0){
-        RA = "A";
-    }
-
-    dataControl->ClientToServer.opMode = CJ == "J" ? OpMode::JointMove : OpMode::CartesianMove;
-    if (CJ == "J"){
-        if (RA == "R"){
+        if (cmdJointRel){
             dataControl->ClientToServer.subMode = Motion::JogMotion;
-            value = txtCmdRel[objIndex]->text().toDouble();
         }
-        else if (RA == "A"){
+
+        if (cmdJointAbs){
             dataControl->ClientToServer.subMode = Motion::JointMotion;
-            value = txtCmdAbs[objIndex]->text().toDouble();
         }
     }
-    else if (CJ == "C"){
-        if (RA == "R"){
-            dataControl->ClientToServer.subMode = Motion::CartesianJogMotion;
-            value = txtCmdRel[objIndex]->text().toDouble();
-        }
-        else if (RA == "A"){
-            dataControl->ClientToServer.subMode = Motion::CartesianMotion;
-            value = txtCmdAbs[objIndex]->text().toDouble();
-        }
-    }
+
     memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
     memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
 
@@ -336,20 +305,51 @@ void MainWindow::btnSetCommandClicked()
     txData.append(Qt::Key_S);
     txData.append(dataControl->ClientToServer.opMode);
     txData.append(dataControl->ClientToServer.subMode);
-    for(int i = 0; i < NUM_JOINT; i++){
-        if (CJ == "J"){
-            if (i + 1 == moduleIndex){
-                dataControl->ClientToServer.desiredJoint[i] = value;
-            }
-        }
+    for(int i = 0; i < NUM_JOINT; i++)
+    {
+        dataControl->ClientToServer.desiredJoint[i] = txtJCmd[i]->text().toDouble();
         txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
     }
-    for(int i = 0; i < NUM_DOF; i++){
-        if (CJ == "C"){
-            if (i + 1 == moduleIndex){
-                dataControl->ClientToServer.desiredCartesian[i] = value;
-            }
+    for(int i = 0; i < NUM_DOF; i++)
+    {
+        txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
+    }
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
+
+    qDebug() << "txData : " << txData;
+
+    tcpClient->socket->write(txData);
+
+    setTxtCommandClear();
+}
+
+void MainWindow::btnSetCCommandClicked()
+{
+    if(cmdCartRel || cmdCartAbs)
+    {
+        dataControl->ClientToServer.opMode = DataControl::OpMode::CartesianMove;
+
+        if (cmdCartRel){
+            dataControl->ClientToServer.subMode = Motion::CartesianJogMotion;
         }
+
+        if (cmdCartAbs){
+            dataControl->ClientToServer.subMode = Motion::CartesianMotion;
+        }
+    }
+
+    memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
+    memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
+
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_S);
+    txData.append(dataControl->ClientToServer.opMode);
+    txData.append(dataControl->ClientToServer.subMode);
+    for(int i = 0; i < NUM_DOF; i++)
+    {
+        dataControl->ClientToServer.desiredCartesian[i] = txtCCmd[i]->text().toDouble();
         txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
     }
     txData.append(Qt::Key_N);
@@ -366,7 +366,6 @@ void MainWindow::onConnectServer(){
     qDebug() << "Connected Server";
     ui->btnConnect->setEnabled(false);
     ui->btnDisconnect->setEnabled(true);
-//    ui->btnSetInit->setEnabled(true);
     ui->gbRobotConfig->setEnabled(true);
     tcpClient->socket->write("O");
 }
@@ -374,7 +373,7 @@ void MainWindow::onConnectServer(){
 void MainWindow::readMessage(){
     QByteArray rxData = tcpClient->socket->readAll();
 //    qDebug() << "Data size : " << rxData.size();
-    qDebug() << rxData;
+//    qDebug() << rxData;
 
     size_t size = static_cast<size_t>(rxData.size());
     if (size == 1){
@@ -387,7 +386,8 @@ void MainWindow::readMessage(){
             componentEnable(true);
         }
     }
-    else if (size == SERVER_TO_CLIENT_LEN){
+    else if (size == SERVER_TO_CLIENT_LEN)
+    {
         char *pData = rxData.data();
         int indx = NRMK_SOCKET_TOKEN_SIZE;
         memcpy(&dataControl->ServerToClient, pData + indx, DATA_INDEX_LEN);
@@ -396,6 +396,18 @@ void MainWindow::readMessage(){
         indx += JOINT_POSITION_LEN*NUM_JOINT;
         memcpy(dataControl->ServerToClient.presentCartesianPose, pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
         indx += CARTESIAN_POSE_LEN*NUM_DOF;
+        memcpy(dataControl->ServerToClient.desiredJointPosition, pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
+        indx += JOINT_COMMAND_LEN*NUM_JOINT;
+        memcpy(dataControl->ServerToClient.desiredCartesianPose, pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
+        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
+        memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
+        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+        memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
+        indx += TIME_LEN;
+        memcpy(&dataControl->ServerToClient.dxl_time, pData + indx, TIME_LEN);
+        indx += TIME_LEN;
+        memcpy(&dataControl->ServerToClient.ik_time, pData + indx, TIME_LEN);
+        indx += TIME_LEN;
 
         for(int i = 0; i < NUM_JOINT; i++){
             QModelIndex index = model->index(0, i);
@@ -403,11 +415,33 @@ void MainWindow::readMessage(){
             ui->tvRobotInfor->update(index);
         }
 
-        for(int i = 0; i < NUM_JOINT; i++){
+        for(int i = 0; i < NUM_DOF; i++){
             QModelIndex index = model->index(1, i);
             model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
             ui->tvRobotInfor->update(index);
         }
+
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(2, i);
+            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(3, i);
+            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(4, i);
+            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
+        ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));
+        ui->txtIKTime->setText(QString::number(dataControl->ServerToClient.ik_time, 'f', 6));
     }
 }
 
@@ -425,40 +459,72 @@ void MainWindow::componentEnable(bool enable){
 
 void MainWindow::setTxtCommandClear()
 {
-    for(int i = 0; i < txtCmdRel.length(); i++)
+    for(int i = 0; i < txtJCmd.length(); i++)
     {
-        txtCmdRel[i]->setText("0");
+        txtJCmd[i]->setText("0");
     }
-    for(int i = 0; i < txtCmdAbs.length(); i++)
+    for(int i = 0; i < txtCCmd.length(); i++)
     {
-        txtCmdAbs[i]->setText("0");
+        txtCCmd[i]->setText("0");
     }
 }
 
-void MainWindow::cbJointPathClicked()
-{
-    ui->cbCartesianPath->setChecked(!ui->cbJointPath->isChecked());
-    ui->tvPathData->setModel(jointPathModel);
+//void MainWindow::cbJointPathClicked()
+//{
+//    ui->cbCartesianPath->setChecked(!ui->cbJointPath->isChecked());
+//    ui->tvPathData->setModel(jointPathModel);
 
-    if (jointPathModel->rowCount() == 0){
-        btnPathAppendClicked();
+//    if (jointPathModel->rowCount() == 0){
+//        btnPathAppendClicked();
+//    }
+//}
+
+//void MainWindow::cbCartesianPathClicked()
+//{
+//    ui->cbJointPath->setChecked(!ui->cbCartesianPath->isChecked());
+//    ui->tvPathData->setModel(cartPathModel);
+
+//    if (cartPathModel->rowCount() == 0){
+//        btnPathAppendClicked();
+//    }
+//}
+
+void MainWindow::cbJointRelChanged(int checked)
+{
+    if (checked){
+        ui->cbJointAbs->setChecked(false);
     }
+    cmdJointRel = checked;
 }
 
-void MainWindow::cbCartesianPathClicked()
+void MainWindow::cbJointAbsChanged(int checked)
 {
-    ui->cbJointPath->setChecked(!ui->cbCartesianPath->isChecked());
-    ui->tvPathData->setModel(cartPathModel);
-
-    if (cartPathModel->rowCount() == 0){
-        btnPathAppendClicked();
+    if (checked){
+        ui->cbJointRel->setChecked(false);
     }
+    cmdJointAbs = checked;
+}
+
+void MainWindow::cbCartRelChanged(int checked)
+{
+    if (checked){
+        ui->cbCartAbs->setChecked(false);
+    }
+    cmdCartRel = checked;
+}
+
+void MainWindow::cbCartAbsChanged(int checked)
+{
+    if (checked){
+        ui->cbCartRel->setChecked(false);
+    }
+    cmdCartAbs = checked;
 }
 
 void MainWindow::btnFileLoadClicked()
 {
 //    QString fileName = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("텍스트 파일"),"../RobotControllerUI/data","txt (*.txt)");
-////    qDebug() << fileName;
+//    qDebug() << fileName;
 //    if (fileName.size() > 1){
 //        if (ui->cbJointPath->isChecked()){
 //            load_data(fileName.toStdString(), &jointPathTxtData);
@@ -508,165 +574,213 @@ void MainWindow::btnFileLoadClicked()
 //                }
 //            }
 //        }
-//    }
+    //    }
 }
 
-void MainWindow::btnPathApplyClicked()
+void MainWindow::btnRunClicked()
 {
+    char indx = static_cast<char>(ui->cbPlaylist->currentIndex());
+
     txData.clear();
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_U);
 
-    if (ui->cbJointPath->isChecked()){
-        txData.append(1);   // path type
-        txData.append(-1);  // cycle count
-        uint16_t tvRow = static_cast<uint16_t>(jointPathModel->rowCount());
-        uint16_t tvCol = static_cast<uint16_t>(jointPathModel->columnCount());
-        char buf[4];
-        memcpy(buf, &tvRow, 2);
-        memcpy(buf + 2, &tvCol, 2);
-        txData.append(buf, 4);
-        for(int i = 0; i < tvRow; i++){
-            for(int j = 0; j < tvCol; j++){
-                txData.append(QByteArray::number(
-                                  jointPathModel->data(jointPathModel->index(i, j)).toDouble(),
-                                  'f', 6));
-            }
-        }
+    txData.append(indx);
+
+    if (ui->cbRepeat->isChecked()){
+        txData.append(-1);
     }
     else{
-        txData.append(2);   // path type
-        txData.append(-1);  // cycle count
-        uint16_t tvRow = static_cast<uint16_t>(cartPathModel->rowCount());
-        uint16_t tvCol = static_cast<uint16_t>(cartPathModel->columnCount());
-        char tvRowColChar[4];
-        memcpy(tvRowColChar, &tvRow, 2);
-        memcpy(tvRowColChar + 2, &tvCol, 2);
-        txData.append(tvRowColChar);
-        for(int i = 0; i < tvRow; i++){
-            for(int j = 0; j < tvCol; j++){
-                txData.append(QByteArray::number(
-                                  cartPathModel->data(cartPathModel->index(i, j)).toDouble(),
-                                  'f', 6));
-            }
-        }
+        txData.append(1);
     }
 
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
 
-//    qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << txData;
 
     tcpClient->socket->write(txData);
 }
 
-void MainWindow::btnPathClearClicked()
+void MainWindow::btnStopClicked()
 {
-    if (ui->cbJointPath->isChecked()){
-        jointPathModel->removeRows(0, jointPathModel->rowCount());
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_U);
+
+    txData.append(-1);
+
+    if (ui->cbRepeat->isChecked()){
+        txData.append(-1);
     }
     else{
-        cartPathModel->removeRows(0, jointPathModel->rowCount());
+        txData.append(1);
     }
+
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
+
+    qDebug() << "txData : " << txData;
+
+    tcpClient->socket->write(txData);
 }
 
-void MainWindow::btnPathInsertClicked()
-{
-    if (ui->cbJointPath->isChecked()){
-        if (rowClickedIndex >= 0){
-            jointPathModel->insertRow(rowClickedIndex);
-        }
-        if (colClickedIndex >= 0){
-            jointPathModel->insertColumn(colClickedIndex);
-        }
-    }
-    else{
-        if (rowClickedIndex >= 0){
-            cartPathModel->insertRow(rowClickedIndex);
-        }
-        if (colClickedIndex >= 0){
-            cartPathModel->insertColumn(colClickedIndex);
-        }
-    }
-}
+//void MainWindow::btnPathApplyClicked()
+//{
+//    txData.clear();
+//    txData.append(Qt::Key_N);
+//    txData.append(Qt::Key_U);
 
-void MainWindow::btnPathDeleteClicked()
-{
-    if (rowClickedIndex >= 0 && rowPressedIndex >= 0){
-        if (ui->cbJointPath->isChecked()){
-            jointPathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
-        }
-        else{
-            cartPathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
-        }
-        rowClickedIndex = -1;
-        rowPressedIndex = -1;
-    }
-    if (colClickedIndex >= 0 && colPressedIndex >= 0){
-        if (ui->cbJointPath->isChecked()){
-            jointPathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
-        }
-        else{
-            cartPathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
-        }
-        colClickedIndex = -1;
-        colPressedIndex = -1;
-    }
-}
+//    if (ui->cbJointPath->isChecked()){
+//        txData.append(DataControl::PathDataType::JointPath);   // path type
+//        txData.append(-1);  // cycle count
+//        uint16_t tvRow = static_cast<uint16_t>(jointPathModel->rowCount());
+//        uint16_t tvCol = static_cast<uint16_t>(jointPathModel->columnCount());
+//        char buf[4];
+//        memcpy(buf, &tvRow, 2);
+//        memcpy(buf + 2, &tvCol, 2);
+//        txData.append(buf, 4);
+//        for(int i = 0; i < tvRow; i++){
+//            for(int j = 0; j < tvCol; j++){
+//                txData.append(QByteArray::number(
+//                                  jointPathModel->data(jointPathModel->index(i, j)).toDouble(),
+//                                  'f', 6));
+//            }
+//        }
+//    }
+//    else{
+//        txData.append(DataControl::PathDataType::CartPath);   // path type
+//        txData.append(-1);  // cycle count
+//        uint16_t tvRow = static_cast<uint16_t>(cartPathModel->rowCount());
+//        uint16_t tvCol = static_cast<uint16_t>(cartPathModel->columnCount());
+//        char tvRowColChar[4];
+//        memcpy(tvRowColChar, &tvRow, 2);
+//        memcpy(tvRowColChar + 2, &tvCol, 2);
+//        txData.append(tvRowColChar);
+//        for(int i = 0; i < tvRow; i++){
+//            for(int j = 0; j < tvCol; j++){
+//                txData.append(QByteArray::number(
+//                                  cartPathModel->data(cartPathModel->index(i, j)).toDouble(),
+//                                  'f', 6));
+//            }
+//        }
+//    }
 
-void MainWindow::btnPathAppendClicked()
-{
-    if (ui->cbJointPath->isChecked()){
-        if (rowClickedIndex >= 0){
-            jointPathModel->insertRow(jointPathModel->rowCount());
-        }
-        if (colClickedIndex >= 0){
-            jointPathModel->insertColumn(jointPathModel->columnCount());
-        }
-    }
-    else{
-        if (rowClickedIndex >= 0){
-            cartPathModel->insertRow(cartPathModel->rowCount());
-        }
-        if (colClickedIndex >= 0){
-            cartPathModel->insertColumn(cartPathModel->columnCount());
-        }
-    }
-}
+//    txData.append(Qt::Key_N);
+//    txData.append(Qt::Key_E);
 
-void MainWindow::tvCellClicked(const QModelIndex &index)
-{
-    rowClickedIndex = index.row();
-    colClickedIndex = index.column();
-//    qDebug() << "Clicked row : " << rowClickedIndex << ", col : " << colClickedIndex;
-}
+////    qDebug() << "txData : " << txData;
 
-void MainWindow::horizontalSectionClicked(int index)
-{
-    colClickedIndex = index;
-//    qDebug() << "Clicked horizontal : " << index;
-    rowClickedIndex = -1;
-}
+//    tcpClient->socket->write(txData);
+//}
 
-void MainWindow::verticalSectionClicked(int index)
-{
-    rowClickedIndex = index;
-//    qDebug() << "Clicked vertical : " << index;
-    colClickedIndex = -1;
-}
+//void MainWindow::btnPathClearClicked()
+//{
+//    if (ui->cbJointPath->isChecked()){
+//        jointPathModel->removeRows(0, jointPathModel->rowCount());
+//    }
+//    else{
+//        cartPathModel->removeRows(0, jointPathModel->rowCount());
+//    }
+//}
 
-void MainWindow::horizontalSectionPressed(int index)
-{
-    colPressedIndex = index;
-//    qDebug() << "Pressed horizontal : " << index;
-    rowClickedIndex = -1;
-    rowPressedIndex = -1;
-}
+//void MainWindow::btnPathInsertClicked()
+//{
+//    if (ui->cbJointPath->isChecked()){
+//        if (rowClickedIndex >= 0){
+//            jointPathModel->insertRow(rowClickedIndex);
+//        }
+//        if (colClickedIndex >= 0){
+//            jointPathModel->insertColumn(colClickedIndex);
+//        }
+//    }
+//    else{
+//        if (rowClickedIndex >= 0){
+//            cartPathModel->insertRow(rowClickedIndex);
+//        }
+//        if (colClickedIndex >= 0){
+//            cartPathModel->insertColumn(colClickedIndex);
+//        }
+//    }
+//}
 
-void MainWindow::verticalSectionPressed(int index)
-{
-    rowPressedIndex = index;
-//    qDebug() << "Pressed vertical : " << index;
-    colClickedIndex = -1;
-    colPressedIndex = -1;
-}
+//void MainWindow::btnPathDeleteClicked()
+//{
+//    if (rowClickedIndex >= 0 && rowPressedIndex >= 0){
+//        if (ui->cbJointPath->isChecked()){
+//            jointPathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
+//        }
+//        else{
+//            cartPathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
+//        }
+//        rowClickedIndex = -1;
+//        rowPressedIndex = -1;
+//    }
+//    if (colClickedIndex >= 0 && colPressedIndex >= 0){
+//        if (ui->cbJointPath->isChecked()){
+//            jointPathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
+//        }
+//        else{
+//            cartPathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
+//        }
+//        colClickedIndex = -1;
+//        colPressedIndex = -1;
+//    }
+//}
+
+//void MainWindow::btnPathAppendClicked()
+//{
+//    if (ui->cbJointPath->isChecked()){
+//        if (rowClickedIndex >= 0){
+//            jointPathModel->insertRow(jointPathModel->rowCount());
+//        }
+//        if (colClickedIndex >= 0){
+//            jointPathModel->insertColumn(jointPathModel->columnCount());
+//        }
+//    }
+//    else{
+//        if (rowClickedIndex >= 0){
+//            cartPathModel->insertRow(cartPathModel->rowCount());
+//        }
+//        if (colClickedIndex >= 0){
+//            cartPathModel->insertColumn(cartPathModel->columnCount());
+//        }
+//    }
+//}
+
+//void MainWindow::tvCellClicked(const QModelIndex &index)
+//{
+//    rowClickedIndex = index.row();
+//    colClickedIndex = index.column();
+////    qDebug() << "Clicked row : " << rowClickedIndex << ", col : " << colClickedIndex;
+//}
+
+//void MainWindow::horizontalSectionClicked(int index)
+//{
+//    colClickedIndex = index;
+////    qDebug() << "Clicked horizontal : " << index;
+//    rowClickedIndex = -1;
+//}
+
+//void MainWindow::verticalSectionClicked(int index)
+//{
+//    rowClickedIndex = index;
+////    qDebug() << "Clicked vertical : " << index;
+//    colClickedIndex = -1;
+//}
+
+//void MainWindow::horizontalSectionPressed(int index)
+//{
+//    colPressedIndex = index;
+////    qDebug() << "Pressed horizontal : " << index;
+//    rowClickedIndex = -1;
+//    rowPressedIndex = -1;
+//}
+
+//void MainWindow::verticalSectionPressed(int index)
+//{
+//    rowPressedIndex = index;
+////    qDebug() << "Pressed vertical : " << index;
+//    colClickedIndex = -1;
+//    colPressedIndex = -1;
+//}

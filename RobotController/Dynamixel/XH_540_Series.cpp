@@ -220,9 +220,9 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
     //    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 200, &dxl_error); // df : 0
     //    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 50, &dxl_error); // df : 0
 
-    //    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 300, &dxl_error); // df : 300
+//        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 500, &dxl_error); // df : 300
 
-    //     packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 800, &dxl_error); // df : 800
+//         packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 1500, &dxl_error); // df : 800
     // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_D_GAIN, 0, &dxl_error); // df : 0
     //     packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_I_GAIN, 50, &dxl_error); // df : 0
 

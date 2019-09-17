@@ -5,6 +5,7 @@ NRMK_EIGEN_INC_PATH = $$INSTDIR/NRMKFoundation/core/3rdparty/eigen
 NRMK_HELPER_INC_PATH = $$INSTDIR/NRMKFoundation/helper/include
 NRMK_BIN_PATH = $$INSTDIR/NRMKFoundation/bin
 NRMK_LIB_PATH = $$INSTDIR/NRMKFoundation/lib
+NRMK_PATH = $$INSTDIR/NRMKFoundation
 NRMK_POCO_INC_PATH = $$INSTDIR/NRMKFoundation/core/3rdparty/Poco/include
 NRMK_POCO_LIB_PATH = $$INSTDIR/NRMKFoundation/core/3rdparty/Poco/lib
 NRMK_COLLISION_INC_PATH = $$INSTDIR/NRMKFoundation/core/3rdparty/collision/include
