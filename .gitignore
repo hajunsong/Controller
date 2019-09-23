@@ -3,4 +3,5 @@ RobotControllerCMakeOld/
 RobotControllerOld/
 RobotControllerTemp/
 **/*.pro.user
+**/*.pro.*
 **/build/
