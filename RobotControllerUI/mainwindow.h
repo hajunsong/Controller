@@ -71,6 +71,7 @@ public slots:
 //    void btnPathAppendClicked();
     void btnRunClicked();
     void btnStopClicked();
+    void btnReadyClicked();
 
     // checkbox event
 //    void cbJointPathClicked();

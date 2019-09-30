@@ -103,10 +103,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     items.append("pick up motion (cartesian path command)");
     items.append("rectangle motion (joint path command)");
     items.append("rectangle motion (cartesian path command)");
+    items.append("rectangle motion for evaluation (joint path command)");
+    items.append("rectangle motion for evaluation (cartesian path command");
+    items.append("joint motion for calibration");
+    items.append("linear motion 42 (joint path command)");
+    items.append("linear motion 42 (cartesian path command)");
+    items.append("linear motion 24 (joint path command)");
+    items.append("linear motion 24 (cartesian path command)");
     ui->cbPlaylist->addItems(items);
 
     connect(ui->btnRun, SIGNAL(clicked()), this, SLOT(btnRunClicked()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(btnStopClicked()));
+    connect(ui->btnReady, SIGNAL(clicked()), this, SLOT(btnReadyClicked()));
 
     connect(ui->cbJointRel, SIGNAL(stateChanged(int)), this, SLOT(cbJointRelChanged(int)));
     connect(ui->cbJointAbs, SIGNAL(stateChanged(int)), this, SLOT(cbJointAbsChanged(int)));
@@ -120,6 +128,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     customSettings = new CustomSettings(ui);
     customSettings->loadConfigFile();
+
+    ui->btnRun->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -145,6 +155,8 @@ void MainWindow::btnDisconnectClicked(){
     componentEnable(false);
     tcpClient->socket->close();
     qDebug() << "Disconnected Server";
+
+    ui->btnRun->setEnabled(false);
 }
 void MainWindow::btnSetInitClicked()
 {
@@ -586,6 +598,7 @@ void MainWindow::btnRunClicked()
     txData.append(Qt::Key_U);
 
     txData.append(indx);
+    txData.append(DataControl::OpMode::RunMode);
 
     if (ui->cbRepeat->isChecked()){
         txData.append(-1);
@@ -609,6 +622,7 @@ void MainWindow::btnStopClicked()
     txData.append(Qt::Key_U);
 
     txData.append(-1);
+    txData.append(DataControl::OpMode::Wait);
 
     if (ui->cbRepeat->isChecked()){
         txData.append(-1);
@@ -623,6 +637,36 @@ void MainWindow::btnStopClicked()
     qDebug() << "txData : " << txData;
 
     tcpClient->socket->write(txData);
+
+    ui->btnRun->setEnabled(false);
+}
+
+void MainWindow::btnReadyClicked()
+{
+    char indx = static_cast<char>(ui->cbPlaylist->currentIndex());
+
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_U);
+
+    txData.append(indx);
+    txData.append(DataControl::OpMode::ReadyMode);
+
+    if (ui->cbRepeat->isChecked()){
+        txData.append(-1);
+    }
+    else{
+        txData.append(1);
+    }
+
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
+
+    qDebug() << "txData : " << txData;
+
+    tcpClient->socket->write(txData);
+
+    ui->btnRun->setEnabled(true);
 }
 
 //void MainWindow::btnPathApplyClicked()

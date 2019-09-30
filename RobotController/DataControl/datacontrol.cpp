@@ -11,8 +11,12 @@ DataControl::DataControl()
     joint_goal_reach = true;
     memset(&PathData, 0, sizeof(PathData));
 
-    load_data("data/inverse_kinematics_result.txt", &PathData.pathDataPick);
-    load_data("data/rect_motion.txt", &PathData.pathDataRect);
+    load_data("data/inverse_kinematics_result.txt", &PathData.pathDataPick, "\t");
+    load_data("data/rect_motion.txt", &PathData.pathDataRect, "\t");
+    load_data("data/rect_motion2.txt", &PathData.pathDataRect2, "\t");
+    load_data("data/CalPos.csv", &PathData.pathDataCalibration, ",");
+    load_data("data/linear_motion_42.txt", &PathData.pathDataLinear42, "\t");
+    load_data("data/linear_motion_24.txt", &PathData.pathDataLinear24, "\t");
 }
 
 DataControl::~DataControl()
@@ -26,8 +30,28 @@ DataControl::~DataControl()
     for(uint i = 0; i < row; i++){
         PathData.pathDataRect[i].clear();
     }
+    row = PathData.pathDataRect2.size();
+    for(uint i = 0; i < row; i++){
+        PathData.pathDataRect2[i].clear();
+    }
+    row = PathData.pathDataCalibration.size();
+    for(uint i = 0; i < row; i++){
+        PathData.pathDataCalibration[i].clear();
+    }
+    row = PathData.pathDataLinear42.size();
+    for(uint i = 0; i < row; i++){
+        PathData.pathDataLinear42[i].clear();
+    }
+    row = PathData.pathDataLinear24.size();
+    for(uint i = 0; i < row; i++){
+        PathData.pathDataLinear24[i].clear();
+    }
     PathData.pathDataPick.clear();
     PathData.pathDataRect.clear();
+    PathData.pathDataRect2.clear();
+    PathData.pathDataCalibration.clear();
+    PathData.pathDataLinear42.clear();
+    PathData.pathDataLinear24.clear();
 }
 
 void DataControl::DataReset()

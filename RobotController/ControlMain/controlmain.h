@@ -51,6 +51,8 @@ private:
     void robotDynamics();
     void robotJointMove(char mode, double desJoint[NUM_JOINT]);
     void robotCartesianMove(char mode, double desCartesian[NUM_DOF]);
+    void robotRun(int16_t type);
+    void robotReady(int16_t type);
 
     void goalReach(double desired_pose[NUM_DOF], double present_pose[NUM_DOF], bool *goal_reach);
 
@@ -60,6 +62,8 @@ private:
     QTimer *dxlTimer;
 
     bool ready_pose;
+    bool cartesian_move_flag;
+    int delay;
 
 public slots:
     void dxlTimeout();

@@ -195,16 +195,16 @@ int DxlControl::dxl_init(uint8_t ID)
     // Write Dynamixel Operating mode
     packetHandler->write1ByteTxRx(portHandler, ID, ADDR_OPERATING_MODE, extended_position_mode, &dxl_error);
 
-//    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 200, &dxl_error); // df : 0
-//    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 50, &dxl_error); // df : 0
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 10, &dxl_error); // df : 0
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 5, &dxl_error); // df : 0
 
-    // packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 300, &dxl_error); // df : 300
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 100, &dxl_error); // df : 300
 
-    // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 800, &dxl_error); // df : 800
+//     packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 800, &dxl_error); // df : 800
     // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_D_GAIN, 0, &dxl_error); // df : 0
     // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_I_GAIN, 0, &dxl_error); // df : 0
 
-    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_RETURN_DELAY_TIME, 0, &dxl_error);
+    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_RETURN_DELAY_TIME, 10, &dxl_error);
 
     // Enable Dynamixel Torque
 //	packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);

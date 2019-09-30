@@ -63,14 +63,18 @@ public:
         uint16_t row, col;
         std::vector<std::vector<double> > pathDataPick;
         std::vector<std::vector<double> > pathDataRect;
+        std::vector<std::vector<double> > pathDataRect2;
+        std::vector<std::vector<double> > pathDataCalibration;
+        std::vector<std::vector<double> > pathDataLinear24;
+        std::vector<std::vector<double> > pathDataLinear42;
         uint path_data_indx;
     }StructPathData;
 
-    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, RunMode};
+    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR=1, SEA, JS_R8};
     enum Comm{RS485=1, RS232, EtherCAT};
-    enum PathDataType{Save1=1, Save2, Save3, Save4};
+    enum PathDataType{Save1=1, Save2, Save3, Save4, Save5, Save6, Save7, Save8, Save9, Save10, Save11};
 
     bool config_check;
     bool cartesian_goal_reach;
@@ -99,6 +103,6 @@ public:
     const double DEG2RAD = 0.017453293;//3.14159265358979323846/180.0;
     const double RAD2DEG = 57.295779513;//180.0/3.14159265358979323846;
 
-    const int32_t offset[6] = {2038, 500, 1672, 3200, 1142, 340};
+    const int32_t offset[6] = {2038, 500, 1672, 3200, 3967, 125};
     const int32_t ready_pose[6] = {30, 30, 90, -120, 30, 0};
 };
