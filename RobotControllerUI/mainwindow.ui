@@ -1266,7 +1266,7 @@
        </font>
       </property>
       <property name="title">
-       <string>Scenario Play</string>
+       <string>Play</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_8">
        <item row="2" column="0">
