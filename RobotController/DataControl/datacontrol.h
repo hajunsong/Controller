@@ -61,12 +61,12 @@ public:
     typedef struct _StructPathData{
         char type, repeat;
         uint16_t row, col;
-        std::vector<std::vector<double> > pathDataPick;
-        std::vector<std::vector<double> > pathDataRect;
-        std::vector<std::vector<double> > pathDataRect2;
-        std::vector<std::vector<double> > pathDataCalibration;
-        std::vector<std::vector<double> > pathDataLinear24;
-        std::vector<std::vector<double> > pathDataLinear42;
+        std::vector<double> pathDataPick;
+        std::vector<double> pathDataRect;
+        std::vector<double> pathDataRect2;
+        std::vector<double> pathDataCalibration;
+        std::vector<double> pathDataLinear24;
+        std::vector<double> pathDataLinear42;
         uint path_data_indx;
     }StructPathData;
 

@@ -206,38 +206,38 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                 switch(dataControl->PathData.type){
                     case DataControl::PathDataType::Save1:
                     case DataControl::PathDataType::Save2:
-                        dataControl->PathData.row = static_cast<uint16_t>(dataControl->PathData.pathDataPick.size());
-                        dataControl->PathData.col = static_cast<uint16_t>(dataControl->PathData.pathDataPick[0].size());
+                        dataControl->PathData.row = 8001;
+                        dataControl->PathData.col = 14;
                         dataControl->PathData.path_data_indx = 0;
                         break;
 
                     case DataControl::PathDataType::Save3:
                     case DataControl::PathDataType::Save4:
-                        dataControl->PathData.row = static_cast<uint16_t>(dataControl->PathData.pathDataRect.size());
-                        dataControl->PathData.col = static_cast<uint16_t>(dataControl->PathData.pathDataRect[0].size());
+                        dataControl->PathData.row = 2001;
+                        dataControl->PathData.col = 14;
                         dataControl->PathData.path_data_indx = 0;
                         break;
                     case DataControl::PathDataType::Save5:
                     case DataControl::PathDataType::Save6:
-                        dataControl->PathData.row = static_cast<uint16_t>(dataControl->PathData.pathDataRect2.size());
-                        dataControl->PathData.col = static_cast<uint16_t>(dataControl->PathData.pathDataRect2[0].size());
+                        dataControl->PathData.row = 2501;
+                        dataControl->PathData.col = 14;
                         dataControl->PathData.path_data_indx = 0;
                         break;
                     case DataControl::PathDataType::Save7:
-                        dataControl->PathData.row = static_cast<uint16_t>(dataControl->PathData.pathDataCalibration.size());
-                        dataControl->PathData.col = static_cast<uint16_t>(dataControl->PathData.pathDataCalibration[0].size());
+                        dataControl->PathData.row = 30;
+                        dataControl->PathData.col = 7;
                         dataControl->PathData.path_data_indx = 0;
                         break;
                     case DataControl::PathDataType::Save8:
                     case DataControl::PathDataType::Save9:
-                        dataControl->PathData.row = static_cast<uint16_t>(dataControl->PathData.pathDataLinear42.size());
-                        dataControl->PathData.col = static_cast<uint16_t>(dataControl->PathData.pathDataLinear42[0].size());
+                        dataControl->PathData.row = 1001;
+                        dataControl->PathData.col = 14;
                         dataControl->PathData.path_data_indx = 0;
                         break;
                     case DataControl::PathDataType::Save10:
                     case DataControl::PathDataType::Save11:
-                        dataControl->PathData.row = static_cast<uint16_t>(dataControl->PathData.pathDataLinear24.size());
-                        dataControl->PathData.col = static_cast<uint16_t>(dataControl->PathData.pathDataLinear24[0].size());
+                        dataControl->PathData.row = 1001;
+                        dataControl->PathData.col = 14;
                         dataControl->PathData.path_data_indx = 0;
                         break;
                 }

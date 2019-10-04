@@ -8,6 +8,42 @@ RobotArm::Body::Body(){
 
 RobotArm::Body::~Body(){}
 
+void RobotArm::Body::ang2mat(double ang_z1, double ang_x, double ang_z2, double *mat, bool deg_flag)
+{
+    double z1, x, z2;
+    if (deg_flag){
+        z1 = ang_z1*M_PI/180.0;
+        x = ang_x*M_PI/180.0;
+        z2 = ang_z2*M_PI/180.0;
+    }
+    else{
+        z1 = ang_z1;
+        x = ang_x;
+        z2 = ang_z2;
+    }
+
+    double Rz1[9] = {cos(z1), -sin(z1), 0, sin(z1), cos(z1), 0, 0, 0, 1};
+    double Rx[9] = {1, 0, 0, 0, cos(x), -sin(x), 0, sin(x), cos(x)};
+    double Rz2[9] = {cos(z2), -sin(z2), 0, sin(z2), cos(z2), 0, 0, 0, 1};
+    double Rz1Rx[9] = {0,};
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            for(int k = 0; k < 3; k++){
+                Rz1Rx[i*3+j] += Rz1[i*3+k]*Rx[k*3+j];
+            }
+        }
+    }
+
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            mat[i*3+j] = 0;
+            for(int k = 0; k < 3; k++){
+                mat[i*3+j] += Rz1Rx[i*3+k]*Rz2[k*3+j];
+            }
+        }
+    }
+}
+
 RobotArm::RobotArm(uint numbody, uint DOF) {
     num_body = numbody;
     dof = DOF;
@@ -25,72 +61,59 @@ RobotArm::RobotArm(uint numbody, uint DOF) {
 
     // read data
     start_time = 0;
-    end_time = 2;
     h = 0.001;
     g = -9.80665;
 
-    double *Ai_ptr, *ri_ptr, *Cij_ptr, *sijp_ptr;
+    // DH paramter
+    // | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
+    // |=====================================================|
+    // |  1   |    -90     |  0      |   0      |     90     |
+    // |  2   |     0      |  151.75 |   0      |    -90     |
+    // |  3   |     0      |  150    |   0      |     0      |
+    // |  4   |     90     |  86.75  |   0      |     90     |
+    // |  5   |     90     |  0      |   -20.25 |     90     |
+    // |  6   |     0      |  0      |   102.5  |     0      |
+
+    DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = 90;
+    DH[4] = 0;      DH[5] = 0.15175;    DH[6] = 0;          DH[7] = -90;
+    DH[8] = 0;      DH[9] = 0.150;      DH[10] = 0;         DH[11] = 0;
+    DH[12] = 90;    DH[13] = 0.08675;   DH[14] = 0;         DH[15] = 90;
+    DH[16] = 90;    DH[17] = 0;         DH[18] = -0.02025;  DH[19] = 90;
+    DH[20] = 0;     DH[21] = 0;         DH[22] = 0.1025;    DH[23] = 0;
+
     // body 0 variable
-    Ai_ptr = body[0].Ai;
-    *(Ai_ptr++) = 1;	*(Ai_ptr++) = 0;	*(Ai_ptr++) = 0;
-    *(Ai_ptr++) = 0;	*(Ai_ptr++) = 1;	*(Ai_ptr++) = 0;
-    *(Ai_ptr++) = 0;	*(Ai_ptr++) = 0;	*(Ai_ptr) = 1;
-    ri_ptr = body[0].ri;
-    *(ri_ptr++) = 0;	*(ri_ptr++) = 0;	*(ri_ptr++) = 0;
-    Cij_ptr = body[0].Cij;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = -1;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr) = 1;
-    sijp_ptr = body[0].sijp;
-    *(sijp_ptr++) = 0;	*(sijp_ptr++) = 0;	*(sijp_ptr++) = /*0;*/-0.042;
+    body[0].Ai[0] = 1; body[0].Ai[1] = 0; body[0].Ai[2] = 0;
+    body[0].Ai[3] = 0; body[0].Ai[4] = 1; body[0].Ai[5] = 0;
+    body[0].Ai[6] = 0; body[0].Ai[7] = 0; body[0].Ai[8] = 1;
+
+    body[0].ri[0] = 0; body[0].ri[1] = 0; body[0].ri[2] = 0;
+
+    Body::ang2mat(0, 0, 0, body[0].Cij);
+    body[0].sijp[0] = 0; body[0].sijp[1] = 0; body[0].sijp[2] = 0;
 
     // body 1 variable
-    Cij_ptr = body[1].Cij;
-    *(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = -1;	*(Cij_ptr) = 0;
-    sijp_ptr = body[1].sijp;
-    *(sijp_ptr++) = 0;	*(sijp_ptr++) = 0.0245;	*(sijp_ptr++) = 0.042;
+    Body::ang2mat(DH[0*4+3], DH[0*4+0], 0, body[1].Cij);
+    body[1].sijp[0] = 0; body[1].sijp[1] = 0; body[1].sijp[2] = 0;
 
     // body 2 variable
-    Cij_ptr = body[2].Cij;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = -1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr) = 1;
-    sijp_ptr = body[2].sijp;
-    *(sijp_ptr++) = 0;	*(sijp_ptr++) = -0.15175;	*(sijp_ptr++) = 0;
+    Body::ang2mat(DH[1*4+3], DH[1*4+0], 0, body[2].Cij);
+    body[2].sijp[0] = 0; body[2].sijp[1] = -DH[1*4+1]; body[2].sijp[2] = 0;
 
     // body 3 variable
-    Cij_ptr = body[3].Cij;
-    *(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr) = 1;
-    sijp_ptr = body[3].sijp;
-    *(sijp_ptr++) = 0.15;	*(sijp_ptr++) = 0;	*(sijp_ptr++) = 0;
+    Body::ang2mat(DH[2*4+3], DH[2*4+0], 0, body[3].Cij);
+    body[3].sijp[0] = DH[2*4+1]; body[3].sijp[1] = 0; body[3].sijp[2] = 0;
 
     // body 4 variable
-    Cij_ptr = body[4].Cij;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;
-    *(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;	*(Cij_ptr) = 0;
-    sijp_ptr = body[4].sijp;
-    *(sijp_ptr++) = 0.0245;	*(sijp_ptr++) = 0.08675;	*(sijp_ptr++) = -0.0245;
+    Body::ang2mat(DH[3*4+3], DH[3*4+0], 0, body[4].Cij);
+    body[4].sijp[0] = 0; body[4].sijp[1] = DH[3*4+1]; body[4].sijp[2] = 0;
 
     // body 5 variable
-    Cij_ptr = body[5].Cij;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;
-    *(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;	*(Cij_ptr) = 0;
-    sijp_ptr = body[5].sijp;
-    *(sijp_ptr++) = 0.0825;	*(sijp_ptr++) = 0;	*(sijp_ptr++) = -0.04475;
+    Body::ang2mat(DH[4*4+3], DH[4*4+0], 0, body[5].Cij);
+    body[5].sijp[0] = 0; body[5].sijp[1] = 0; body[5].sijp[2] = DH[4*4+2];
 
     // body 6 variable
-    Cij_ptr = body[6].Cij;
-    *(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 1;	*(Cij_ptr++) = 0;
-    *(Cij_ptr++) = 0;	*(Cij_ptr++) = 0;	*(Cij_ptr) = 1;
-    sijp_ptr = body[6].sijp;
-    *(sijp_ptr++) = 0;/*0.085;*/	*(sijp_ptr++) = 0;	*(sijp_ptr++) = 0.0125;
+    Body::ang2mat(DH[5*4+3], DH[5*4+0], 0, body[6].Cij);
+    body[6].sijp[0] = 0; body[6].sijp[1] = 0; body[6].sijp[2] = DH[5*4+2];
 
     numeric = new Numerical();
 }
@@ -220,7 +243,7 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
 
     double pos_d[3], ori_d[3];
 
-    for(uint i = 0; i < 10; i++){
+    for(uint i = 0; i < 5; i++){
         pos_d[0] = des_pose[0];
         pos_d[1] = des_pose[1];
         pos_d[2] = des_pose[2];
@@ -255,7 +278,7 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
 
         if (pos < epsilon_pos && ang_r < epsilon_ang && ang_p < epsilon_ang && ang_y < epsilon_ang){
             goal_reach = true;
-            printf("iteration : %d\n", i);
+            printf("[IK]iteration : %d\n", i);
             break;
         }
         else{
@@ -299,6 +322,7 @@ void RobotArm::kinematics()
             body[indx].ri[i] = body[indx - 1].ri[i] + body[indx - 1].sij[i];
         }
     }
+
     // End point
     for (uint i = 0; i < 3; i++) {
         body[num_body].sij[i] = 0;
@@ -321,19 +345,19 @@ void RobotArm::kinematics()
 }
 
 void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
-    for (uint i = 0; i < 3; i++) {
-        PH_pos[i] = des_pos[i] - body[num_body].re[i];
-    }
-    PH_ori[0] = des_ang[0] - body[num_body].roll;
-    PH_ori[1] = des_ang[1] - body[num_body].pitch;
-    PH_ori[2] = des_ang[2] - body[num_body].yaw;
+//    for (uint i = 0; i < 3; i++) {
+//        PH_pos[i] = des_pos[i] - body[num_body].re[i];
+//    }
+//    PH_ori[0] = des_ang[0] - body[num_body].roll;
+//    PH_ori[1] = des_ang[1] - body[num_body].pitch;
+//    PH_ori[2] = des_ang[2] - body[num_body].yaw;
 
-    for (uint i = 0; i < 3; i++) {
-        PH[i] = PH_pos[i];
-        PH[i + 3] = PH_ori[i];
-    }
+//    for (uint i = 0; i < 3; i++) {
+//        PH[i] = PH_pos[i];
+//        PH[i + 3] = PH_ori[i];
+//    }
 
-    jacobian();
+//    jacobian();
 
 #if 0
     double *U, *s, *V;
@@ -372,74 +396,59 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         }
     }
 #else
+
     int *indx = new int[6];
     double *fac = new double[6*6];
+    double errmax = 0;
+    int NRcount = 0;
 
-    numeric->ludcmp(J, 6, indx, 0.0, fac);
-    memset(delta_q, 0, sizeof(double) * 6);
-    numeric->lubksb(fac, 6, indx, PH, delta_q);
+    do{
+        for (uint i = 0; i < 3; i++) {
+            PH_pos[i] = des_pos[i] - body[num_body].re[i];
+        }
+        PH_ori[0] = des_ang[0] - body[num_body].roll;
+        PH_ori[1] = des_ang[1] - body[num_body].pitch;
+        PH_ori[2] = des_ang[2] - body[num_body].yaw;
 
-//    kinematics();
+        for (uint i = 0; i < 3; i++) {
+            PH[i] = PH_pos[i];
+            PH[i + 3] = PH_ori[i];
+        }
 
-//    for (uint i = 0; i < 3; i++) {
-//        PH_pos[i] = des_pos[i] - body[num_body].re[i];
-//    }
-//    PH_ori[0] = des_ang[0] - body[num_body].roll;
-//    PH_ori[1] = des_ang[1] - body[num_body].pitch;
-//    PH_ori[2] = des_ang[2] - body[num_body].yaw;
+        jacobian();
 
-//    for (uint i = 0; i < 3; i++) {
-//        PH[i] = PH_pos[i];
-//        PH[i + 3] = PH_ori[i];
-//    }
+        numeric->ludcmp(J, 6, indx, 0.0, fac);
+        memset(delta_q, 0, sizeof(double) * 6);
+        numeric->lubksb(fac, 6, indx, PH, delta_q);
 
-//    double err = PH[0];
-//    for(int i = 1; i < 6; i++){
-//        err = err > PH[i] ? PH[i] : err;
-//    }
+        for (uint i = 0; i < num_body; i++) {
+            body[i + 1].qi += delta_q[i];
+        }
 
-//    int iter = 0;
+        kinematics();
 
-//    while(err > 1e-3 && iter < 3){
-//        jacobian();
+        for (uint i = 0; i < 3; i++) {
+            PH_pos[i] = des_pos[i] - body[num_body].re[i];
+        }
+        PH_ori[0] = des_ang[0] - body[num_body].roll;
+        PH_ori[1] = des_ang[1] - body[num_body].pitch;
+        PH_ori[2] = des_ang[2] - body[num_body].yaw;
 
-//        numeric->ludcmp(J, 6, indx, 0.0, fac);
-//        memset(delta_q, 0, sizeof(double) * 6);
-//        numeric->lubksb(fac, 6, indx, PH, delta_q);
+        for (uint i = 0; i < 3; i++) {
+            PH[i] = PH_pos[i];
+            PH[i + 3] = PH_ori[i];
+        }
 
-//        kinematics();
-
-//        for (uint i = 0; i < 3; i++) {
-//            PH_pos[i] = des_pos[i] - body[num_body].re[i];
-//        }
-//        PH_ori[0] = des_ang[0] - body[num_body].roll;
-//        PH_ori[1] = des_ang[1] - body[num_body].pitch;
-//        PH_ori[2] = des_ang[2] - body[num_body].yaw;
-
-//        for (uint i = 0; i < 3; i++) {
-//            PH[i] = PH_pos[i];
-//            PH[i + 3] = PH_ori[i];
-//        }
-
-//        err = PH[0];
-//        for(int i = 1; i < 6; i++){
-//            err = err > PH[i] ? PH[i] : err;
-//        }
-
-//        iter++;
-//    }
-
-//    if (iter > 0){
-//        printf("Iteration : %d\n", iter);
-//    }
+        errmax = PH[0];
+        for(int i = 1; i < 6;i++){
+            errmax = errmax > PH[i] ? errmax : PH[i];
+        }
+        printf("[IK]Err Max : %f\t : Iteration : %d\n", errmax, NRcount++);
+    }while(errmax > 1e-3 && NRcount < 5);
 
     delete[] indx;
     delete[] fac;
 #endif
-
-    for (uint i = 0; i < num_body; i++) {
-        body[i + 1].qi += delta_q[i];
-    }
 }
 
 void RobotArm::jacobian()

@@ -140,6 +140,7 @@ MainWindow::~MainWindow()
     delete ui;
     delete tcpClient;
     delete dataControl;
+    delete customSettings;
 }
 
 void MainWindow::btnConnectClicked(){
@@ -173,7 +174,7 @@ void MainWindow::btnSetInitClicked()
 
     tcpClient->socket->write(txData);
 
-    int row = 5;
+    int row = 2;
     model = new QStandardItemModel(row, NUM_JOINT, this);
     ui->tvRobotInfor->setModel(model);
 
@@ -394,7 +395,7 @@ void MainWindow::readMessage(){
             disConnectServer();
         }
         else if(rxData.at(0) == 'S'){
-            qDebug() << "Client & Server configuration check complete";
+//            qDebug() << "Client & Server configuration check complete";
             componentEnable(true);
         }
     }

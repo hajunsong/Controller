@@ -5,3 +5,5 @@ RobotControllerTemp/
 **/*.pro.user
 **/*.pro.*
 **/build/
+**/config.ini
+**/deploy*

@@ -50,7 +50,11 @@ private:
         // Jacobian
         double Jvi[3], Jwi[3], re_qi[3], Ae_qi[9], r6_qi[3], A6_qi[9], Aijpp_qi[9];
         double Ae_qi_31, Ae_qi_32, Ae_qi_33, Ae_qi_21, Ae_qi_11, roll_qi, pitch_qi, yaw_qi;
+
+        static void ang2mat(double ang_z1, double ang_x, double ang_z2, double* mat, bool deg_flag = true);
     };
+
+    double DH[6*4];
 
     uint num_body, dof;
     double *PH, *PH_pos, *PH_ori, *delta_q, *J, *JD;

@@ -6,24 +6,27 @@ DxlControl::DxlControl()
     dxl_error = 0;
     moving_threshold = 0;
     current_limit = 0;
+    init_flag = false;
 }
 
 DxlControl::~DxlControl()
 {
-    // Close port
-    portHandler->closePort();
-    printf("Closed port\n");
+    if(init_flag){
+        // Close port
+        portHandler->closePort();
+        printf("Closed port\n");
 
-    // Clear syncwrite parameter storage
-    groupSyncReadPos->clearParam();
-    printf("groupSyncReadPos cleared param\n");
-    // groupSyncReadVel->clearParam();
-    // printf("groupSyncReadVel cleared param\n");
+        // Clear syncwrite parameter storage
+        groupSyncReadPos->clearParam();
+        printf("groupSyncReadPos cleared param\n");
+        // groupSyncReadVel->clearParam();
+        // printf("groupSyncReadVel cleared param\n");
 
-    delete groupSyncReadPos;
-    printf("Deleted groupSyncReadPos\n");
-    // delete groupSyncReadVel;
-    printf("Deleted groupSyncReadVel\n");
+        delete groupSyncReadPos;
+        printf("Deleted groupSyncReadPos\n");
+        // delete groupSyncReadVel;
+        printf("Deleted groupSyncReadVel\n");
+    }
 }
 
 void DxlControl::init() {
@@ -71,6 +74,8 @@ void DxlControl::init() {
 //            return;
 //        }
 //    }
+
+   init_flag = true;
 }
 
 int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
@@ -217,10 +222,10 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
         return 0;
     }
 
-        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 200, &dxl_error); // df : 0
-        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 50, &dxl_error); // df : 0
+        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 280, &dxl_error); // df : 0
+        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 80, &dxl_error); // df : 0
 
-        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 200, &dxl_error); // df : 300
+        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 300, &dxl_error); // df : 300
 
 //         packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 1500, &dxl_error); // df : 800
     // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_D_GAIN, 0, &dxl_error); // df : 0

@@ -105,6 +105,8 @@ private:
     dynamixel::PacketHandler *packetHandler;
     dynamixel::GroupSyncRead *groupSyncReadPos;
     dynamixel::GroupSyncRead *groupSyncReadVel;
+
+    bool init_flag;
 };
 
 const double POSITION_UNIT = 0.088;	// [deg]

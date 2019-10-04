@@ -40,7 +40,7 @@ void CustomSettings::loadConfigFile()
 
 QString CustomSettings::configFile()
 {
-    QString filePath = __FILE__;
-    return filePath.split("/Settings/customsettings.cpp")[0] + "/config.ini";
+    QString filePath = qApp->applicationDirPath() + "/config.ini";
+    return filePath;
 }
 
