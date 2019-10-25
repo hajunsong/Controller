@@ -9,7 +9,7 @@ QT       += core gui widgets network
 TARGET = RobotControllerUI
 TEMPLATE = app
 
-CONFIG += c++11 console
+CONFIG += c++11
 
 SOURCES += \
         DataControl/datacontrol.cpp \
@@ -17,8 +17,11 @@ SOURCES += \
         Logger/logger.cpp \
         Settings/customsettings.cpp \
         TcpSocket/tcpclient.cpp \
+        Input/keyinputclass.cpp \
+        Input/keyinputnomodifiedclass.cpp \
+        MainWindow/mainwindow.cpp \
+        TorqueIde/torqueide.cpp \
         main.cpp \
-        mainwindow.cpp
 
 HEADERS += \
         DataControl/datacontrol.h \
@@ -26,7 +29,11 @@ HEADERS += \
         Logger/logger.h \
         Settings/customsettings.h \
         TcpSocket/tcpclient.h \
-        mainwindow.h
+        Input/keyinputclass.h \
+        Input/keyinputnomodifiedclass.h \
+        MainWindow/mainwindow.h \
+        TorqueIde/torqueide.h \
 
 FORMS += \
-        mainwindow.ui
+        MainWindow/mainwindow.ui \
+        TorqueIde/torqueide.ui \

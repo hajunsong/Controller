@@ -174,10 +174,10 @@ void ControlMain::robot_run(void *arg)
         pThis->robotKinematics();
         pThis->robotDynamics();
 
-        //        rt_printf("Present Position : %d, %d, %d, %d, %d, %d\n",
-        //                  pThis->dataControl->RobotData.present_joint_position[0], pThis->dataControl->RobotData.present_joint_position[1],
-        //                pThis->dataControl->RobotData.present_joint_position[2], pThis->dataControl->RobotData.present_joint_position[3],
-        //                pThis->dataControl->RobotData.present_joint_position[4], pThis->dataControl->RobotData.present_joint_position[5]);
+//        rt_printf("Present Position : %d, %d, %d, %d, %d, %d\n",
+//                  pThis->dataControl->RobotData.present_joint_position[0], pThis->dataControl->RobotData.present_joint_position[1],
+//                pThis->dataControl->RobotData.present_joint_position[2], pThis->dataControl->RobotData.present_joint_position[3],
+//                pThis->dataControl->RobotData.present_joint_position[4], pThis->dataControl->RobotData.present_joint_position[5]);
         //        rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
         //                  pThis->dataControl->ServerToClient.presentCartesianPose[0], pThis->dataControl->ServerToClient.presentCartesianPose[1],
         //                pThis->dataControl->ServerToClient.presentCartesianPose[2], pThis->dataControl->ServerToClient.presentCartesianPose[3],

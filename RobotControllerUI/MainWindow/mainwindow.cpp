@@ -130,6 +130,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     customSettings->loadConfigFile();
 
     ui->btnRun->setEnabled(false);
+
+    keyInputClass = new KeyInputClass(ui);
 }
 
 MainWindow::~MainWindow()
@@ -141,6 +143,7 @@ MainWindow::~MainWindow()
     delete tcpClient;
     delete dataControl;
     delete customSettings;
+    delete keyInputClass;
 }
 
 void MainWindow::btnConnectClicked(){
@@ -668,6 +671,12 @@ void MainWindow::btnReadyClicked()
 
     ui->btnRun->setEnabled(true);
 }
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    keyInputClass->InputKeyboard(event);
+}
+
 
 //void MainWindow::btnPathApplyClicked()
 //{

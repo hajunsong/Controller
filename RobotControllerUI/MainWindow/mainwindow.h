@@ -18,6 +18,7 @@
 #include "Settings/customsettings.h"
 #include "DataControl/datacontrol.h"
 #include "FileIO/fileio.h"
+#include "Input/keyinputclass.h"
 
 namespace Ui {
 class MainWindow;
@@ -40,6 +41,7 @@ private:
     TcpClient *tcpClient;
     CustomSettings *customSettings;
     DataControl *dataControl;
+    KeyInputClass *keyInputClass;
 
     QStandardItemModel *model;
 //    QStandardItemModel *jointPathModel, *cartPathModel;
@@ -85,6 +87,9 @@ public slots:
     void onConnectServer();
     void disConnectServer();
     void readMessage();
+
+    // key input
+     void keyPressEvent(QKeyEvent *event);
 
     // tableview event
 //    void tvCellClicked(const QModelIndex &index);
