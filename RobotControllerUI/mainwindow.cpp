@@ -242,7 +242,6 @@ void MainWindow::btnServoOffClicked()
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
 
-
     qDebug() << "txData : " << txData;
 
     tcpClient->socket->write(txData);
