@@ -107,13 +107,13 @@ bool NRMKHelper::TcpServer::isConnected()
 
 void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 {
-//        printf("dwCount : %ld\n", dwCount);
+//    printf("dwCount : %ld\n", dwCount);
 
-//        printf("Receive data : ");
-//        for(unsigned long i = 0; i < dwCount; i++){
-//            printf("%d\t", lpBuffer[i]);
-//        }
-//        printf("\n");
+//    printf("Receive data : ");
+//    for(unsigned long i = 0; i < dwCount; i++){
+//        printf("%d\t", lpBuffer[i]);
+//    }
+//    printf("\n");
 
     if (!connected)
     {
@@ -133,21 +133,25 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
         {
             if (lpBuffer[0] == 'N' && lpBuffer[1] == 'D'){
                 dataControl->config_check = false;
-                if (lpBuffer[2] != NUM_JOINT){
-                    printf("Client & Server does not mathced number of joints\n");
-                }
-                else if (lpBuffer[3] != NUM_DOF){
-                    printf("Client & Server does not matched degree of freedom\n");
-                }
-                else if (lpBuffer[4] != MODULE_TYPE){
-                    printf("Client & Server does not matched module type\n");
+
+                if (lpBuffer[2] == NUM_JOINT && lpBuffer[3] == NUM_DOF && lpBuffer[4] == MODULE_TYPE){
+                    printf("Client & Server configuration check complete\n");
+                    dataControl->RobotData.joint_op_mode = lpBuffer[5];
+                    dataControl->config_check = true;
+//                    if (dataControl->ClientToServer.opMode == DataControl::OpMode::Initialize){
+//                        sendKey('S');
+//                    }
                 }
                 else{
-                    printf("Client & Server configuration check complete\n");
-                    dataControl->config_check = true;
-                    //                    if (dataControl->ClientToServer.opMode == DataControl::OpMode::Initialize){
-                    //                        sendKey('S');
-                    //                    }
+                    if (lpBuffer[2] != NUM_JOINT){
+                        printf("Client & Server does not mathced number of joints\n");
+                    }
+                    else if (lpBuffer[3] != NUM_DOF){
+                        printf("Client & Server does not matched degree of freedom\n");
+                    }
+                    else if (lpBuffer[4] != MODULE_TYPE){
+                        printf("Client & Server does not matched module type\n");
+                    }
                 }
 
                 if (!dataControl->config_check){

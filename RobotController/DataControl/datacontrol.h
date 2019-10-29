@@ -11,7 +11,7 @@
 
 #define NUM_JOINT               6
 #define NUM_DOF                 6
-#define MODULE_TYPE             1 // 1:FAR, 2:SEA, 3:JS-R8
+#define MODULE_TYPE             1 // 1:FAR, 2:SEA
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
 #define CARTESIAN_POSE_LEN      8
@@ -59,6 +59,7 @@ public:
         int32_t command_joint_position[NUM_JOINT];
         unsigned long time1, time2, dxl_time1, dxl_time2, ik_time1, ik_time2;
         int32_t offset[6];
+        uint8_t joint_op_mode;
     }StructRobotData;
 
     typedef struct _StructPathData{
@@ -75,7 +76,7 @@ public:
 
     enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
-    enum Module{FAR=1, SEA, JS_R8};
+    enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum PathDataType{Save1=1, Save2, Save3, Save4, Save5, Save6, Save7, Save8, Save9, Save10, Save11};
 

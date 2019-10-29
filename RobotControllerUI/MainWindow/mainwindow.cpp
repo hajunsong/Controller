@@ -92,10 +92,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 //    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
 //    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
 
-    ui->txtNumJoint->setText(QString::number(NUM_JOINT));
-    ui->txtNumDof->setText(QString::number(NUM_DOF));
-    ui->txtModuleType->setText(MODULE_TYPE == 1 ? "FAR" : MODULE_TYPE == 2 ? "SEA" : "JS-R8");
-    ui->txtCommType->setText(COMM_TYPE == 1 ? "RS485" : "RS232");
+//    ui->txtNumJoint->setText(QString::number(NUM_JOINT));
+//    ui->txtNumDof->setText(QString::number(NUM_DOF));
+//    ui->txtModuleType->setText(MODULE_TYPE == 1 ? "FAR" : MODULE_TYPE == 2 ? "SEA" : "JS-R8");
+//    ui->txtCommType->setText(COMM_TYPE == 1 ? "RS485" : "RS232");
 
     QStringList items;
     items.append("");
@@ -170,9 +170,10 @@ void MainWindow::btnSetInitClicked()
     txData.clear();
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_D);
-    txData.append(NUM_JOINT);
-    txData.append(NUM_DOF);
-    txData.append(MODULE_TYPE);
+    txData.append(static_cast<char>(ui->cbNumJoint->currentText().toInt()));
+    txData.append(static_cast<char>(ui->cbNumDOF->currentText().toInt()));
+    txData.append(static_cast<char>(ui->cbModuleType->currentIndex()));
+    txData.append(static_cast<char>(JointOpMode[(ui->cbJointMode->currentIndex())]));
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
 
@@ -400,7 +401,7 @@ void MainWindow::readMessage(){
             disConnectServer();
         }
         else if(rxData.at(0) == 'S'){
-//            qDebug() << "Client & Server configuration check complete";
+            qDebug() << "Client & Server configuration check complete";
             componentEnable(true);
         }
     }

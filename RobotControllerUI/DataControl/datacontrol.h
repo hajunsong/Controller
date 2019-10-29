@@ -10,8 +10,7 @@
 
 #define NRMK_SOCKET_TOKEN_SIZE  2
 
-#define MODULE_TYPE             1 // 1:FAR, 2:SEA, 3:JS-R8
-#define COMM_TYPE               1 // 1:RS485, 2:RS232
+#define MODULE_TYPE             1 // 1:FAR, 2:SEA
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
 #define CARTESIAN_POSE_LEN      8
@@ -57,7 +56,7 @@ public:
 
     enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
-    enum Module{FAR=1, SEA, JS_R8};
+    enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum PathDataType{JointPath = 1, CartPath, Save1, Save2, Save3, Save4};
 
@@ -69,3 +68,6 @@ public:
     StructServerToClient ServerToClient;
     std::vector<std::vector<double> > pathData;
 };
+
+enum { current_mode = 0, velocity_mode, position_mode = 3, extended_position_mode, current_based_position_mode, pwm_mode = 16 };
+const int32_t JointOpMode[7] = {0, current_mode, velocity_mode, position_mode, extended_position_mode, current_based_position_mode, pwm_mode};

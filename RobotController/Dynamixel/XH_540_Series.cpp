@@ -124,6 +124,26 @@ int DxlControl::dxl_init(uint8_t ID, uint8_t operating_mode)
         printf("[Operating mode] %s\n", packetHandler->getRxPacketError(dxl_error));
         return 0;
     }
+    printf("[ID:%03d] operate to ", ID);
+    switch(operating_mode){
+        case JointOpMode::current_mode:
+            printf("current mode\n");
+            break;
+        case JointOpMode::position_mode:
+            printf("position mode\n");
+            break;
+        case JointOpMode::velocity_mode:
+            printf("velocity mode\n");
+            break;
+        case JointOpMode::extended_position_mode:
+            printf("extended position mode\n");
+            break;
+        case JointOpMode::current_based_position_mode:
+            printf("current based position mode\n");
+            break;
+        default:
+            break;
+    }
 
     packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 280, &dxl_error); // df : 0
     packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 80, &dxl_error); // df : 0

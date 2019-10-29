@@ -74,7 +74,7 @@ void ControlMain::dxlTimeout(){
     dxlTimer->stop();
     if (dataControl->config_check){
         switch(MODULE_TYPE){
-            case DataControl::Module::FAR:
+            case DataControl::Module::FAR_V1:
                 if (!module_init){
                     printf("Start FAR Module Initilization\n");
                     moduleInitFAR();
@@ -91,8 +91,6 @@ void ControlMain::dxlTimeout(){
                 else{
                     tcpServer->sendKey('S');
                 }
-                break;
-            case DataControl::Module::JS_R8:
                 break;
             default:
                 break;
@@ -165,7 +163,7 @@ void ControlMain::robot_run(void *arg)
         }
 
         pThis->dataControl->RobotData.dxl_time1 = static_cast<unsigned long>(rt_timer_read());
-        if (MODULE_TYPE == DataControl::Module::FAR){
+        if (MODULE_TYPE == DataControl::Module::FAR_V1){
             for(uint8_t i = 0; i < NUM_JOINT; i++){
                 pThis->module->getGroupSyncReadIndirectAddress(i, &pThis->dataControl->RobotData.present_joint_position[i],
                                                                &pThis->dataControl->RobotData.present_joint_velocity[i],
@@ -239,8 +237,8 @@ void ControlMain::moduleInitFAR()
 
     while(!module_init)
     {
-        printf("Start module initialize %d\n", module_indx);
-        int init_result = module->dxl_init(module_indx, DxlControl::extended_position_mode);
+        printf("Start module initialize %d %d\n", module_indx, dataControl->RobotData.joint_op_mode);
+        int init_result = module->dxl_init(module_indx, dataControl->RobotData.joint_op_mode);
         if (init_result){
             int32_t pos = 0;
             module->getPresentPosition(module_indx, &pos);

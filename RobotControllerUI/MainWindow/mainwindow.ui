@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>969</width>
+    <width>980</width>
     <height>748</height>
    </rect>
   </property>
@@ -1076,7 +1076,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>240</width>
+        <width>250</width>
         <height>250</height>
        </size>
       </property>
@@ -1116,7 +1116,7 @@
          <item>
           <widget class="QLabel" name="labelCommType">
            <property name="text">
-            <string>Comm Type : </string>
+            <string>Joint Mode : </string>
            </property>
           </widget>
          </item>
@@ -1126,56 +1126,132 @@
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_5">
+           <property name="leftMargin">
+            <number>5</number>
+           </property>
            <item>
-            <widget class="QLabel" name="txtNumJoint">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
+            <widget class="QComboBox" name="cbNumJoint">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="text">
-              <string/>
-             </property>
+             <item>
+              <property name="text">
+               <string/>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="txtNumDof">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
+            <widget class="QComboBox" name="cbNumDOF">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="text">
-              <string/>
-             </property>
+             <item>
+              <property name="text">
+               <string/>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="txtModuleType">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
+            <widget class="QComboBox" name="cbModuleType">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="text">
-              <string/>
-             </property>
+             <item>
+              <property name="text">
+               <string/>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>FAR V1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>FAR V2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>SEA</string>
+              </property>
+             </item>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="txtCommType">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
+            <widget class="QComboBox" name="cbJointMode">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="text">
-              <string/>
-             </property>
+             <item>
+              <property name="text">
+               <string/>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Current</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Velocity</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Position</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Extended Position</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Current Based Position</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>PWM</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -1482,7 +1558,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>969</width>
+     <width>980</width>
      <height>22</height>
     </rect>
    </property>
