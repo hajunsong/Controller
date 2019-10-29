@@ -159,12 +159,18 @@ void ControlMain::robot_run(void *arg)
             case DataControl::OpMode::RunMode:
                 pThis->robotRun(pThis->dataControl->PathData.type);
                 break;
+            case DataControl::OpMode::TorqueIDE:
+                break;
             default : break;
         }
 
         pThis->dataControl->RobotData.dxl_time1 = static_cast<unsigned long>(rt_timer_read());
         if (MODULE_TYPE == DataControl::Module::FAR){
-            pThis->module->getGroupSyncReadPresentPosition(pThis->dataControl->RobotData.present_joint_position);
+            for(uint8_t i = 0; i < NUM_JOINT; i++){
+                pThis->module->getGroupSyncReadIndirectAddress(i, &pThis->dataControl->RobotData.present_joint_position[i],
+                                                               &pThis->dataControl->RobotData.present_joint_velocity[i],
+                                                               &pThis->dataControl->RobotData.present_joint_current[i]);
+            }
         }
         else if(MODULE_TYPE == DataControl::Module::SEA){
             pThis->module->getPresentPosition(1, &pThis->dataControl->RobotData.present_joint_position[0]);
@@ -174,20 +180,34 @@ void ControlMain::robot_run(void *arg)
         pThis->robotKinematics();
         pThis->robotDynamics();
 
+//        rt_printf("Joint Offset : %d, %d, %d, %d, %d, %d\n",
+//                  pThis->dataControl->RobotData.offset[0], pThis->dataControl->RobotData.offset[1],
+//                pThis->dataControl->RobotData.offset[2], pThis->dataControl->RobotData.offset[3],
+//                pThis->dataControl->RobotData.offset[4], pThis->dataControl->RobotData.offset[5]);
+
 //        rt_printf("Present Position : %d, %d, %d, %d, %d, %d\n",
 //                  pThis->dataControl->RobotData.present_joint_position[0], pThis->dataControl->RobotData.present_joint_position[1],
 //                pThis->dataControl->RobotData.present_joint_position[2], pThis->dataControl->RobotData.present_joint_position[3],
 //                pThis->dataControl->RobotData.present_joint_position[4], pThis->dataControl->RobotData.present_joint_position[5]);
-        //        rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
-        //                  pThis->dataControl->ServerToClient.presentCartesianPose[0], pThis->dataControl->ServerToClient.presentCartesianPose[1],
-        //                pThis->dataControl->ServerToClient.presentCartesianPose[2], pThis->dataControl->ServerToClient.presentCartesianPose[3],
-        //                pThis->dataControl->ServerToClient.presentCartesianPose[4], pThis->dataControl->ServerToClient.presentCartesianPose[5]);
-        //        rt_printf("Robot : Time since last turn: %ld.%06ld ms\n",
-        //                  (pThis->dataControl->RobotData.time2 - pThis->dataControl->RobotData.time1) / 1000000,
-        //                  (pThis->dataControl->RobotData.time2 - pThis->dataControl->RobotData.time1) % 1000000);
-        //        rt_printf("Dxl : Time since last turn: %ld.%06ld ms\n",
-        //                  (pThis->dataControl->RobotData.dxl_time2 - pThis->dataControl->RobotData.dxl_time1) / 1000000,
-        //                  (pThis->dataControl->RobotData.dxl_time2 - pThis->dataControl->RobotData.dxl_time1) % 1000000);
+//        rt_printf("Present Velocity : %d, %d, %d, %d, %d, %d\n",
+//                  pThis->dataControl->RobotData.present_joint_velocity[0], pThis->dataControl->RobotData.present_joint_velocity[1],
+//                pThis->dataControl->RobotData.present_joint_velocity[2], pThis->dataControl->RobotData.present_joint_velocity[3],
+//                pThis->dataControl->RobotData.present_joint_velocity[4], pThis->dataControl->RobotData.present_joint_velocity[5]);
+//        rt_printf("Present Current : %d, %d, %d, %d, %d, %d\n\n",
+//                  pThis->dataControl->RobotData.present_joint_current[0], pThis->dataControl->RobotData.present_joint_current[1],
+//                pThis->dataControl->RobotData.present_joint_current[2], pThis->dataControl->RobotData.present_joint_current[3],
+//                pThis->dataControl->RobotData.present_joint_current[4], pThis->dataControl->RobotData.present_joint_current[5]);
+
+//        rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
+//                  pThis->dataControl->ServerToClient.presentCartesianPose[0], pThis->dataControl->ServerToClient.presentCartesianPose[1],
+//                pThis->dataControl->ServerToClient.presentCartesianPose[2], pThis->dataControl->ServerToClient.presentCartesianPose[3],
+//                pThis->dataControl->ServerToClient.presentCartesianPose[4], pThis->dataControl->ServerToClient.presentCartesianPose[5]);
+//        rt_printf("Robot : Time since last turn: %ld.%06ld ms\n",
+//                  (pThis->dataControl->RobotData.time2 - pThis->dataControl->RobotData.time1) / 1000000,
+//                  (pThis->dataControl->RobotData.time2 - pThis->dataControl->RobotData.time1) % 1000000);
+//        rt_printf("Dxl : Time since last turn: %ld.%06ld ms\n",
+//                  (pThis->dataControl->RobotData.dxl_time2 - pThis->dataControl->RobotData.dxl_time1) / 1000000,
+//                  (pThis->dataControl->RobotData.dxl_time2 - pThis->dataControl->RobotData.dxl_time1) % 1000000);
 
         pThis->dataControl->ServerToClient.data_index = pThis->data_indx;
 
@@ -220,18 +240,21 @@ void ControlMain::moduleInitFAR()
     while(!module_init)
     {
         printf("Start module initialize %d\n", module_indx);
-        int init_result = module->dxl_init(module_indx, false);
+        int init_result = module->dxl_init(module_indx, DxlControl::extended_position_mode);
         if (init_result){
             int32_t pos = 0;
             module->getPresentPosition(module_indx, &pos);
             printf("%d axis present position : %d\n", module_indx, pos);
             if (pos != 0)
             {
+                module->initGroupSyncReadIndirectAddress(module_indx);
                 module_indx++;
             }
         }
         if (module_indx >= NUM_JOINT){
             module_init = true;
+
+            module->getGroupSyncReadPresentPosition(dataControl->RobotData.offset, NUM_JOINT);
         }
     }
     dxlTimer->stop();
@@ -247,7 +270,8 @@ void ControlMain::robotInitialize()
 }
 
 void ControlMain::robotServoOn(char enable){
-    module->setGroupSyncWriteTorqueEnable(static_cast<uint8_t>(enable));
+
+    module->setGroupSyncWriteTorqueEnable(static_cast<uint8_t>(enable), NUM_JOINT);
 
     dataControl->DataReset();
     dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
@@ -276,7 +300,7 @@ void ControlMain::robotJointMove(char mode, double desJoint[NUM_JOINT])
                     dataControl->RobotData.command_joint_position[i] = dataControl->RobotData.present_joint_position[i];
                 }
             }
-            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
             break;
         case DataControl::Motion::JointMotion:
             for(unsigned char i = 0; i < NUM_JOINT; i++){
@@ -288,7 +312,7 @@ void ControlMain::robotJointMove(char mode, double desJoint[NUM_JOINT])
                     dataControl->RobotData.command_joint_position[i] = dataControl->RobotData.present_joint_position[i];
                 }
             }
-            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
             break;
         default :
             break;
@@ -328,12 +352,12 @@ void ControlMain::robotCartesianMove(char mode, double desCartesian[NUM_DOF])
 
                 dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
-                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
                 goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
             }
             else{
-                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
                 goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
             }
@@ -360,12 +384,12 @@ void ControlMain::robotCartesianMove(char mode, double desCartesian[NUM_DOF])
 
                 dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
-                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
                 goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
             }
             else{
-                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+                module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
                 goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
             }
@@ -528,7 +552,7 @@ void ControlMain::robotRun(int16_t type)
             dataControl->RobotData.command_joint_position[2], dataControl->RobotData.command_joint_position[3],
             dataControl->RobotData.command_joint_position[4], dataControl->RobotData.command_joint_position[5]);
 
-    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
     if (type == DataControl::PathDataType::Save5 || type == DataControl::PathDataType::Save6 ||
             type == DataControl::PathDataType::Save8 || type == DataControl::PathDataType::Save9 ||
@@ -661,7 +685,7 @@ void ControlMain::robotReady(int16_t type)
             dataControl->RobotData.command_joint_position[2], dataControl->RobotData.command_joint_position[3],
             dataControl->RobotData.command_joint_position[4], dataControl->RobotData.command_joint_position[5]);
 
-    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position);
+    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 }
 
 void ControlMain::goalReach(double desired_pose[], double present_pose[], bool *goal_reach)

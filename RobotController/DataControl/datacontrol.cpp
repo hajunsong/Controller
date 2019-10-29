@@ -42,14 +42,14 @@ void DataControl::DataReset()
 void DataControl::jointPositionENC2DEG(int32_t pos_enc[], double pos_deg[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
-        pos_deg[i] = (pos_enc[i] - offset[i])*ENC2DEG;
+        pos_deg[i] = (pos_enc[i] - RobotData.offset[i])*ENC2DEG;
     }
 }
 
 void DataControl::jointPositionENC2RAD(int32_t pos_enc[], double pos_rad[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
-        pos_rad[i] = (pos_enc[i] - offset[i])*ENC2DEG*DEG2RAD;
+        pos_rad[i] = (pos_enc[i] - RobotData.offset[i])*ENC2DEG*DEG2RAD;
     }
 }
 
@@ -80,28 +80,28 @@ void DataControl::cartesianPoseScaleDown(double pose_big[], double pose_small[])
 void DataControl::jointPositionRAD2ENC(double pos_rad[], int32_t pos_enc[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
-        pos_enc[i] = static_cast<int32_t>(pos_rad[i]*RAD2DEG*DEG2ENC) + offset[i];
+        pos_enc[i] = static_cast<int32_t>(pos_rad[i]*RAD2DEG*DEG2ENC) + RobotData.offset[i];
     }
 }
 
 void DataControl::jointPositionDEG2ENC(double pos_deg[], int32_t pos_enc[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
-        pos_enc[i] = static_cast<int32_t>(pos_deg[i]*DEG2ENC) + offset[i];
+        pos_enc[i] = static_cast<int32_t>(pos_deg[i]*DEG2ENC) + RobotData.offset[i];
     }
 }
 
 void DataControl::jointPositionDEG2ENC(const int32_t pos_deg[], int32_t pos_enc[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
-        pos_enc[i] = static_cast<int32_t>(pos_deg[i]*DEG2ENC) + offset[i];
+        pos_enc[i] = static_cast<int32_t>(pos_deg[i]*DEG2ENC) + RobotData.offset[i];
     }
 }
 
 void DataControl::jointPositionDEG2ENC(int32_t pos_deg[], int32_t pos_enc[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
-        pos_enc[i] = static_cast<int32_t>(pos_deg[i]*DEG2ENC) + offset[i];
+        pos_enc[i] = static_cast<int32_t>(pos_deg[i]*DEG2ENC) + RobotData.offset[i];
     }
 }
 

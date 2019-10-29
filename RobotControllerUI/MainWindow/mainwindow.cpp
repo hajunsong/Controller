@@ -131,7 +131,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->btnRun->setEnabled(false);
 
-    keyInputClass = new KeyInputClass(ui);
+    torqueIde = new TorqueIde(tcpClient);
+
+    keyInputClass = new KeyInputClass(ui, torqueIde);
 }
 
 MainWindow::~MainWindow()
@@ -139,6 +141,7 @@ MainWindow::~MainWindow()
     customSettings->saveConfigFile();
     txtJCmd.clear();
     txtCCmd.clear();
+    delete torqueIde;
     delete ui;
     delete tcpClient;
     delete dataControl;
@@ -675,6 +678,14 @@ void MainWindow::btnReadyClicked()
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     keyInputClass->InputKeyboard(event);
+}
+
+void MainWindow::closeEvent(QCloseEvent*){
+    qDebug() << "Closed MainWindow";
+
+    if (torqueIde->isVisible()){
+        torqueIde->close();
+    }
 }
 
 

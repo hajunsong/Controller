@@ -1,12 +1,11 @@
 #include "keyinputnomodifiedclass.h"
 #include "MainWindow/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "TorqueIde/torqueide.h"
-#include "ui_torqueide.h"
 
-KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui)
+KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui, void* _torque_ide)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
+    torque_ide = static_cast<TorqueIde*>(_torque_ide);
 }
 
 void KeyinputNoModifiedClass::FuncKeyInput(QKeyEvent* keys)
@@ -218,9 +217,18 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
             break;
 
         case Qt::Key_F12:
+        {
             qDebug() << "Pressed F12";
-
+            if (static_cast<TorqueIde*>(torque_ide)->isHidden()){
+                qDebug() << "Enabled Torque IDE window";
+                static_cast<TorqueIde*>(torque_ide)->show();
+            }
+            else{
+                qDebug() << "Disabled Torque IDE window";
+                static_cast<TorqueIde*>(torque_ide)->close();
+            }
             break;
+        }
 
         default:
             break;

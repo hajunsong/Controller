@@ -6,7 +6,7 @@
 class KeyinputNoModifiedClass
 {
 public:
-    KeyinputNoModifiedClass(void* _ui);
+    KeyinputNoModifiedClass(void* _ui, void* torque_ide);
     void FuncKeyInput(QKeyEvent* keys);
     void NumberKeyInput(QKeyEvent* keys);
     void FxKeyInput(QKeyEvent* keys);
@@ -15,7 +15,6 @@ public:
 
 private:
     void* ui;
-    void* mainwindow;
     void* torque_ide;
 };
 

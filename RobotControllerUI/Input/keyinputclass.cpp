@@ -3,13 +3,13 @@
 #include "ui_mainwindow.h"
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
-#include <TorqueIde/torqueide.h>
 
-KeyInputClass::KeyInputClass(void* _ui)
+KeyInputClass::KeyInputClass(void* _ui, void* _torque_ide)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
+    torque_ide = static_cast<TorqueIde*>(_torque_ide);
 
-    keynone = new KeyinputNoModifiedClass(ui);
+    keynone = new KeyinputNoModifiedClass(ui, torque_ide);
 //    keyalt = new KeyinputAltClass(ui);
 //    keyctrl = new KeyinputControlClass(ui);
 //    keyshift = new KeyinputShiftClass(ui);
@@ -89,7 +89,7 @@ void KeyInputClass::InputKeyboard(QKeyEvent* keyevt)
 //        case Qt::KeypadModifier:
 //            keypad->KeypadKeyInput(keyevt);
 
-            break;
+//            break;
     }
 
 }

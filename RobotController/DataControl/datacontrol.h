@@ -49,6 +49,8 @@ public:
 
     typedef struct _StructRobotData{
         int32_t present_joint_position[NUM_JOINT];
+        int32_t present_joint_velocity[NUM_JOINT];
+        int16_t present_joint_current[NUM_JOINT];
         double present_end_pose[NUM_DOF];
         double desired_end_pose[NUM_DOF];
         double old_desired_end_pose[NUM_DOF];
@@ -56,6 +58,7 @@ public:
         double desired_q[NUM_JOINT];
         int32_t command_joint_position[NUM_JOINT];
         unsigned long time1, time2, dxl_time1, dxl_time2, ik_time1, ik_time2;
+        int32_t offset[6];
     }StructRobotData;
 
     typedef struct _StructPathData{
@@ -70,7 +73,7 @@ public:
         uint path_data_indx;
     }StructPathData;
 
-    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode};
+    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR=1, SEA, JS_R8};
     enum Comm{RS485=1, RS232, EtherCAT};
@@ -103,6 +106,5 @@ public:
     const double DEG2RAD = 0.017453293;//3.14159265358979323846/180.0;
     const double RAD2DEG = 57.295779513;//180.0/3.14159265358979323846;
 
-    const int32_t offset[6] = {2038, 500, 1672, 3200, 901, 1924};
-    const int32_t ready_pose[6] = {30, 30, 90, -120, 30, 0};
+//    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};
 };

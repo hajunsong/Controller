@@ -27,7 +27,7 @@
 #define SUB_MODE_LEN            1
 #define DESIRED_JOINT_LEN       8
 #define DESIRED_CARTESIAN_LEN   8
-#define CLIENT_TO_SERVER_LEM    NRMK_SOCKET_TOKEN_SIZE + OP_MODE_LEN + SUB_MODE_LEN + DESIRED_JOINT_LEN + DESIRED_CARTESIAN_LEN + NRMK_SOCKET_TOKEN_SIZE
+#define CLIENT_TO_SERVER_LEM    NRMK_SOCKET_TOKEN_SIZE + OP_MODE_LEN + JOINT_OP_MODE_LEN + SUB_MODE_LEN + DESIRED_JOINT_LEN*NUM_JOINT + DESIRED_CARTESIAN_LEN*NUM_DOF + NRMK_SOCKET_TOKEN_SIZE
 
 #define PATH_TYPE_LEN           1
 #define CYCLE_COUNT_LEN         1
@@ -55,7 +55,7 @@ public:
         double time, dxl_time, ik_time;
     }StructServerToClient;
 
-    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode};
+    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR=1, SEA, JS_R8};
     enum Comm{RS485=1, RS232, EtherCAT};

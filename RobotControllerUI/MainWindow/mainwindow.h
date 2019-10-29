@@ -19,6 +19,7 @@
 #include "DataControl/datacontrol.h"
 #include "FileIO/fileio.h"
 #include "Input/keyinputclass.h"
+#include "TorqueIde/torqueide.h"
 
 namespace Ui {
 class MainWindow;
@@ -42,6 +43,7 @@ private:
     CustomSettings *customSettings;
     DataControl *dataControl;
     KeyInputClass *keyInputClass;
+    TorqueIde *torqueIde;
 
     QStandardItemModel *model;
 //    QStandardItemModel *jointPathModel, *cartPathModel;
@@ -88,8 +90,9 @@ public slots:
     void disConnectServer();
     void readMessage();
 
-    // key input
+    // event
      void keyPressEvent(QKeyEvent *event);
+     void closeEvent(QCloseEvent* event);
 
     // tableview event
 //    void tvCellClicked(const QModelIndex &index);

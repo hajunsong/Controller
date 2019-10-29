@@ -4,28 +4,40 @@ DxlControl::DxlControl()
 {
     dxl_comm_result = COMM_TX_FAIL;
     dxl_error = 0;
-    moving_threshold = 0;
-    current_limit = 0;
     init_flag = false;
 }
 
 DxlControl::~DxlControl()
 {
     if(init_flag){
+        groupSyncRead->clearParam();
+        printf("groupSyncRead cleared param\n");
+        delete groupSyncRead;
+        printf("Deleted groupSyncRead\n");
+
+        groupSyncWrite->clearParam();
+        printf("groupSyncWrite cleared param\n");
+        delete groupSyncWrite;
+        printf("Deleted groupSyncWrite\n");
+
+        groupSyncWriteTorqueEnable->clearParam();
+        printf("groupSyncWriteTorqueEnable cleared param\n");
+        delete groupSyncWriteTorqueEnable;
+        printf("Deleted groupSyncWriteTorqueEnable\n");
+
+        groupSyncWritePresentPosition->clearParam();
+        printf("groupSyncWritePresentPosition cleared param\n");
+        delete groupSyncWritePresentPosition;
+        printf("Deleted groupSyncWritePresentPosition\n");
+
+        groupSyncWritePresentCurrent->clearParam();
+        printf("groupSyncWritePresentCurrent cleared param\n");
+        delete groupSyncWritePresentCurrent;
+        printf("Deleted groupSyncWritePresentCurrent\n");
+
         // Close port
         portHandler->closePort();
         printf("Closed port\n");
-
-        // Clear syncwrite parameter storage
-        groupSyncReadPos->clearParam();
-        printf("groupSyncReadPos cleared param\n");
-        // groupSyncReadVel->clearParam();
-        // printf("groupSyncReadVel cleared param\n");
-
-        delete groupSyncReadPos;
-        printf("Deleted groupSyncReadPos\n");
-        // delete groupSyncReadVel;
-        printf("Deleted groupSyncReadVel\n");
     }
 }
 
@@ -51,129 +63,20 @@ void DxlControl::init() {
         return;
     }
 
-    // Initialize Groupsyncread instance for Present Position
-   groupSyncReadPos = new dynamixel::GroupSyncRead(portHandler, packetHandler, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
-//    //    groupSyncReadVel = new dynamixel::GroupSyncRead(portHandler, packetHandler, ADDR_PRESENT_VELOCITY, LEN_PRESENT_VELOCITY);
+    // Initialize Groupsyncread instance
+    groupSyncRead = new dynamixel::GroupSyncRead(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_READ, LEN_INDIRECTADDRESS_FOR_READ);
 
-   bool dxl_addparam_result = false;	// addParam result
-//    // Add parameter storage for Dynamixel#1 present position value
-   for (uint8_t i = 0; i < 6; i++) {
-       dxl_addparam_result = groupSyncReadPos->addParam(i);
-       if (dxl_addparam_result != true)
-       {
-           fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", i);
-           return;
-       }
-   }
-//    // Add parameter storage for Dynamixel#1 present position value
-//    for (uint8_t i = 0; i < 6; i++) {
-//        dxl_addparam_result = groupSyncReadVel->addParam(i);
-//        if (dxl_addparam_result != true)
-//        {
-//            fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", i);
-//            return;
-//        }
-//    }
+    // Initialize GroupSyncWrite instance
+    groupSyncWrite = new dynamixel::GroupSyncWrite(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_WRITE, LEN_INDIRECTADDRESS_FOR_WRITE);
+    groupSyncWriteTorqueEnable = new dynamixel::GroupSyncWrite(portHandler, packetHandler, ADDR_TORQUE_ENABLE, LEN_TORQUE_ENABLE);
+    groupSyncWritePresentPosition = new dynamixel::GroupSyncWrite(portHandler, packetHandler, ADDR_GOAL_POSITION, LEN_GOAL_POSITION);
+    groupSyncWritePresentCurrent = new dynamixel::GroupSyncWrite(portHandler, packetHandler, ADDR_GOAL_CURRENT, LEN_GOAL_CURRENT);
 
-   init_flag = true;
+    init_flag = true;
 }
 
-int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
+int DxlControl::dxl_init(uint8_t ID, uint8_t operating_mode)
 {
-    if (factory_reset){
-        // Read present baudrate of the controller
-        printf("Now the controller baudrate is : %d\n", portHandler->getBaudRate());
-
-        printf("[ID:%03d] Try factoryreset : ", ID);
-        dxl_comm_result = packetHandler->factoryReset(portHandler, ID, OPERATION_MODE, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-        {
-            printf("Aborted\n");
-            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-            return 0;
-        }
-        else if (dxl_error != 0)
-        {
-            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-        }
-
-        // Wait for reset
-        printf("Wait for reset...\n");
-        usleep(2000000);
-
-        printf("[ID:%03d] factoryReset Success!\n", ID);
-
-        // Set controller baudrate to Dynamixel default baudrate
-        if (portHandler->setBaudRate(FACTORYRST_DEFAULTBAUDRATE))
-        {
-            printf("Succeed to change the controller baudrate to : %d\n", FACTORYRST_DEFAULTBAUDRATE);
-        }
-        else
-        {
-            printf("Failed to change the controller baudrate\n");
-            return 0;
-        }
-
-        // Read Dynamixel baudnum
-        uint8_t dxl_baudnum_read;                       // Read baudnum
-        dxl_comm_result = packetHandler->read1ByteTxRx(portHandler, ID, ADDR_BAUD_RATE, &dxl_baudnum_read, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-        {
-            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-        }
-        else if (dxl_error != 0)
-        {
-            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-        }
-        else
-        {
-            printf("[ID:%03d] DXL baudnum is now : %d\n", ID, dxl_baudnum_read);
-        }
-
-        // Write new baudnum
-        dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, ID, ADDR_BAUD_RATE, BR_4M, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-        {
-            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-        }
-        else if (dxl_error != 0)
-        {
-            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-        }
-        else
-        {
-            printf("[ID:%03d] Set Dynamixel baudnum to : %d\n", ID, BR_4M);
-        }
-
-        // Set port baudrate to BAUDRATE
-        if (portHandler->setBaudRate(BAUDRATE))
-        {
-            printf("Succeed to change the controller baudrate to : %d\n", BAUDRATE);
-        }
-        else
-        {
-            printf("Failed to change the controller baudrate\n");
-            return 0;
-        }
-
-        usleep(200000);
-
-        // Read Dynamixel baudnum
-        dxl_comm_result = packetHandler->read1ByteTxRx(portHandler, ID, ADDR_BAUD_RATE, &dxl_baudnum_read, &dxl_error);
-        if (dxl_comm_result != COMM_SUCCESS)
-        {
-            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-        }
-        else if (dxl_error != 0)
-        {
-            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-        }
-        else
-        {
-            printf("[ID:%03d] Dynamixel Baudnum is now : %d\n", ID, dxl_baudnum_read);
-        }
-    }
-
     // Check Dynamixel Torque on or off
     uint8_t torque = 0;
     dxl_comm_result = packetHandler->read1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, &torque, &dxl_error);
@@ -187,8 +90,8 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
     }
 
     //    cout << "torque enable : " << torque << endl;
-   if (torque == TORQUE_ENABLE)
-   {
+    if (torque == TORQUE_ENABLE)
+    {
         // Disable Dynamixel Torque
         dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS) {
@@ -199,7 +102,7 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
             printf("[Torque Disable] %s\n", packetHandler->getRxPacketError(dxl_error));
             return 0;
         }
-   }
+    }
 
     dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, ID, ADDR_LED, 1, &dxl_error);
     if (dxl_comm_result != COMM_SUCCESS) {
@@ -212,7 +115,7 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
     }
 
     // Write Dynamixel Operating mode
-    dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, ID, ADDR_OPERATING_MODE, extended_position_mode, &dxl_error);
+    dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, ID, ADDR_OPERATING_MODE, operating_mode, &dxl_error);
     if (dxl_comm_result != COMM_SUCCESS) {
         printf("[Operating mode] %s\n", packetHandler->getTxRxResult(dxl_comm_result));
         return 0;
@@ -222,12 +125,12 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
         return 0;
     }
 
-        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 280, &dxl_error); // df : 0
-        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 80, &dxl_error); // df : 0
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 280, &dxl_error); // df : 0
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 80, &dxl_error); // df : 0
 
-        packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 300, &dxl_error); // df : 300
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 300, &dxl_error); // df : 300
 
-//         packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 1500, &dxl_error); // df : 800
+    //         packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 1500, &dxl_error); // df : 800
     // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_D_GAIN, 0, &dxl_error); // df : 0
     //     packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_I_GAIN, 50, &dxl_error); // df : 0
 
@@ -243,6 +146,16 @@ int DxlControl::dxl_init(uint8_t ID, bool factory_reset)
 
     // Enable Dynamixel Torque
     //	packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+
+    bool dxl_addparam_result = false;	// addParam result
+
+    // Add parameter storage
+    dxl_addparam_result = groupSyncRead->addParam(ID);
+    if (dxl_addparam_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", ID);
+        printf("[ID:%03d] groupSyncRead add param failed", ID);
+    }
 
     printf("Dynamixel(ID : %d) has been successfully connected\n", ID);
 
@@ -273,17 +186,12 @@ void DxlControl::dxl_deinit(uint8_t ID){
     printf("Dynamixel has been successfully disconnected\n");
 }
 
-void DxlControl::setLEDon(uint8_t ID)
+void DxlControl::setLED(uint8_t ID, uint8_t on_off)
 {
-    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_LED, 1, &dxl_error);
+    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_LED, on_off, &dxl_error);
 }
 
-void DxlControl::setLEDoff(uint8_t ID)
-{
-    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_LED, 0, &dxl_error);
-}
-
-void DxlControl::setGoalPosition(int32_t goal_position, uint8_t ID)
+void DxlControl::setGoalPosition(uint8_t ID, int32_t goal_position)
 {
     dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, ID, ADDR_GOAL_POSITION, static_cast<uint32_t>(goal_position), &dxl_error);
     if (dxl_comm_result != COMM_SUCCESS)
@@ -296,7 +204,7 @@ void DxlControl::setGoalPosition(int32_t goal_position, uint8_t ID)
     }
 }
 
-void DxlControl::setGoalVelocity(int32_t goal_velocity, uint8_t ID)
+void DxlControl::setGoalVelocity(uint8_t ID, int32_t goal_velocity)
 {
     packetHandler->write4ByteTxRx(portHandler, ID, ADDR_GOAL_VELOCITY, static_cast<uint32_t>(goal_velocity), &dxl_error);
 }
@@ -313,7 +221,7 @@ void DxlControl::setOperateMode(uint8_t mode, uint8_t ID)
     packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
 }
 
-void DxlControl::setTorqueEnable(uint8_t enable, uint8_t ID)
+void DxlControl::setTorqueEnable(uint8_t ID, uint8_t enable)
 {
     // Change State Dynamixel Torque
     dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, enable, &dxl_error);
@@ -343,41 +251,141 @@ void DxlControl::getPresentPosition(uint8_t ID, int32_t* present_position_ptr)
     *present_position_ptr = present_position;
 }
 
-int32_t DxlControl::getPresentVelocity(uint8_t ID)
+void DxlControl::getPresentVelocity(uint8_t ID, int32_t* present_velocity_ptr)
 {
     int32_t present_velocity = 0;
-    packetHandler->read4ByteTxRx(portHandler, ID, ADDR_PRESENT_VELOCITY, reinterpret_cast<uint32_t*>(&present_velocity), &dxl_error);
+    dxl_comm_result = packetHandler->read4ByteTxRx(portHandler, ID, ADDR_PRESENT_VELOCITY, reinterpret_cast<uint32_t*>(&present_velocity), &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    }
+    else if (dxl_error != 0)
+    {
+        printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+    }
     //    return static_cast<double>(present_velocity) * 0.01*6.0 * M_PI / 180.0;
-    return present_velocity;
+    *present_velocity_ptr = present_velocity;
 }
 
-int16_t DxlControl::getPresentCurrent(uint8_t ID)
+void DxlControl::getPresentCurrent(uint8_t ID, int16_t*  present_current_ptr)
 {
     int16_t present_current = 0;
-    packetHandler->read2ByteTxRx(portHandler, ID, ADDR_PRESENT_CURRENT, reinterpret_cast<uint16_t*>(&present_current), &dxl_error);
-    return present_current;// * 0.001;
+    dxl_comm_result = packetHandler->read2ByteTxRx(portHandler, ID, ADDR_PRESENT_CURRENT, reinterpret_cast<uint16_t*>(&present_current), &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    }
+    else if (dxl_error != 0)
+    {
+        printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+    }
+    *present_current_ptr = present_current;
 }
 
-double DxlControl::getPresentVoltage(uint8_t ID)
+void DxlControl::setGroupSyncWriteTorqueEnable(uint8_t enable, uint8_t num_joint)
 {
-    uint16_t present_voltage = 0;
-    packetHandler->read2ByteTxRx(portHandler, ID, ADDR_PRESENT_INPUT_VOLTAGE, &present_voltage, &dxl_error);
-    return present_voltage * 0.1;
+    bool dxl_addparam_result = false;	// addParam result
+
+    for (uint8_t i = 0; i < num_joint; i++) {
+        // Add Dynamixel#n goal position value to the Syncwrite storage
+        dxl_addparam_result = groupSyncWriteTorqueEnable->addParam(i, &enable);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            return;
+        }
+    }
+
+    // Syncwrite goal position
+    dxl_comm_result = groupSyncWriteTorqueEnable->txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+    // Clear syncwrite parameter storage
+    groupSyncWriteTorqueEnable->clearParam();
 }
 
-void DxlControl::getGroupSyncReadPresentPosition(int32_t *present_position)
+void DxlControl::setGroupSyncWriteGoalPosition(int32_t *goalPosition, uint8_t num_joint)
 {
+    bool dxl_addparam_result = false;	// addParam result
+
+    for (uint8_t i = 0; i < num_joint; i++) {
+        uint8_t param_goal_position[LEN_GOAL_POSITION];
+        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goalPosition[i]));
+        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goalPosition[i]));
+        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goalPosition[i]));
+        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goalPosition[i]));
+
+        // Add Dynamixel#n goal position value to the Syncwrite storage
+        dxl_addparam_result = groupSyncWritePresentPosition->addParam(i, param_goal_position);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            return;
+        }
+    }
+
+    // Syncwrite goal position
+    dxl_comm_result = groupSyncWritePresentPosition->txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+    // Clear syncwrite parameter storage
+    groupSyncWritePresentPosition->clearParam();
+}
+
+void DxlControl::setGroupSyncWriteGoalCurrent(int16_t *goalCurrent, uint8_t num_joint)
+{
+    bool dxl_addparam_result = false;	// addParam result
+
+    for (uint8_t i = 0; i < num_joint; i++) {
+        uint8_t param_goal_current[LEN_GOAL_CURRENT];
+        param_goal_current[0] = DXL_LOBYTE(DXL_LOWORD(goalCurrent[i]));
+        param_goal_current[1] = DXL_HIBYTE(DXL_LOWORD(goalCurrent[i]));
+
+        // Add Dynamixel#n goal position value to the Syncwrite storage
+        dxl_addparam_result = groupSyncWritePresentCurrent->addParam(i, param_goal_current);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            return;
+        }
+    }
+
+    // Syncwrite goal position
+    dxl_comm_result = groupSyncWritePresentCurrent->txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+    // Clear syncwrite parameter storage
+    groupSyncWritePresentCurrent->clearParam();
+}
+
+void DxlControl::getGroupSyncReadPresentPosition(int32_t *present_position, uint8_t num_joint){
+    dynamixel::GroupSyncRead groupSyncReadPresentPosition(portHandler, packetHandler, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
+
+    bool dxl_addparam_result = false;	// addParam result
+    // Add parameter storage for Dynamixel#1 present position value
+    for (uint8_t i = 0; i < num_joint; i++) {
+        dxl_addparam_result = groupSyncReadPresentPosition.addParam(i);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", i);
+            return;
+        }
+    }
+
     bool dxl_getdata_result = false;	// GetParam result
 
     // Syncread present position
-    dxl_comm_result = groupSyncReadPos->txRxPacket();
+    dxl_comm_result = groupSyncReadPresentPosition.txRxPacket();
     if (dxl_comm_result != COMM_SUCCESS)
     {
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
     }
     else {
         for (uint8_t i = 0; i < 6; i++) {
-            if (groupSyncReadPos->getError(i, &dxl_error)) {
+            if (groupSyncReadPresentPosition.getError(i, &dxl_error)) {
                 printf("[ID:%03d] %s\n", i, packetHandler->getRxPacketError(dxl_error));
             }
         }
@@ -385,7 +393,7 @@ void DxlControl::getGroupSyncReadPresentPosition(int32_t *present_position)
 
     // Check if groupsyncread data of Dynamixel#n is available
     for (uint8_t i = 0; i < 6; i++) {
-        dxl_getdata_result = groupSyncReadPos->isAvailable(i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
+        dxl_getdata_result = groupSyncReadPresentPosition.isAvailable(i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
         if (dxl_getdata_result != true)
         {
             fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", i);
@@ -395,96 +403,170 @@ void DxlControl::getGroupSyncReadPresentPosition(int32_t *present_position)
 
     // Get Dynamixel#n present position value
     for (uint8_t i = 0; i < 6; i++) {
-        present_position[i] = static_cast<int32_t>(groupSyncReadPos->getData(i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION));
-        //printf("[ID:%03d] PresPos:%03d\n", i, present_position[i]);
+        present_position[i] = static_cast<int32_t>(groupSyncReadPresentPosition.getData(i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION));
+        printf("[ID:%03d] PresPos:%03d\n", i, present_position[i]);
+    }
+
+    groupSyncReadPresentPosition.clearParam();
+}
+
+void DxlControl::initGroupSyncWriteIndirectAddress(uint8_t ID){
+    // INDIRECTDATA parameter storages replace torque enable, goal position, goal current
+    uint16_t indx = 0;
+    for(uint8_t i = 0; i < LEN_TORQUE_ENABLE; i++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_WRITE + indx, ADDR_TORQUE_ENABLE + i, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        }
+        else if (dxl_error != 0)
+        {
+            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+        indx += 2;
+    }
+
+    for(uint8_t i = 0; i < LEN_GOAL_POSITION; i++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_WRITE + indx, ADDR_GOAL_POSITION + i, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        }
+        else if (dxl_error != 0)
+        {
+            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+        indx += 2;
+    }
+
+    for(uint8_t i = 0; i < LEN_GOAL_CURRENT; i++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_WRITE + indx, ADDR_GOAL_CURRENT + i, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        }
+        else if (dxl_error != 0)
+        {
+            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+        indx += 2;
     }
 }
 
-void DxlControl::getGroupSyncReadPresentVelocity(int32_t *present_velocity)
-{
-    bool dxl_getdata_result = false;	// GetParam result
+void DxlControl::setGroupSyncWriteIndirectAddress(uint8_t *torque_enable, int32_t *goal_position, int16_t *goal_current, uint8_t num_joint){
 
-    // Syncread present position
-    dxl_comm_result = groupSyncReadVel->txRxPacket();
+    bool dxl_addparam_result = false;	// addParam result
+
+    for (uint8_t i = 0; i < num_joint; i++) {
+        // Allocate LED and goal position value into byte array
+        uint8_t param_indirect_sync_write[LEN_INDIRECTADDRESS_FOR_WRITE];
+        param_indirect_sync_write[0] = torque_enable[i];
+        param_indirect_sync_write[1] = DXL_LOBYTE(DXL_LOWORD(goal_position[i]));
+        param_indirect_sync_write[2] = DXL_HIBYTE(DXL_LOWORD(goal_position[i]));
+        param_indirect_sync_write[3] = DXL_LOBYTE(DXL_HIWORD(goal_position[i]));
+        param_indirect_sync_write[4] = DXL_HIBYTE(DXL_HIWORD(goal_position[i]));
+        param_indirect_sync_write[5] = DXL_LOBYTE(DXL_LOWORD(goal_current[i]));
+        param_indirect_sync_write[6] = DXL_HIBYTE(DXL_LOWORD(goal_current[i]));
+
+        // Add values to the Syncwrite storage
+        dxl_addparam_result = groupSyncWrite->addParam(i, param_indirect_sync_write);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            return;
+        }
+    }
+
+    // Syncwrite all
+    dxl_comm_result = groupSyncWrite->txPacket();
     if (dxl_comm_result != COMM_SUCCESS)
     {
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
     }
-    else {
-        for (uint8_t i = 0; i < 6; i++) {
-            if (groupSyncReadVel->getError(i, &dxl_error)) {
-                printf("[ID:%03d] %s\n", i, packetHandler->getRxPacketError(dxl_error));
-            }
-        }
-    }
 
-    // Check if groupsyncread data of Dynamixel#n is available
-    for (uint8_t i = 0; i < 6; i++) {
-        dxl_getdata_result = groupSyncReadVel->isAvailable(i, ADDR_PRESENT_VELOCITY, LEN_PRESENT_VELOCITY);
-        if (dxl_getdata_result != true)
+    // Clear syncwrite parameter storage
+    groupSyncWrite->clearParam();
+}
+
+void DxlControl::initGroupSyncReadIndirectAddress(uint8_t ID){
+    // INDIRECTDATA parameter storages replace present position, present velocity, present current
+    uint16_t indx = 0;
+    for(uint16_t j = 0; j < LEN_PRESENT_POSITION; j++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_READ + indx, ADDR_PRESENT_POSITION + j, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
         {
-            fprintf(stderr, "[ID:%03d] groupSyncRead get data failed", i);
-            return;
+            printf("[Indirect address (present position)] %s\n", packetHandler->getTxRxResult(dxl_comm_result));
         }
+        else if (dxl_error != 0)
+        {
+            printf("[Indirect address (present position)] %s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+        indx += 2;
     }
 
-    // Get Dynamixel#n present position value
-    for (uint8_t i = 0; i < 6; i++) {
-        present_velocity[i] = static_cast<int32_t>(groupSyncReadVel->getData(i, ADDR_PRESENT_VELOCITY, LEN_PRESENT_VELOCITY));
-        //printf("[ID:%03d] PresPos:%03d\n", i, present_position[i]);
+    for(uint16_t j = 0; j < LEN_PRESENT_VELOCITY; j++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_READ + indx, ADDR_PRESENT_VELOCITY + j, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            printf("[Indirect address (present position)] %s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        }
+        else if (dxl_error != 0)
+        {
+            printf("[Indirect address (present position)] %s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+        indx += 2;
+    }
+
+    for(uint16_t j = 0; j < LEN_PRESENT_CURRENT; j++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_READ + indx, ADDR_PRESENT_CURRENT + j, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            printf("[Indirect address (present position)] %s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        }
+        else if (dxl_error != 0)
+        {
+            printf("[Indirect address (present position)] %s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+        indx += 2;
     }
 }
 
-void DxlControl::setGroupSyncWriteGoalPosition(int32_t *goalPosition)
-{
-    bool dxl_addparam_result = false;	// addParam result
-    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_GOAL_POSITION, LEN_GOAL_POSITION);
-
-    for (uint8_t i = 0; i < 6; i++) {
-        uint8_t param_goal_position[4];
-        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(goalPosition[i]));
-        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(goalPosition[i]));
-        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(goalPosition[i]));
-        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goalPosition[i]));
-
-        // Add Dynamixel#n goal position value to the Syncwrite storage
-        dxl_addparam_result = groupSyncWrite.addParam(i, param_goal_position);
-        if (dxl_addparam_result != true)
-        {
-            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
-            return;
-        }
+void DxlControl::getGroupSyncReadIndirectAddress(uint8_t ID, int32_t *present_position, int32_t *present_velocity, int16_t *present_current){
+    // Syncread present data from indirectdata
+    dxl_comm_result = groupSyncRead->txRxPacket();
+    if (dxl_comm_result != COMM_SUCCESS) {
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        return;
     }
 
-    // Syncwrite goal position
-    dxl_comm_result = groupSyncWrite.txPacket();
-    if (dxl_comm_result != COMM_SUCCESS)
-        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-
-    // Clear syncwrite parameter storage
-    groupSyncWrite.clearParam();
-}
-
-void DxlControl::setGroupSyncWriteTorqueEnable(uint8_t enable)
-{
-    bool dxl_addparam_result = false;	// addParam result
-    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_TORQUE_ENABLE, LEN_TORQUE_ENABLE);
-
-    for (uint8_t i = 0; i < 6; i++) {
-        // Add Dynamixel#n goal position value to the Syncwrite storage
-        dxl_addparam_result = groupSyncWrite.addParam(i, &enable);
-        if (dxl_addparam_result != true)
-        {
-            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
-            return;
-        }
+    // Check if groupsyncread data of Dyanamixel is available
+    int dxl_getdata_result = 0;
+    dxl_getdata_result = groupSyncRead->isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION);
+    if (dxl_getdata_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
     }
 
-    // Syncwrite goal position
-    dxl_comm_result = groupSyncWrite.txPacket();
-    if (dxl_comm_result != COMM_SUCCESS)
-        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    // Check if groupsyncread data of Dyanamixel is available
+    dxl_getdata_result = groupSyncRead->isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY);
+    if (dxl_getdata_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+    }
 
-    // Clear syncwrite parameter storage
-    groupSyncWrite.clearParam();
+    // Check if groupsyncread data of Dyanamixel is available
+    dxl_getdata_result = groupSyncRead->isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT);
+    if (dxl_getdata_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+    }
+
+    // Get Dynamixel present position value
+    *present_position = static_cast<int32_t>(groupSyncRead->getData(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION));
+
+    // Get Dynamixel present velocity value
+    *present_velocity = static_cast<int32_t>(groupSyncRead->getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY));
+
+    // Get Dynamixel present current value
+    *present_current = static_cast<int16_t>(groupSyncRead->getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT));
 }
