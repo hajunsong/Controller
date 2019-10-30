@@ -14,7 +14,7 @@
 class KeyInputClass
 {
 public:
-    KeyInputClass(void* _ui, void* _torque_ide);
+    KeyInputClass(void* _ui);
     void InputKeyboard(QKeyEvent *keyevt);
 
 private:

@@ -5,6 +5,7 @@ DxlControl::DxlControl()
     dxl_comm_result = COMM_TX_FAIL;
     dxl_error = 0;
     init_flag = false;
+    single_id = 99;
 }
 
 DxlControl::~DxlControl()
@@ -173,7 +174,7 @@ int DxlControl::dxl_init(uint8_t ID, uint8_t operating_mode)
     dxl_addparam_result = groupSyncRead->addParam(ID);
     if (dxl_addparam_result != true)
     {
-        fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", ID);
+//        fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", ID);
         printf("[ID:%03d] groupSyncRead add param failed", ID);
     }
 
@@ -204,6 +205,29 @@ void DxlControl::dxl_deinit(uint8_t ID){
     packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
 
     printf("Dynamixel has been successfully disconnected\n");
+}
+
+void DxlControl::dxl_searching()
+{
+    for(uint8_t i = 0; i < 10; i++){
+        // Check Dynamixel Torque on or off
+        uint8_t torque = 0;
+        dxl_comm_result = packetHandler->read1ByteTxRx(portHandler, i, ADDR_TORQUE_ENABLE, &torque, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS) {
+            printf("[Check torque] %s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        }
+        else if (dxl_error != 0) {
+            printf("[Check torque] %s\n", packetHandler->getRxPacketError(dxl_error));
+        }
+
+        printf("dxl_comm_result : %d\n", dxl_comm_result);
+        if (dxl_comm_result == COMM_SUCCESS)
+        {
+            single_id = i;
+            printf("Dynamixel search complete...[ID:%03d]\n", single_id);
+            break;
+        }
+    }
 }
 
 void DxlControl::setLED(uint8_t ID, uint8_t on_off)
@@ -308,10 +332,10 @@ void DxlControl::setGroupSyncWriteTorqueEnable(uint8_t enable, uint8_t num_joint
 
     for (uint8_t i = 0; i < num_joint; i++) {
         // Add Dynamixel#n goal position value to the Syncwrite storage
-        dxl_addparam_result = groupSyncWriteTorqueEnable->addParam(i, &enable);
+        dxl_addparam_result = groupSyncWriteTorqueEnable->addParam(num_joint == 1 ? single_id : i, &enable);
         if (dxl_addparam_result != true)
         {
-            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", num_joint == 1 ? single_id : i);
             return;
         }
     }
@@ -337,10 +361,10 @@ void DxlControl::setGroupSyncWriteGoalPosition(int32_t *goalPosition, uint8_t nu
         param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(goalPosition[i]));
 
         // Add Dynamixel#n goal position value to the Syncwrite storage
-        dxl_addparam_result = groupSyncWritePresentPosition->addParam(i, param_goal_position);
+        dxl_addparam_result = groupSyncWritePresentPosition->addParam(num_joint == 1 ? single_id : i, param_goal_position);
         if (dxl_addparam_result != true)
         {
-            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", num_joint == 1 ? single_id : i);
             return;
         }
     }
@@ -364,7 +388,7 @@ void DxlControl::setGroupSyncWriteGoalCurrent(int16_t *goalCurrent, uint8_t num_
         param_goal_current[1] = DXL_HIBYTE(DXL_LOWORD(goalCurrent[i]));
 
         // Add Dynamixel#n goal position value to the Syncwrite storage
-        dxl_addparam_result = groupSyncWritePresentCurrent->addParam(i, param_goal_current);
+        dxl_addparam_result = groupSyncWritePresentCurrent->addParam(num_joint == 1 ? single_id : i, param_goal_current);
         if (dxl_addparam_result != true)
         {
             fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
@@ -386,11 +410,12 @@ void DxlControl::getGroupSyncReadPresentPosition(int32_t *present_position, uint
 
     bool dxl_addparam_result = false;	// addParam result
     // Add parameter storage for Dynamixel#1 present position value
+
     for (uint8_t i = 0; i < num_joint; i++) {
-        dxl_addparam_result = groupSyncReadPresentPosition.addParam(i);
+        dxl_addparam_result = groupSyncReadPresentPosition.addParam(num_joint == 1 ? single_id : i);
         if (dxl_addparam_result != true)
         {
-            fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", i);
+            printf("[ID:%03d] groupSyncRead add param failed\n", num_joint == 1 ? single_id : i);
             return;
         }
     }
@@ -404,27 +429,27 @@ void DxlControl::getGroupSyncReadPresentPosition(int32_t *present_position, uint
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
     }
     else {
-        for (uint8_t i = 0; i < 6; i++) {
-            if (groupSyncReadPresentPosition.getError(i, &dxl_error)) {
-                printf("[ID:%03d] %s\n", i, packetHandler->getRxPacketError(dxl_error));
+        for (uint8_t i = 0; i < num_joint; i++) {
+            if (groupSyncReadPresentPosition.getError(num_joint == 1 ? single_id : i, &dxl_error)) {
+                printf("[ID:%03d] %s\n", num_joint == 1 ? single_id : i, packetHandler->getRxPacketError(dxl_error));
             }
         }
     }
 
     // Check if groupsyncread data of Dynamixel#n is available
-    for (uint8_t i = 0; i < 6; i++) {
-        dxl_getdata_result = groupSyncReadPresentPosition.isAvailable(i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
+    for (uint8_t i = 0; i < num_joint; i++) {
+        dxl_getdata_result = groupSyncReadPresentPosition.isAvailable(num_joint == 1 ? single_id : i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
         if (dxl_getdata_result != true)
         {
-            fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", i);
+            printf("[ID:%03d] groupSyncRead getdata failed\n", num_joint == 1 ? single_id : i);
             return;
         }
     }
 
     // Get Dynamixel#n present position value
-    for (uint8_t i = 0; i < 6; i++) {
-        present_position[i] = static_cast<int32_t>(groupSyncReadPresentPosition.getData(i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION));
-        printf("[ID:%03d] PresPos:%03d\n", i, present_position[i]);
+    for (uint8_t i = 0; i < num_joint; i++) {
+        present_position[i] = static_cast<int32_t>(groupSyncReadPresentPosition.getData(num_joint == 1 ? single_id : i, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION));
+        printf("[ID:%03d] PresPos:%03d\n", num_joint == 1 ? single_id : i, present_position[i]);
     }
 
     groupSyncReadPresentPosition.clearParam();

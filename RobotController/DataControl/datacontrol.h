@@ -9,8 +9,8 @@
 
 #include "FileIO/fileio.h"
 
-#define NUM_JOINT               6
-#define NUM_DOF                 6
+#define NUM_JOINT               1
+#define NUM_DOF                 1
 #define MODULE_TYPE             1 // 1:FAR, 2:SEA
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
@@ -18,10 +18,13 @@
 #define JOINT_COMMAND_LEN       8
 #define CARTESIAN_COMMAND_LEN   8
 #define CARTESIAN_CALCULATE_LEN 8
+#define JOINT_VELOCITY_LEN      8
+#define JOINT_CURRENT_LEN       8
 #define TIME_LEN                8
 #define SERVER_TO_CLIENT_LEN    NRMK_SOCKET_TOKEN_SIZE + DATA_INDEX_LEN + \
     JOINT_POSITION_LEN*NUM_JOINT + CARTESIAN_POSE_LEN*NUM_DOF + JOINT_COMMAND_LEN*NUM_JOINT + \
-    CARTESIAN_COMMAND_LEN*NUM_DOF + CARTESIAN_CALCULATE_LEN*NUM_DOF + TIME_LEN + TIME_LEN + TIME_LEN + NRMK_SOCKET_TOKEN_SIZE
+    CARTESIAN_COMMAND_LEN*NUM_DOF + CARTESIAN_CALCULATE_LEN*NUM_DOF + JOINT_VELOCITY_LEN*NUM_JOINT + JOINT_CURRENT_LEN*NUM_JOINT + \
+    TIME_LEN + TIME_LEN + TIME_LEN + NRMK_SOCKET_TOKEN_SIZE
 
 #define OP_MODE_LEN             1
 #define SUB_MODE_LEN            1
@@ -44,6 +47,7 @@ public:
         double presentJointPosition[NUM_JOINT], presentCartesianPose[NUM_DOF];
         double desiredJointPosition[NUM_JOINT], desiredCartesianPose[NUM_DOF];
         double calculateCartesianPose[NUM_DOF];
+        double presentJointVelocity[NUM_JOINT], presentJointCurrent[NUM_JOINT];
         double time, dxl_time, ik_time;
     }StructServerToClient;
 
@@ -101,11 +105,15 @@ public:
     void jointPositionDEG2ENC(double pos_deg[], int32_t pos_end[]);
     void jointPositionDEG2ENC(const int32_t pos_deg[], int32_t pos_end[]);
     void jointPositionDEG2ENC(int32_t pos_deg[], int32_t pos_end[]);
+    void jointVelocityENC2RPM(int32_t vel_enc[], double vel_rpm[]);
+    void jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[]);
 
     const double ENC2DEG = 0.088;
     const double DEG2ENC = 11.363636364;
     const double DEG2RAD = 0.017453293;//3.14159265358979323846/180.0;
     const double RAD2DEG = 57.295779513;//180.0/3.14159265358979323846;
+    const double ENC2RPM = 	0.229;
+    const double RAW2mA = 2.69;
 
 //    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};
 };

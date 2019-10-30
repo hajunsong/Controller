@@ -19,7 +19,6 @@
 #include "DataControl/datacontrol.h"
 #include "FileIO/fileio.h"
 #include "Input/keyinputclass.h"
-#include "TorqueIde/torqueide.h"
 
 namespace Ui {
 class MainWindow;
@@ -43,7 +42,6 @@ private:
     CustomSettings *customSettings;
     DataControl *dataControl;
     KeyInputClass *keyInputClass;
-    TorqueIde *torqueIde;
 
     QStandardItemModel *model;
 //    QStandardItemModel *jointPathModel, *cartPathModel;
@@ -76,6 +74,12 @@ public slots:
     void btnRunClicked();
     void btnStopClicked();
     void btnReadyClicked();
+    void btnUpPressed();
+    void btnUpReleased();
+    void btnDownPressed();
+    void btnDownReleased();
+    void btnMassSetClicked();
+    void btnSaveClicked();
 
     // checkbox event
 //    void cbJointPathClicked();

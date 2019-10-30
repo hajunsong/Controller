@@ -5,8 +5,8 @@
 #include <iostream>
 #include <vector>
 
-#define NUM_JOINT               6
-#define NUM_DOF                 6
+#define NUM_JOINT               1
+#define NUM_DOF                 1
 
 #define NRMK_SOCKET_TOKEN_SIZE  2
 
@@ -17,16 +17,20 @@
 #define JOINT_COMMAND_LEN       8
 #define CARTESIAN_COMMAND_LEN   8
 #define CARTESIAN_CALCULATE_LEN 8
+#define JOINT_VELOCITY_LEN      8
+#define JOINT_CURRENT_LEN       8
 #define TIME_LEN                8
 #define SERVER_TO_CLIENT_LEN    NRMK_SOCKET_TOKEN_SIZE + DATA_INDEX_LEN + \
     JOINT_POSITION_LEN*NUM_JOINT + CARTESIAN_POSE_LEN*NUM_DOF + JOINT_COMMAND_LEN*NUM_JOINT + \
-    CARTESIAN_COMMAND_LEN*NUM_DOF + CARTESIAN_CALCULATE_LEN*NUM_DOF + TIME_LEN + TIME_LEN + TIME_LEN + NRMK_SOCKET_TOKEN_SIZE
+    CARTESIAN_COMMAND_LEN*NUM_DOF + CARTESIAN_CALCULATE_LEN*NUM_DOF + JOINT_VELOCITY_LEN*NUM_JOINT + JOINT_CURRENT_LEN*NUM_JOINT + \
+    TIME_LEN + TIME_LEN + TIME_LEN + NRMK_SOCKET_TOKEN_SIZE
 
 #define OP_MODE_LEN             1
 #define SUB_MODE_LEN            1
 #define DESIRED_JOINT_LEN       8
 #define DESIRED_CARTESIAN_LEN   8
-#define CLIENT_TO_SERVER_LEM    NRMK_SOCKET_TOKEN_SIZE + OP_MODE_LEN + JOINT_OP_MODE_LEN + SUB_MODE_LEN + DESIRED_JOINT_LEN*NUM_JOINT + DESIRED_CARTESIAN_LEN*NUM_DOF + NRMK_SOCKET_TOKEN_SIZE
+#define CLIENT_TO_SERVER_LEM    NRMK_SOCKET_TOKEN_SIZE + OP_MODE_LEN + JOINT_OP_MODE_LEN + SUB_MODE_LEN + DESIRED_JOINT_LEN*NUM_JOINT + \
+    DESIRED_CARTESIAN_LEN*NUM_DOF + NRMK_SOCKET_TOKEN_SIZE
 
 #define PATH_TYPE_LEN           1
 #define CYCLE_COUNT_LEN         1
@@ -51,6 +55,7 @@ public:
         double presentJointPosition[NUM_JOINT], presentCartesianPose[NUM_DOF];
         double desiredJointPosition[NUM_JOINT], desiredCartesianPose[NUM_DOF];
         double calculateCartesianPose[NUM_DOF];
+        double presentJointVelocity[NUM_JOINT], presentJointCurrent[NUM_JOINT];
         double time, dxl_time, ik_time;
     }StructServerToClient;
 

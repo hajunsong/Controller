@@ -82,11 +82,13 @@ public:
 
     int dxl_comm_result;// = COMM_TX_FAIL;
     uint8_t dxl_error;// = 0;	// Dynamixel error
+    uint8_t single_id;
 
     void init();
     int dxl_init(uint8_t ID, uint8_t operating_mode);
     void dxl_deinit(uint8_t ID, int32_t home_pos);
     void dxl_deinit(uint8_t ID);
+    void dxl_searching();
 
     void setLED(uint8_t ID, uint8_t on_off);
     void setGoalPosition(uint8_t ID, int32_t goal_position);

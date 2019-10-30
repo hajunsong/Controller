@@ -29,7 +29,7 @@ public:
     void start();
 private:
     void robot_RT();
-    static void robot_run[[ noreturn ]] (void *arg);
+    static void robot_run(void *arg);
 
     NRMKHelper::TcpServer *tcpServer;
     DataControl *dataControl;

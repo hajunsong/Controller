@@ -20,7 +20,6 @@ SOURCES += \
         Input/keyinputclass.cpp \
         Input/keyinputnomodifiedclass.cpp \
         MainWindow/mainwindow.cpp \
-        TorqueIde/torqueide.cpp \
         main.cpp \
 
 HEADERS += \
@@ -32,8 +31,6 @@ HEADERS += \
         Input/keyinputclass.h \
         Input/keyinputnomodifiedclass.h \
         MainWindow/mainwindow.h \
-        TorqueIde/torqueide.h \
 
 FORMS += \
         MainWindow/mainwindow.ui \
-        TorqueIde/torqueide.ui \

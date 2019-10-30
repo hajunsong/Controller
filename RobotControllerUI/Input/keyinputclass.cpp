@@ -4,12 +4,11 @@
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
 
-KeyInputClass::KeyInputClass(void* _ui, void* _torque_ide)
+KeyInputClass::KeyInputClass(void* _ui)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
-    torque_ide = static_cast<TorqueIde*>(_torque_ide);
 
-    keynone = new KeyinputNoModifiedClass(ui, torque_ide);
+    keynone = new KeyinputNoModifiedClass(ui);
 //    keyalt = new KeyinputAltClass(ui);
 //    keyctrl = new KeyinputControlClass(ui);
 //    keyshift = new KeyinputShiftClass(ui);

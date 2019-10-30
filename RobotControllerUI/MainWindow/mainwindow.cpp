@@ -131,9 +131,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->btnRun->setEnabled(false);
 
-    torqueIde = new TorqueIde(tcpClient);
+    keyInputClass = new KeyInputClass(ui);
 
-    keyInputClass = new KeyInputClass(ui, torqueIde);
+    ui->gbTorqueIDE->hide();
+
+    connect(ui->btnUp, SIGNAL(pressed()), this, SLOT(btnUpPressed()));
+    connect(ui->btnUp, SIGNAL(released()), this, SLOT(btnUpReleased()));
+    connect(ui->btnDown, SIGNAL(pressed()), this, SLOT(btnDownPressed()));
+    connect(ui->btnDown, SIGNAL(released()), this, SLOT(btnDownReleased()));
 }
 
 MainWindow::~MainWindow()
@@ -141,7 +146,6 @@ MainWindow::~MainWindow()
     customSettings->saveConfigFile();
     txtJCmd.clear();
     txtCCmd.clear();
-    delete torqueIde;
     delete ui;
     delete tcpClient;
     delete dataControl;
@@ -181,7 +185,7 @@ void MainWindow::btnSetInitClicked()
 
     tcpClient->socket->write(txData);
 
-    int row = 2;
+    int row = 6;
     model = new QStandardItemModel(row, NUM_JOINT, this);
     ui->tvRobotInfor->setModel(model);
 
@@ -198,6 +202,8 @@ void MainWindow::btnSetInitClicked()
     vHeader.append("Command Pos [deg]");
     vHeader.append("Desired Pose [mm, deg]");
     vHeader.append("Calculate Pose [mm, deg]");
+    vHeader.append("Present Vel [RPM]");
+    vHeader.append("Present Cur [mA]");
     model->setVerticalHeaderLabels(vHeader);
 }
 
@@ -421,6 +427,11 @@ void MainWindow::readMessage(){
         indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
         memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
         indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+        memcpy(dataControl->ServerToClient.presentJointVelocity, pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
+        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+        memcpy(dataControl->ServerToClient.presentJointCurrent, pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
+        indx += JOINT_CURRENT_LEN*NUM_JOINT;
+
         memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
         indx += TIME_LEN;
         memcpy(&dataControl->ServerToClient.dxl_time, pData + indx, TIME_LEN);
@@ -458,6 +469,18 @@ void MainWindow::readMessage(){
             ui->tvRobotInfor->update(index);
         }
 
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(5, i);
+            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(6, i);
+            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
         ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
         ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));
         ui->txtIKTime->setText(QString::number(dataControl->ServerToClient.ik_time, 'f', 6));
@@ -473,7 +496,35 @@ void MainWindow::componentEnable(bool enable){
     ui->gbServoControl->setEnabled(enable);
     ui->gbCartMoveCommand->setEnabled(enable);
     ui->gbJointMoveCommand->setEnabled(enable);
-    ui->gbPathData->setEnabled(enable);
+    ui->gbPlay->setEnabled(enable);
+    ui->gbTrajectory->setEnabled(enable);
+
+    if (ui->cbNumJoint->currentText().toInt() == 1){
+        ui->lbJoint2->setEnabled(false);
+        ui->lbJoint3->setEnabled(false);
+        ui->lbJoint4->setEnabled(false);
+        ui->lbJoint5->setEnabled(false);
+        ui->lbJoint6->setEnabled(false);
+        ui->btnJ2N->setEnabled(false);
+        ui->btnJ3N->setEnabled(false);
+        ui->btnJ4N->setEnabled(false);
+        ui->btnJ5N->setEnabled(false);
+        ui->btnJ6N->setEnabled(false);
+        ui->btnJ2P->setEnabled(false);
+        ui->btnJ3P->setEnabled(false);
+        ui->btnJ4P->setEnabled(false);
+        ui->btnJ5P->setEnabled(false);
+        ui->btnJ6P->setEnabled(false);
+
+        for(int i = 1; i < 6; i++){
+            txtJCmd[i]->setEnabled(false);
+        }
+    }
+
+    if (ui->cbNumDOF->currentText().toInt() == 1){
+        ui->gbCartMoveCommand->setEnabled(false);
+        ui->gbPlay->setEnabled(false);
+    }
 }
 
 void MainWindow::setTxtCommandClear()
@@ -683,10 +734,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::closeEvent(QCloseEvent*){
     qDebug() << "Closed MainWindow";
-
-    if (torqueIde->isVisible()){
-        torqueIde->close();
-    }
 }
 
 
@@ -849,3 +896,30 @@ void MainWindow::closeEvent(QCloseEvent*){
 //    colClickedIndex = -1;
 //    colPressedIndex = -1;
 //}
+
+void MainWindow::btnUpPressed(){
+    qDebug() << "Button Up pressed";
+}
+
+void MainWindow::btnUpReleased(){
+    qDebug() << "Button Up released";
+
+}
+
+void MainWindow::btnDownPressed(){
+    qDebug() << "Button Down pressed";
+
+}
+
+void MainWindow::btnDownReleased(){
+    qDebug() << "Button Down released";
+
+}
+
+void MainWindow::btnSetMassClicked(){
+
+}
+
+void MainWindow::btnSaveClicked(){
+
+}

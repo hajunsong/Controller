@@ -105,4 +105,18 @@ void DataControl::jointPositionDEG2ENC(int32_t pos_deg[], int32_t pos_enc[])
     }
 }
 
+void DataControl::jointVelocityENC2RPM(int32_t vel_enc[], double vel_rpm[])
+{
+    for(int i = 0; i < NUM_JOINT; i++){
+        vel_rpm[i] = vel_enc[i]*ENC2RPM;
+    }
+}
+
+void DataControl::jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[])
+{
+    for(int i = 0; i < NUM_JOINT; i++){
+        cur_mA[i] = cur_raw[i]*RAW2mA;
+    }
+}
+
 

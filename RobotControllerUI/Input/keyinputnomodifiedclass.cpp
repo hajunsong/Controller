@@ -2,10 +2,9 @@
 #include "MainWindow/mainwindow.h"
 #include "ui_mainwindow.h"
 
-KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui, void* _torque_ide)
+KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
-    torque_ide = static_cast<TorqueIde*>(_torque_ide);
 }
 
 void KeyinputNoModifiedClass::FuncKeyInput(QKeyEvent* keys)
@@ -218,14 +217,15 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
 
         case Qt::Key_F12:
         {
-            qDebug() << "Pressed F12";
-            if (static_cast<TorqueIde*>(torque_ide)->isHidden()){
-                qDebug() << "Enabled Torque IDE window";
-                static_cast<TorqueIde*>(torque_ide)->show();
-            }
-            else{
-                qDebug() << "Disabled Torque IDE window";
-                static_cast<TorqueIde*>(torque_ide)->close();
+            QString path = qApp->applicationDirPath();
+            if (path.contains("keti")){
+                qDebug() << "Pressed F12";
+                if (static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->isHidden()){
+                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(false);
+                }
+                else{
+                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(true);
+                }
             }
             break;
         }

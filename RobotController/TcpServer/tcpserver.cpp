@@ -314,6 +314,10 @@ void NRMKHelper::TcpServer::sendData()
     indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
     memcpy(_buf + indx, dataControl->ServerToClient.calculateCartesianPose, CARTESIAN_CALCULATE_LEN*NUM_DOF); // 8 byte x 6, calculate cartesian position data
     indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+    memcpy(_buf + indx, dataControl->ServerToClient.presentJointVelocity, JOINT_VELOCITY_LEN*NUM_JOINT); // 8 byte x 6, present joint velocity data
+    indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+    memcpy(_buf + indx, dataControl->ServerToClient.presentJointCurrent, JOINT_CURRENT_LEN*NUM_JOINT); // 8 byte x 6, present joint current data
+    indx += JOINT_CURRENT_LEN*NUM_JOINT;
     memcpy(_buf + indx, &dataControl->ServerToClient.time, TIME_LEN); // 8 byte, Thread time
     indx += TIME_LEN;
     memcpy(_buf + indx, &dataControl->ServerToClient.dxl_time, TIME_LEN); // 8 byte, Dynamixel time

@@ -48,7 +48,7 @@ ControlMain::~ControlMain()
 
     if (module_init){
         for(uint8_t i = 0; i < NUM_JOINT; i++){
-            module->dxl_deinit(i);
+            module->dxl_deinit(NUM_JOINT == 1 ? module->single_id : i);
         }
     }
     delete module;
@@ -165,7 +165,8 @@ void ControlMain::robot_run(void *arg)
         pThis->dataControl->RobotData.dxl_time1 = static_cast<unsigned long>(rt_timer_read());
         if (MODULE_TYPE == DataControl::Module::FAR_V1){
             for(uint8_t i = 0; i < NUM_JOINT; i++){
-                pThis->module->getGroupSyncReadIndirectAddress(i, &pThis->dataControl->RobotData.present_joint_position[i],
+                pThis->module->getGroupSyncReadIndirectAddress(NUM_JOINT == 1 ? pThis->module->single_id : i,
+                                                               &pThis->dataControl->RobotData.present_joint_position[i],
                                                                &pThis->dataControl->RobotData.present_joint_velocity[i],
                                                                &pThis->dataControl->RobotData.present_joint_current[i]);
             }
@@ -177,6 +178,13 @@ void ControlMain::robot_run(void *arg)
 
         pThis->robotKinematics();
         pThis->robotDynamics();
+
+        if (NUM_JOINT == 1){
+            rt_printf("[ID:%03d] Pos=%d, Vel=%d, Cur=%d\n", pThis->module->single_id,
+                      pThis->dataControl->RobotData.present_joint_position[0],
+                      pThis->dataControl->RobotData.present_joint_velocity[0],
+                      pThis->dataControl->RobotData.present_joint_current[0]);
+        }
 
 //        rt_printf("Joint Offset : %d, %d, %d, %d, %d, %d\n",
 //                  pThis->dataControl->RobotData.offset[0], pThis->dataControl->RobotData.offset[1],
@@ -211,6 +219,8 @@ void ControlMain::robot_run(void *arg)
 
         pThis->dataControl->jointPositionENC2DEG(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->ServerToClient.presentJointPosition);
         pThis->dataControl->cartesianPoseScaleUp(pThis->dataControl->RobotData.present_end_pose, pThis->dataControl->ServerToClient.presentCartesianPose);
+        pThis->dataControl->jointVelocityENC2RPM(pThis->dataControl->RobotData.present_joint_velocity, pThis->dataControl->ServerToClient.presentJointVelocity);
+        pThis->dataControl->jointCurrentRAW2mA(pThis->dataControl->RobotData.present_joint_current, pThis->dataControl->ServerToClient.presentJointCurrent);
 
         pThis->dataControl->ServerToClient.time = static_cast<double>((pThis->dataControl->RobotData.time2 - pThis->dataControl->RobotData.time1)/1000000.0);
         pThis->dataControl->RobotData.time1 = pThis->dataControl->RobotData.time2;
@@ -220,15 +230,7 @@ void ControlMain::robot_run(void *arg)
 
 void ControlMain::moduleInitSEA()
 {
-    printf("Start SEA Module Initilization\n");
-    //    while(!module_init){
-    //        int init_result = module->dxl_init(1, false);
-    //        if (init_result){
-    //            module_init = true;
-    //        }
-    //    }
-    tcpServer->sendKey('S');
-    robot_RT();
+
 }
 
 void ControlMain::moduleInitFAR()
@@ -237,22 +239,38 @@ void ControlMain::moduleInitFAR()
 
     while(!module_init)
     {
-        printf("Start module initialize %d %d\n", module_indx, dataControl->RobotData.joint_op_mode);
-        int init_result = module->dxl_init(module_indx, dataControl->RobotData.joint_op_mode);
-        if (init_result){
+        printf("Start module initialize %d\n", module_indx);
+        if (NUM_JOINT ==  1){
+            module->dxl_searching();
+            module->dxl_init(module->single_id, dataControl->RobotData.joint_op_mode);
             int32_t pos = 0;
-            module->getPresentPosition(module_indx, &pos);
-            printf("%d axis present position : %d\n", module_indx, pos);
+            module->getPresentPosition(module->single_id, &pos);
+            printf("%d axis present position : %d\n", module->single_id, pos);
             if (pos != 0)
             {
-                module->initGroupSyncReadIndirectAddress(module_indx);
-                module_indx++;
+                module->initGroupSyncReadIndirectAddress(module->single_id);
+                module_init = true;
+
+                module->getGroupSyncReadPresentPosition(dataControl->RobotData.offset, NUM_JOINT);
             }
         }
-        if (module_indx >= NUM_JOINT){
-            module_init = true;
+        else if (NUM_JOINT == 6){
+            int init_result = module->dxl_init(module_indx, dataControl->RobotData.joint_op_mode);
+            if (init_result){
+                int32_t pos = 0;
+                module->getPresentPosition(module_indx, &pos);
+                printf("%d axis present position : %d\n", module_indx, pos);
+                if (pos != 0)
+                {
+                    module->initGroupSyncReadIndirectAddress(module_indx);
+                    module_indx++;
+                }
+            }
+            if (module_indx >= NUM_JOINT){
+                module_init = true;
 
-            module->getGroupSyncReadPresentPosition(dataControl->RobotData.offset, NUM_JOINT);
+                module->getGroupSyncReadPresentPosition(dataControl->RobotData.offset, NUM_JOINT);
+            }
         }
     }
     dxlTimer->stop();
@@ -414,7 +432,7 @@ void ControlMain::robotRun(int16_t type)
         }
         case DataControl::PathDataType::Save2: // pick-up motion(cartesian)
         {
-            for(uint i = 0; i < 6; i++){
+            for(uint i = 0; i < NUM_DOF; i++){
                 dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
             }
 
@@ -440,7 +458,7 @@ void ControlMain::robotRun(int16_t type)
         }
         case DataControl::PathDataType::Save4: // rect motion(cartesian)
         {
-            for(uint i = 0; i < 6; i++){
+            for(uint i = 0; i < NUM_DOF; i++){
                 dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
             }
 
@@ -466,7 +484,7 @@ void ControlMain::robotRun(int16_t type)
         }
         case DataControl::PathDataType::Save6: // rect motion for evaluation(cartesian)
         {
-            for(uint i = 0; i < 6; i++){
+            for(uint i = 0; i < NUM_DOF; i++){
                 dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
             }
 
@@ -502,7 +520,7 @@ void ControlMain::robotRun(int16_t type)
         }
         case DataControl::PathDataType::Save9: // linear motion 42(cartesian)
         {
-            for(uint i = 0; i < 6; i++){
+            for(uint i = 0; i < NUM_DOF; i++){
                 dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
             }
 
@@ -528,7 +546,7 @@ void ControlMain::robotRun(int16_t type)
         }
         case DataControl::PathDataType::Save11: // linear motion 24(cartesian)
         {
-            for(uint i = 0; i < 6; i++){
+            for(uint i = 0; i < NUM_DOF; i++){
                 dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
             }
 
@@ -546,9 +564,10 @@ void ControlMain::robotRun(int16_t type)
 
     rt_printf("path_data_indx : %d\n", dataControl->PathData.path_data_indx);
 
-    rt_printf("%d, %d, %d, %d, %d, %d\n", dataControl->RobotData.command_joint_position[0], dataControl->RobotData.command_joint_position[1],
-            dataControl->RobotData.command_joint_position[2], dataControl->RobotData.command_joint_position[3],
-            dataControl->RobotData.command_joint_position[4], dataControl->RobotData.command_joint_position[5]);
+    for(uint i = 0; i < NUM_JOINT; i++){
+        rt_printf("%d\t", dataControl->RobotData.command_joint_position[i]);
+    }
+    rt_printf("\n");
 
     module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
@@ -679,9 +698,10 @@ void ControlMain::robotReady(int16_t type)
             break;
     }
 
-    printf("%d, %d, %d, %d, %d, %d\n", dataControl->RobotData.command_joint_position[0], dataControl->RobotData.command_joint_position[1],
-            dataControl->RobotData.command_joint_position[2], dataControl->RobotData.command_joint_position[3],
-            dataControl->RobotData.command_joint_position[4], dataControl->RobotData.command_joint_position[5]);
+    for(uint i = 0; i < NUM_JOINT; i++){
+        rt_printf("%d\t", dataControl->RobotData.command_joint_position[i]);
+    }
+    rt_printf("\n");
 
     module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 }
