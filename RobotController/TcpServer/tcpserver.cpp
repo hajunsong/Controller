@@ -177,12 +177,13 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                 }
                 dataControl->cartesianPoseScaleDown(dataControl->ClientToServer.desiredCartesian, dataControl->RobotData.desired_end_pose);
 
-                //                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
-                //                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
-                //                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
-                //                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
-                //                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredCartesian[0], dataControl->ClientToServer.desiredCartesian[1], dataControl->ClientToServer.desiredCartesian[2],
-                //                        dataControl->ClientToServer.desiredCartesian[3], dataControl->ClientToServer.desiredCartesian[4], dataControl->ClientToServer.desiredCartesian[5]);
+//                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
+//                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
+//                printf("Desired Joint : %f\n", dataControl->ClientToServer.desiredJoint[0]);
+//                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
+//                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
+//                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredCartesian[0], dataControl->ClientToServer.desiredCartesian[1], dataControl->ClientToServer.desiredCartesian[2],
+//                        dataControl->ClientToServer.desiredCartesian[3], dataControl->ClientToServer.desiredCartesian[4], dataControl->ClientToServer.desiredCartesian[5]);
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'U'){
                 int indx = NRMK_SOCKET_TOKEN_SIZE;
@@ -245,6 +246,21 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                         dataControl->PathData.path_data_indx = 0;
                         break;
                 }
+            }
+            else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'T'){
+                int indx = NRMK_SOCKET_TOKEN_SIZE;
+                dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
+                indx += OP_MODE_LEN;
+                char buf[8];
+                memcpy(buf, lpBuffer + indx, MASS_LEN);
+                dataControl->torqueIdeData.mass = atof(buf);
+                indx += MASS_LEN;
+                memcpy(buf, lpBuffer + indx, TORQUE_CONST_LEN);
+                dataControl->torqueIdeData.torque_constant =atof(buf);
+                indx += TORQUE_CONST_LEN;
+
+                printf("Mode : %d, Mass : %f, Torque Const : %f\n",
+                       dataControl->ClientToServer.opMode, dataControl->torqueIdeData.mass, dataControl->torqueIdeData.torque_constant);
             }
             else {
                 data_corrected = false;

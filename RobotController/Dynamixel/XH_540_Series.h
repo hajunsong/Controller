@@ -128,6 +128,11 @@ const double POSITION_UNIT = 0.088;	// [deg]
 const double VELOCITY_UNIT = 0.229;	// [RPM]
 
 enum JointOpMode{ current_mode = 0, velocity_mode, position_mode = 3, extended_position_mode, current_based_position_mode, pwm_mode = 16 };
+
+const double TORQUE_CONSTANT_W270 = 2.8;
+const double TORQUE_CONSTANT_W150 = 1.65;
+
+
 }
 
 using namespace FAR;

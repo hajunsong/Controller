@@ -43,7 +43,7 @@ private:
     DataControl *dataControl;
     KeyInputClass *keyInputClass;
 
-    QStandardItemModel *model;
+    QStandardItemModel *model, *torqueIdeModel;
 //    QStandardItemModel *jointPathModel, *cartPathModel;
     QByteArray txData;
 //    int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
@@ -74,11 +74,7 @@ public slots:
     void btnRunClicked();
     void btnStopClicked();
     void btnReadyClicked();
-    void btnUpPressed();
-    void btnUpReleased();
-    void btnDownPressed();
-    void btnDownReleased();
-    void btnMassSetClicked();
+    void btnStartClicked();
     void btnSaveClicked();
 
     // checkbox event
@@ -104,6 +100,10 @@ public slots:
 //    void horizontalSectionClicked(int index);
 //    void verticalSectionPressed(int index);
 //    void horizontalSectionPressed(int index);
+
+     // spin box event
+     void sbMassEditingFinished();
+     void sbTorqueConstEditingFinished();
 };
 
 #endif // MAINWINDOW_H

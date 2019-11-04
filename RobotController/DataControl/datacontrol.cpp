@@ -10,6 +10,8 @@ DataControl::DataControl()
     cartesian_goal_reach = true;
     joint_goal_reach = true;
     memset(&PathData, 0, sizeof(PathData));
+    memset(&torqueIdeData, 0, sizeof(torqueIdeData));
+    memset(&PIDControl, 0, sizeof(PIDControl));
 
     load_data("data/motion_pick.txt", &PathData.pathDataPick, "\t");
     load_data("data/rect_motion.txt", &PathData.pathDataRect, "\t");
@@ -36,6 +38,7 @@ void DataControl::DataReset()
     config_check = false;
     cartesian_goal_reach = true;
     joint_goal_reach = true;
+    memset(&PIDControl, 0, sizeof(PIDControl));
 //    memset(&PathData, 0, sizeof(PathData));
 }
 
@@ -116,6 +119,13 @@ void DataControl::jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
         cur_mA[i] = cur_raw[i]*RAW2mA;
+    }
+}
+
+void DataControl::jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[])
+{
+    for(int i = 0; i < NUM_JOINT; i++){
+        cur_raw[i] = static_cast<int16_t>(cur_mA[i]*mA2RAW);
     }
 }
 

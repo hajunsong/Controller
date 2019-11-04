@@ -158,6 +158,7 @@ void ControlMain::robot_run(void *arg)
                 pThis->robotRun(pThis->dataControl->PathData.type);
                 break;
             case DataControl::OpMode::TorqueIDE:
+                pThis->robotPositionControl();
                 break;
             default : break;
         }
@@ -179,12 +180,12 @@ void ControlMain::robot_run(void *arg)
         pThis->robotKinematics();
         pThis->robotDynamics();
 
-        if (NUM_JOINT == 1){
-            rt_printf("[ID:%03d] Pos=%d, Vel=%d, Cur=%d\n", pThis->module->single_id,
-                      pThis->dataControl->RobotData.present_joint_position[0],
-                      pThis->dataControl->RobotData.present_joint_velocity[0],
-                      pThis->dataControl->RobotData.present_joint_current[0]);
-        }
+//        if (NUM_JOINT == 1){
+//            rt_printf("[ID:%03d] Pos=%d, Vel=%d, Cur=%d\n", pThis->module->single_id,
+//                      pThis->dataControl->RobotData.present_joint_position[0],
+//                      pThis->dataControl->RobotData.present_joint_velocity[0],
+//                      pThis->dataControl->RobotData.present_joint_current[0]);
+//        }
 
 //        rt_printf("Joint Offset : %d, %d, %d, %d, %d, %d\n",
 //                  pThis->dataControl->RobotData.offset[0], pThis->dataControl->RobotData.offset[1],
@@ -321,8 +322,9 @@ void ControlMain::robotJointMove(char mode, double desJoint[NUM_JOINT])
         case DataControl::Motion::JointMotion:
             for(unsigned char i = 0; i < NUM_JOINT; i++){
                 if (desJoint[i] < 0 || desJoint[i] > 0){
-                    dataControl->RobotData.command_joint_position[i] = static_cast<int32_t>(desJoint[i]/POSITION_UNIT);
+//                    dataControl->RobotData.command_joint_position[i] = static_cast<int32_t>(desJoint[i]/POSITION_UNIT);
                     //                module->setGoalPosition(dataControl->RobotData.command_joint_position[i], i);
+                    dataControl->jointPositionDEG2ENC(desJoint, dataControl->RobotData.command_joint_position);
                 }
                 else{
                     dataControl->RobotData.command_joint_position[i] = dataControl->RobotData.present_joint_position[i];
@@ -704,6 +706,42 @@ void ControlMain::robotReady(int16_t type)
     rt_printf("\n");
 
     module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+}
+
+void ControlMain::robotPositionControl()
+{
+    dataControl->PIDControl.Kp = 2700;
+    dataControl->PIDControl.Kd = 50;
+    dataControl->PIDControl.Ki = 200;
+
+    dataControl->PIDControl.h = 0.005;
+    dataControl->PIDControl.des = 90*M_PI/180.0;
+
+    double present_position = 0;
+    dataControl->jointPositionENC2RAD(&dataControl->RobotData.present_joint_position[0], &present_position);
+    dataControl->PIDControl.err = dataControl->PIDControl.des - present_position;
+
+    dataControl->PIDControl.err_accum += dataControl->PIDControl.err*dataControl->PIDControl.h;
+
+    double T = dataControl->PIDControl.err*dataControl->PIDControl.Kp
+            + (dataControl->PIDControl.err - dataControl->PIDControl.err_prev)/dataControl->PIDControl.h*dataControl->PIDControl.Kd
+            + dataControl->PIDControl.err_accum*dataControl->PIDControl.Ki;
+
+    T = dataControl->torqueIdeData.mass*(9.80665)*0.2*sin(present_position);
+
+    double current = 0;
+//    double Kt = 1.65;
+    double Kt = dataControl->torqueIdeData.torque_constant;
+    current = 1000 * T / Kt;
+
+    int16_t goal_current = 0;
+    dataControl->jointCurrentmA2RAW(&current, &goal_current);
+
+    module->setGroupSyncWriteGoalCurrent(&goal_current, NUM_JOINT);
+
+    printf("Present Pos : %f, Goal Toruqe : %f, Dxl Current : %d\n", present_position*180/M_PI, T, goal_current);
+
+    dataControl->PIDControl.err_prev = dataControl->PIDControl.err;
 }
 
 void ControlMain::goalReach(double desired_pose[], double present_pose[], bool *goal_reach)

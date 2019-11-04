@@ -34,6 +34,8 @@
 
 #define PATH_TYPE_LEN           1
 #define CYCLE_COUNT_LEN         1
+#define MASS_LEN                8
+#define TORQUE_CONST_LEN        8
 
 class DataControl{
 public:
@@ -78,6 +80,18 @@ public:
         uint path_data_indx;
     }StructPathData;
 
+    typedef struct _StructTorqueIDEData{
+        double mass;
+        double torque_constant;
+    }StructTorqueIDEData;
+
+    typedef struct _StructControllerPID{
+        double Kp, Kd, Ki;
+        double err, err_prev, err_accum;
+        double des;
+        double h;
+    }StructControllerPID;
+
     enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR_V1=1, FAR_V2, SEA};
@@ -96,6 +110,8 @@ public:
     StructServerToClient ServerToClient;
     StructRobotData RobotData;
     StructPathData PathData;
+    StructTorqueIDEData torqueIdeData;
+    StructControllerPID PIDControl;
 
     void jointPositionENC2DEG(int32_t pos_enc[], double pos_deg[]);
     void jointPositionENC2RAD(int32_t pos_enc[], double pos_rad[]);
@@ -107,6 +123,7 @@ public:
     void jointPositionDEG2ENC(int32_t pos_deg[], int32_t pos_end[]);
     void jointVelocityENC2RPM(int32_t vel_enc[], double vel_rpm[]);
     void jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[]);
+    void jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[]);
 
     const double ENC2DEG = 0.088;
     const double DEG2ENC = 11.363636364;
@@ -114,6 +131,7 @@ public:
     const double RAD2DEG = 57.295779513;//180.0/3.14159265358979323846;
     const double ENC2RPM = 	0.229;
     const double RAW2mA = 2.69;
+    const double mA2RAW = 0.371747212;
 
 //    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};
 };

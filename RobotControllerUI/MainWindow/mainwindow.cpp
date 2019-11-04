@@ -135,10 +135,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->gbTorqueIDE->hide();
 
-    connect(ui->btnUp, SIGNAL(pressed()), this, SLOT(btnUpPressed()));
-    connect(ui->btnUp, SIGNAL(released()), this, SLOT(btnUpReleased()));
-    connect(ui->btnDown, SIGNAL(pressed()), this, SLOT(btnDownPressed()));
-    connect(ui->btnDown, SIGNAL(released()), this, SLOT(btnDownReleased()));
+    connect(ui->btnSave, SIGNAL(clicked()), this, SLOT(btnSaveClicked()));
+    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClicked()));
+    connect(ui->sbMass, SIGNAL(editingFinished()), this, SLOT(sbMassEditingFinished()));
+    connect(ui->sbTorqueConst, SIGNAL(editingFinished()), this, SLOT(sbTorqueConstEditingFinished()));
 }
 
 MainWindow::~MainWindow()
@@ -205,6 +205,19 @@ void MainWindow::btnSetInitClicked()
     vHeader.append("Present Vel [RPM]");
     vHeader.append("Present Cur [mA]");
     model->setVerticalHeaderLabels(vHeader);
+
+    row = 2;
+    torqueIdeModel = new QStandardItemModel(row, 1, this);
+    ui->tvIdeResult->setModel(torqueIdeModel);
+
+    for(int i = 0; i < row; i++){
+        QModelIndex index = torqueIdeModel->index(i, 0, QModelIndex());
+        torqueIdeModel->setData(index, 0);
+    }
+    QStringList vHeaderIde;
+    vHeaderIde.append("Mass [Kg]");
+    vHeaderIde.append("Kt [Nm/A]");
+    torqueIdeModel->setVerticalHeaderLabels(vHeaderIde);
 }
 
 void MainWindow::btnServOnClicked()
@@ -407,7 +420,7 @@ void MainWindow::readMessage(){
             disConnectServer();
         }
         else if(rxData.at(0) == 'S'){
-            qDebug() << "Client & Server configuration check complete";
+//            qDebug() << "Client & Server configuration check complete";
             componentEnable(true);
         }
     }
@@ -897,29 +910,42 @@ void MainWindow::closeEvent(QCloseEvent*){
 //    colPressedIndex = -1;
 //}
 
-void MainWindow::btnUpPressed(){
-    qDebug() << "Button Up pressed";
+void MainWindow::sbMassEditingFinished(){
+    ui->btnSave->setEnabled(true);
 }
 
-void MainWindow::btnUpReleased(){
-    qDebug() << "Button Up released";
-
+void MainWindow::sbTorqueConstEditingFinished(){
+    ui->btnSave->setEnabled(true);
 }
 
-void MainWindow::btnDownPressed(){
-    qDebug() << "Button Down pressed";
+void MainWindow::btnStartClicked(){
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_T);
 
-}
+    txData.append(DataControl::OpMode::TorqueIDE);
+    txData.append(QByteArray::number(ui->sbMass->value(), 'f', 6));
+    txData.append(QByteArray::number(ui->sbTorqueConst->value(), 'f', 6));
 
-void MainWindow::btnDownReleased(){
-    qDebug() << "Button Down released";
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
 
-}
+    qDebug() << "txData : " << txData;
 
-void MainWindow::btnSetMassClicked(){
-
+    tcpClient->socket->write(txData);
 }
 
 void MainWindow::btnSaveClicked(){
+    QModelIndex index1 = torqueIdeModel->index(0, torqueIdeModel->columnCount()-1);
+    torqueIdeModel->setData(index1, ui->sbMass->value());
+    ui->tvIdeResult->update(index1);
 
+    QModelIndex index2 = torqueIdeModel->index(1, torqueIdeModel->columnCount()-1);
+    double Kt = ui->sbMass->value()*9.80665*0.2 / dataControl->ServerToClient.presentJointCurrent[0]*0.001;
+    torqueIdeModel->setData(index2, Kt);
+    ui->tvIdeResult->update(index2);
+
+    torqueIdeModel->insertColumn(torqueIdeModel->columnCount());
+
+    ui->btnSave->setEnabled(false);
 }
