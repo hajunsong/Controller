@@ -169,6 +169,7 @@ void MainWindow::btnDisconnectClicked(){
 
     ui->btnRun->setEnabled(false);
 }
+
 void MainWindow::btnSetInitClicked()
 {
     txData.clear();

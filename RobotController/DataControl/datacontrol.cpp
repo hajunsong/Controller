@@ -115,6 +115,12 @@ void DataControl::jointVelocityENC2RPM(int32_t vel_enc[], double vel_rpm[])
     }
 }
 
+void DataControl::jointVelocityENC2RAD(int32_t vel_enc[], double vel_rad[]){
+    for(int i = 0; i < NUM_JOINT; i++){
+        vel_rad[i] = vel_enc[i]*ENC2RPM*RPM2DEG*DEG2RAD;
+    }
+}
+
 void DataControl::jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[])
 {
     for(int i = 0; i < NUM_JOINT; i++){

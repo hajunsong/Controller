@@ -192,18 +192,18 @@ void ControlMain::robot_run(void *arg)
 //                pThis->dataControl->RobotData.offset[2], pThis->dataControl->RobotData.offset[3],
 //                pThis->dataControl->RobotData.offset[4], pThis->dataControl->RobotData.offset[5]);
 
-//        rt_printf("Present Position : %d, %d, %d, %d, %d, %d\n",
-//                  pThis->dataControl->RobotData.present_joint_position[0], pThis->dataControl->RobotData.present_joint_position[1],
-//                pThis->dataControl->RobotData.present_joint_position[2], pThis->dataControl->RobotData.present_joint_position[3],
-//                pThis->dataControl->RobotData.present_joint_position[4], pThis->dataControl->RobotData.present_joint_position[5]);
-//        rt_printf("Present Velocity : %d, %d, %d, %d, %d, %d\n",
-//                  pThis->dataControl->RobotData.present_joint_velocity[0], pThis->dataControl->RobotData.present_joint_velocity[1],
-//                pThis->dataControl->RobotData.present_joint_velocity[2], pThis->dataControl->RobotData.present_joint_velocity[3],
-//                pThis->dataControl->RobotData.present_joint_velocity[4], pThis->dataControl->RobotData.present_joint_velocity[5]);
-//        rt_printf("Present Current : %d, %d, %d, %d, %d, %d\n\n",
-//                  pThis->dataControl->RobotData.present_joint_current[0], pThis->dataControl->RobotData.present_joint_current[1],
-//                pThis->dataControl->RobotData.present_joint_current[2], pThis->dataControl->RobotData.present_joint_current[3],
-//                pThis->dataControl->RobotData.present_joint_current[4], pThis->dataControl->RobotData.present_joint_current[5]);
+        rt_printf("Present Position : %d, %d, %d, %d, %d, %d\n",
+                  pThis->dataControl->RobotData.present_joint_position[0], pThis->dataControl->RobotData.present_joint_position[1],
+                pThis->dataControl->RobotData.present_joint_position[2], pThis->dataControl->RobotData.present_joint_position[3],
+                pThis->dataControl->RobotData.present_joint_position[4], pThis->dataControl->RobotData.present_joint_position[5]);
+        rt_printf("Present Velocity : %d, %d, %d, %d, %d, %d\n",
+                  pThis->dataControl->RobotData.present_joint_velocity[0], pThis->dataControl->RobotData.present_joint_velocity[1],
+                pThis->dataControl->RobotData.present_joint_velocity[2], pThis->dataControl->RobotData.present_joint_velocity[3],
+                pThis->dataControl->RobotData.present_joint_velocity[4], pThis->dataControl->RobotData.present_joint_velocity[5]);
+        rt_printf("Present Current : %d, %d, %d, %d, %d, %d\n\n",
+                  pThis->dataControl->RobotData.present_joint_current[0], pThis->dataControl->RobotData.present_joint_current[1],
+                pThis->dataControl->RobotData.present_joint_current[2], pThis->dataControl->RobotData.present_joint_current[3],
+                pThis->dataControl->RobotData.present_joint_current[4], pThis->dataControl->RobotData.present_joint_current[5]);
 
 //        rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
 //                  pThis->dataControl->ServerToClient.presentCartesianPose[0], pThis->dataControl->ServerToClient.presentCartesianPose[1],
@@ -301,7 +301,27 @@ void ControlMain::robotKinematics(){
 }
 
 void ControlMain::robotDynamics(){
+    dataControl->jointPositionENC2RAD(dataControl->RobotData.present_joint_position, dataControl->RobotData.present_q);
+    dataControl->jointVelocityENC2RAD(dataControl->RobotData.present_joint_velocity, dataControl->RobotData.present_q_dot);
 
+    double goal_torque[NUM_JOINT] = {0,};
+    robotArm->gravity_compensation(dataControl->RobotData.present_q, dataControl->RobotData.present_q_dot, goal_torque);
+
+    double goal_current[NUM_JOINT] = {0,};
+    double alpha = 1.0;
+    for(uint i = 0; i < NUM_JOINT; i++){
+        if (i < 3){
+            goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W270)*alpha;
+        }
+        else{
+            goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W150)*alpha;
+        }
+    }
+
+    dataControl->jointCurrentmA2RAW(goal_current, dataControl->RobotData.command_joint_current);
+    if (dataControl->RobotData.joint_op_mode == JointOpMode::current_mode){
+        module->setGroupSyncWriteGoalCurrent(dataControl->RobotData.command_joint_current, NUM_JOINT);
+    }
 }
 
 void ControlMain::robotJointMove(char mode, double desJoint[NUM_JOINT])

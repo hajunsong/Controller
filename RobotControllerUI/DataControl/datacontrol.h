@@ -5,8 +5,8 @@
 #include <iostream>
 #include <vector>
 
-#define NUM_JOINT               1
-#define NUM_DOF                 1
+#define NUM_JOINT               6
+#define NUM_DOF                 6
 
 #define NRMK_SOCKET_TOKEN_SIZE  2
 
@@ -71,7 +71,6 @@ public:
 
     StructClientToServer ClientToServer;
     StructServerToClient ServerToClient;
-    std::vector<std::vector<double> > pathData;
 };
 
 enum { current_mode = 0, velocity_mode, position_mode = 3, extended_position_mode, current_based_position_mode, pwm_mode = 16 };

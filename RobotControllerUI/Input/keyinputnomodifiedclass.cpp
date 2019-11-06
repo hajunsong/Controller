@@ -221,9 +221,11 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
             if (path.contains("keti")){
                 qDebug() << "Pressed F12";
                 if (static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->isHidden()){
+                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setEnabled(true);
                     static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(false);
                 }
                 else{
+                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setEnabled(false);
                     static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(true);
                 }
             }

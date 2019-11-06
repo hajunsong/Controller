@@ -9,9 +9,9 @@
 
 #include "FileIO/fileio.h"
 
-#define NUM_JOINT               1
-#define NUM_DOF                 1
-#define MODULE_TYPE             1 // 1:FAR, 2:SEA
+#define NUM_JOINT               6
+#define NUM_DOF                 6
+#define MODULE_TYPE             1 // 1:FAR V1, 2:SEA
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
 #define CARTESIAN_POSE_LEN      8
@@ -61,8 +61,10 @@ public:
         double desired_end_pose[NUM_DOF];
         double old_desired_end_pose[NUM_DOF];
         double present_q[NUM_JOINT];
+        double present_q_dot[NUM_JOINT];
         double desired_q[NUM_JOINT];
         int32_t command_joint_position[NUM_JOINT];
+        int16_t command_joint_current[NUM_JOINT];
         unsigned long time1, time2, dxl_time1, dxl_time2, ik_time1, ik_time2;
         int32_t offset[6];
         uint8_t joint_op_mode;
@@ -122,6 +124,7 @@ public:
     void jointPositionDEG2ENC(const int32_t pos_deg[], int32_t pos_end[]);
     void jointPositionDEG2ENC(int32_t pos_deg[], int32_t pos_end[]);
     void jointVelocityENC2RPM(int32_t vel_enc[], double vel_rpm[]);
+    void jointVelocityENC2RAD(int32_t vel_enc[], double vel_rad[]);
     void jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[]);
     void jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[]);
 
@@ -130,6 +133,7 @@ public:
     const double DEG2RAD = 0.017453293;//3.14159265358979323846/180.0;
     const double RAD2DEG = 57.295779513;//180.0/3.14159265358979323846;
     const double ENC2RPM = 	0.229;
+    const double RPM2DEG = 6;
     const double RAW2mA = 2.69;
     const double mA2RAW = 0.371747212;
 
