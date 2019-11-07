@@ -51,6 +51,7 @@ private:
     void robotDynamics();
     void robotJointMove(char mode, double desJoint[NUM_JOINT]);
     void robotCartesianMove(char mode, double desCartesian[NUM_DOF]);
+    void robotPathMake();
     void robotRun(int16_t type);
     void robotReady(int16_t type);
     void robotPositionControl();

@@ -74,8 +74,8 @@ public slots:
     void btnRunClicked();
     void btnStopClicked();
     void btnReadyClicked();
-    void btnStartClicked();
-    void btnSaveClicked();
+//    void btnStartClicked();
+//    void btnSaveClicked();
 
     // checkbox event
 //    void cbJointPathClicked();
@@ -102,8 +102,8 @@ public slots:
 //    void horizontalSectionPressed(int index);
 
      // spin box event
-     void sbMassEditingFinished();
-     void sbTorqueConstEditingFinished();
+//     void sbMassEditingFinished();
+//     void sbTorqueConstEditingFinished();
 };
 
 #endif // MAINWINDOW_H

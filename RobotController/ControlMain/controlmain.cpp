@@ -151,11 +151,14 @@ void ControlMain::robot_run(void *arg)
             case DataControl::OpMode::CartesianMove:
                 pThis->robotCartesianMove(pThis->dataControl->ClientToServer.subMode, pThis->dataControl->ClientToServer.desiredCartesian);
                 break;
+            case DataControl::OpMode::PathGenerateMode:
+                pThis->robotPathMake();
+                break;
             case DataControl::OpMode::ReadyMode:
-                pThis->robotReady(pThis->dataControl->PathData.type);
+//                pThis->robotReady(pThis->dataControl->PathData.type);
                 break;
             case DataControl::OpMode::RunMode:
-                pThis->robotRun(pThis->dataControl->PathData.type);
+//                pThis->robotRun(pThis->dataControl->PathData.type);
                 break;
             case DataControl::OpMode::TorqueIDE:
                 pThis->robotPositionControl();
@@ -439,293 +442,353 @@ void ControlMain::robotCartesianMove(char mode, double desCartesian[NUM_DOF])
     dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
 }
 
+void ControlMain::robotPathMake()
+{
+    for(uint i = 0; i < dataControl->PathData.row; i++){
+        double td = dataControl->PathData.total_time - dataControl->PathData.acc_time;
+        double vd = (dataControl->PathData.point_x[1] - dataControl->PathData.point_x[0])/td;
+        double xa = dataControl->PathData.point_x[0] + 0.5*dataControl->PathData.acc_time*vd;
+        double xd = dataControl->PathData.point_x[1] - 0.5*dataControl->PathData.acc_time*vd;
+        double h = 0.005;
+
+        std::vector<double> path_acc, path_const, path_dec;
+
+        dataControl->PathGenerator(dataControl->PathData.point_x[0], xa, 0, vd, 0, 0, dataControl->PathData.acc_time, h, &path_acc);
+        dataControl->PathGenerator(xa, xd, vd, vd, 0, 0, td - dataControl->PathData.acc_time, h, &path_const);
+        dataControl->PathGenerator(xd, dataControl->PathData.point_x[1], vd, 0, 0, 0, dataControl->PathData.total_time - td, h, &path_dec);
+
+        dataControl->PathData.path_x.reserve(path_acc.size() + path_const.size() + path_dec.size());
+        dataControl->PathData.path_x.insert(dataControl->PathData.path_x.end(), path_acc.begin(), path_acc.end());
+        dataControl->PathData.path_x.insert(dataControl->PathData.path_x.end(), path_const.begin(), path_const.end());
+        dataControl->PathData.path_x.insert(dataControl->PathData.path_x.end(), path_dec.begin(), path_dec.end());
+    }
+
+    for(uint i = 0; i < dataControl->PathData.row; i++){
+        double td = dataControl->PathData.total_time - dataControl->PathData.acc_time;
+        double vd = (dataControl->PathData.point_y[1] - dataControl->PathData.point_y[0])/td;
+        double xa = dataControl->PathData.point_y[0] + 0.5*dataControl->PathData.acc_time*vd;
+        double xd = dataControl->PathData.point_y[1] - 0.5*dataControl->PathData.acc_time*vd;
+        double h = 0.005;
+
+        std::vector<double> path_acc, path_const, path_dec;
+
+        dataControl->PathGenerator(dataControl->PathData.point_y[0], xa, 0, vd, 0, 0, dataControl->PathData.acc_time, h, &path_acc);
+        dataControl->PathGenerator(xa, xd, vd, vd, 0, 0, td - dataControl->PathData.acc_time, h, &path_const);
+        dataControl->PathGenerator(xd, dataControl->PathData.point_y[1], vd, 0, 0, 0, dataControl->PathData.total_time - td, h, &path_dec);
+
+        dataControl->PathData.path_y.reserve(path_acc.size() + path_const.size() + path_dec.size());
+        dataControl->PathData.path_y.insert(dataControl->PathData.path_y.end(), path_acc.begin(), path_acc.end());
+        dataControl->PathData.path_y.insert(dataControl->PathData.path_y.end(), path_const.begin(), path_const.end());
+        dataControl->PathData.path_y.insert(dataControl->PathData.path_y.end(), path_dec.begin(), path_dec.end());
+    }
+
+    for(uint i = 0; i < dataControl->PathData.row; i++){
+        double td = dataControl->PathData.total_time - dataControl->PathData.acc_time;
+        double vd = (dataControl->PathData.point_z[1] - dataControl->PathData.point_z[0])/td;
+        double xa = dataControl->PathData.point_z[0] + 0.5*dataControl->PathData.acc_time*vd;
+        double xd = dataControl->PathData.point_z[1] - 0.5*dataControl->PathData.acc_time*vd;
+        double h = 0.005;
+
+        std::vector<double> path_acc, path_const, path_dec;
+
+        dataControl->PathGenerator(dataControl->PathData.point_z[0], xa, 0, vd, 0, 0, dataControl->PathData.acc_time, h, &path_acc);
+        dataControl->PathGenerator(xa, xd, vd, vd, 0, 0, td - dataControl->PathData.acc_time, h, &path_const);
+        dataControl->PathGenerator(xd, dataControl->PathData.point_z[1], vd, 0, 0, 0, dataControl->PathData.total_time - td, h, &path_dec);
+
+        dataControl->PathData.path_z.reserve(path_acc.size() + path_const.size() + path_dec.size());
+        dataControl->PathData.path_z.insert(dataControl->PathData.path_z.end(), path_acc.begin(), path_acc.end());
+        dataControl->PathData.path_z.insert(dataControl->PathData.path_z.end(), path_const.begin(), path_const.end());
+        dataControl->PathData.path_z.insert(dataControl->PathData.path_z.end(), path_dec.begin(), path_dec.end());
+    }
+}
+
 void ControlMain::robotRun(int16_t type)
 {
-    switch(type){
-        case DataControl::PathDataType::Save1: // pick-up motion(joint)
-        {
-            double path[6];
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
+//    switch(type){
+//        case DataControl::PathDataType::Save1: // pick-up motion(joint)
+//        {
+//            double path[6];
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
 
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save2: // pick-up motion(cartesian)
-        {
-            for(uint i = 0; i < NUM_DOF; i++){
-                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
-            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save2: // pick-up motion(cartesian)
+//        {
+//            for(uint i = 0; i < NUM_DOF; i++){
+//                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
+//            }
 
-            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
-            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
-                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
-            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
+//            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
+//            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
+//                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
+//            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
 
-            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
+//            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
 
-            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save3: // rect motion(joint)
-        {
-            double path[6];
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
+//            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save3: // rect motion(joint)
+//        {
+//            double path[6];
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
 
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save4: // rect motion(cartesian)
-        {
-            for(uint i = 0; i < NUM_DOF; i++){
-                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
-            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save4: // rect motion(cartesian)
+//        {
+//            for(uint i = 0; i < NUM_DOF; i++){
+//                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
+//            }
 
-            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
-            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
-                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
-            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
+//            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
+//            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
+//                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
+//            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
 
-            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
+//            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
 
-            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save5: // rect motion for evaluation(joint)
-        {
-            double path[6];
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
+//            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save5: // rect motion for evaluation(joint)
+//        {
+//            double path[6];
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
 
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save6: // rect motion for evaluation(cartesian)
-        {
-            for(uint i = 0; i < NUM_DOF; i++){
-                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
-            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save6: // rect motion for evaluation(cartesian)
+//        {
+//            for(uint i = 0; i < NUM_DOF; i++){
+//                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
+//            }
 
-            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
-            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
-                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
-            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
+//            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
+//            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
+//                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
+//            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
 
-            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
+//            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
 
-            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save7:  // calibration motion(joint)
-        {
-            double path[6];
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataCalibration[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+1];
-            }
+//            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save7:  // calibration motion(joint)
+//        {
+//            double path[6];
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataCalibration[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+1];
+//            }
 
-            dataControl->jointPositionDEG2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save8: // linear motion 42(joint)
-        {
-            double path[6];
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
+//            dataControl->jointPositionDEG2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save8: // linear motion 42(joint)
+//        {
+//            double path[6];
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
 
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save9: // linear motion 42(cartesian)
-        {
-            for(uint i = 0; i < NUM_DOF; i++){
-                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
-            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save9: // linear motion 42(cartesian)
+//        {
+//            for(uint i = 0; i < NUM_DOF; i++){
+//                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
+//            }
 
-            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
-            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
-                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
-            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
+//            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
+//            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
+//                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
+//            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
 
-            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
+//            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
 
-            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save10: // linear motion 24(joint)
-        {
-            double path[6];
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
+//            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save10: // linear motion 24(joint)
+//        {
+//            double path[6];
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
 
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        }
-        case DataControl::PathDataType::Save11: // linear motion 24(cartesian)
-        {
-            for(uint i = 0; i < NUM_DOF; i++){
-                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
-            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//        case DataControl::PathDataType::Save11: // linear motion 24(cartesian)
+//        {
+//            for(uint i = 0; i < NUM_DOF; i++){
+//                dataControl->RobotData.desired_end_pose[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+8];
+//            }
 
-            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
-            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
-                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
-            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
+//            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
+//            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
+//                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
+//            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
 
-            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
+//            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
 
-            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
-            break;
-        }
-    }
+//            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+//            break;
+//        }
+//    }
 
-    rt_printf("path_data_indx : %d\n", dataControl->PathData.path_data_indx);
+//    rt_printf("path_data_indx : %d\n", dataControl->PathData.path_data_indx);
 
-    for(uint i = 0; i < NUM_JOINT; i++){
-        rt_printf("%d\t", dataControl->RobotData.command_joint_position[i]);
-    }
-    rt_printf("\n");
+//    for(uint i = 0; i < NUM_JOINT; i++){
+//        rt_printf("%d\t", dataControl->RobotData.command_joint_position[i]);
+//    }
+//    rt_printf("\n");
 
-    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+//    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 
-    if (type == DataControl::PathDataType::Save5 || type == DataControl::PathDataType::Save6 ||
-            type == DataControl::PathDataType::Save8 || type == DataControl::PathDataType::Save9 ||
-            type == DataControl::PathDataType::Save10 || type == DataControl::PathDataType::Save11){
-        if ((dataControl->PathData.path_data_indx - 1) % 500 == 0){
-            delay++;
-            if (delay >= 600){
-                delay = 0;
-            }
-        }
-    }
-    else if (type == DataControl::PathDataType::Save7){
-        delay++;
-        if (delay >= 1000){
-            delay = 0;
-        }
-    }
+//    if (type == DataControl::PathDataType::Save5 || type == DataControl::PathDataType::Save6 ||
+//            type == DataControl::PathDataType::Save8 || type == DataControl::PathDataType::Save9 ||
+//            type == DataControl::PathDataType::Save10 || type == DataControl::PathDataType::Save11){
+//        if ((dataControl->PathData.path_data_indx - 1) % 500 == 0){
+//            delay++;
+//            if (delay >= 600){
+//                delay = 0;
+//            }
+//        }
+//    }
+//    else if (type == DataControl::PathDataType::Save7){
+//        delay++;
+//        if (delay >= 1000){
+//            delay = 0;
+//        }
+//    }
 
-    if (delay == 0){
-        if (cartesian_move_flag){
-            goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
+//    if (delay == 0){
+//        if (cartesian_move_flag){
+//            goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
 
-            if (dataControl->cartesian_goal_reach){
-                ready_pose = true;
-                dataControl->PathData.path_data_indx += 1;
-            }
-        }
-        else{
-            dataControl->PathData.path_data_indx += 1;
-        }
-    }
+//            if (dataControl->cartesian_goal_reach){
+//                ready_pose = true;
+//                dataControl->PathData.path_data_indx += 1;
+//            }
+//        }
+//        else{
+//            dataControl->PathData.path_data_indx += 1;
+//        }
+//    }
 
-    if (dataControl->PathData.path_data_indx >= dataControl->PathData.row){
-        if(dataControl->PathData.repeat == -1)
-        {
-            dataControl->PathData.path_data_indx = 0;
-            ready_pose = false;
-            cartesian_move_flag = false;
-        }
-        else
-        {
-            dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
-            ready_pose = false;
-            cartesian_move_flag = false;
-        }
-    }
+//    if (dataControl->PathData.path_data_indx >= dataControl->PathData.row){
+//        if(dataControl->PathData.repeat == -1)
+//        {
+//            dataControl->PathData.path_data_indx = 0;
+//            ready_pose = false;
+//            cartesian_move_flag = false;
+//        }
+//        else
+//        {
+//            dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+//            ready_pose = false;
+//            cartesian_move_flag = false;
+//        }
+//    }
 }
 
 void ControlMain::robotReady(int16_t type)
 {
-    double path[6] = {0,};
-    delay = 0;
-    cartesian_move_flag = false;
+//    double path[6] = {0,};
+//    delay = 0;
+//    cartesian_move_flag = false;
 
-    switch(type){
-        case DataControl::PathDataType::Save1:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        case DataControl::PathDataType::Save2:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            cartesian_move_flag = true;
-            break;
-        case DataControl::PathDataType::Save3:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        case DataControl::PathDataType::Save4:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            cartesian_move_flag = true;
-            break;
-        case DataControl::PathDataType::Save5:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        case DataControl::PathDataType::Save6:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            cartesian_move_flag = true;
-            break;
-        case DataControl::PathDataType::Save7:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataCalibration[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+1];
-            }
-            dataControl->jointPositionDEG2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        case DataControl::PathDataType::Save8:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        case DataControl::PathDataType::Save9:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            cartesian_move_flag = true;
-            break;
-        case DataControl::PathDataType::Save10:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            break;
-        case DataControl::PathDataType::Save11:
-            for(uint i = 0; i < 6; i++){
-                path[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
-            }
-            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
-            cartesian_move_flag = true;
-            break;
-    }
+//    switch(type){
+//        case DataControl::PathDataType::Save1:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        case DataControl::PathDataType::Save2:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataPick[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            cartesian_move_flag = true;
+//            break;
+//        case DataControl::PathDataType::Save3:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        case DataControl::PathDataType::Save4:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataRect[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            cartesian_move_flag = true;
+//            break;
+//        case DataControl::PathDataType::Save5:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        case DataControl::PathDataType::Save6:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataRect2[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            cartesian_move_flag = true;
+//            break;
+//        case DataControl::PathDataType::Save7:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataCalibration[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+1];
+//            }
+//            dataControl->jointPositionDEG2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        case DataControl::PathDataType::Save8:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        case DataControl::PathDataType::Save9:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataLinear42[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            cartesian_move_flag = true;
+//            break;
+//        case DataControl::PathDataType::Save10:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            break;
+//        case DataControl::PathDataType::Save11:
+//            for(uint i = 0; i < 6; i++){
+//                path[i] = dataControl->PathData.pathDataLinear24[dataControl->PathData.path_data_indx*dataControl->PathData.col + i+2];
+//            }
+//            dataControl->jointPositionRAD2ENC(path, dataControl->RobotData.command_joint_position);
+//            cartesian_move_flag = true;
+//            break;
+//    }
 
-    for(uint i = 0; i < NUM_JOINT; i++){
-        rt_printf("%d\t", dataControl->RobotData.command_joint_position[i]);
-    }
-    rt_printf("\n");
+//    for(uint i = 0; i < NUM_JOINT; i++){
+//        rt_printf("%d\t", dataControl->RobotData.command_joint_position[i]);
+//    }
+//    rt_printf("\n");
 
-    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+//    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
 }
 
 void ControlMain::robotPositionControl()

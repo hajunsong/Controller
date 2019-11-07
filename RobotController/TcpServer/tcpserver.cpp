@@ -186,13 +186,13 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 //                        dataControl->ClientToServer.desiredCartesian[3], dataControl->ClientToServer.desiredCartesian[4], dataControl->ClientToServer.desiredCartesian[5]);
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'U'){
-                int indx = NRMK_SOCKET_TOKEN_SIZE;
-                dataControl->PathData.type = static_cast<char>(lpBuffer[indx]);
-                indx += PATH_TYPE_LEN;
-                dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
-                indx += OP_MODE_LEN;
-                dataControl->PathData.repeat = static_cast<char>(lpBuffer[indx]);
-                indx += CYCLE_COUNT_LEN;
+//                int indx = NRMK_SOCKET_TOKEN_SIZE;
+//                dataControl->PathData.type = static_cast<char>(lpBuffer[indx]);
+//                indx += PATH_TYPE_LEN;
+//                dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
+//                indx += OP_MODE_LEN;
+//                dataControl->PathData.repeat = static_cast<char>(lpBuffer[indx]);
+//                indx += CYCLE_COUNT_LEN;
 
                 //                if (dataControl->PathData.type == DataControl::PathDataType::CartPath || dataControl->PathData.type == DataControl::PathDataType::JointPath){
                 //                    dataControl->PathData.data.clear();
@@ -208,44 +208,44 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                 //                    }
                 //                }
 
-                switch(dataControl->PathData.type){
-                    case DataControl::PathDataType::Save1:
-                    case DataControl::PathDataType::Save2:
-                        dataControl->PathData.row = 8001;
-                        dataControl->PathData.col = 14;
-                        dataControl->PathData.path_data_indx = 0;
-                        break;
+//                switch(dataControl->PathData.type){
+//                    case DataControl::PathDataType::Save1:
+//                    case DataControl::PathDataType::Save2:
+//                        dataControl->PathData.row = 8001;
+//                        dataControl->PathData.col = 14;
+//                        dataControl->PathData.path_data_indx = 0;
+//                        break;
 
-                    case DataControl::PathDataType::Save3:
-                    case DataControl::PathDataType::Save4:
-                        dataControl->PathData.row = 2001;
-                        dataControl->PathData.col = 14;
-                        dataControl->PathData.path_data_indx = 0;
-                        break;
-                    case DataControl::PathDataType::Save5:
-                    case DataControl::PathDataType::Save6:
-                        dataControl->PathData.row = 2501;
-                        dataControl->PathData.col = 14;
-                        dataControl->PathData.path_data_indx = 0;
-                        break;
-                    case DataControl::PathDataType::Save7:
-                        dataControl->PathData.row = 30;
-                        dataControl->PathData.col = 7;
-                        dataControl->PathData.path_data_indx = 0;
-                        break;
-                    case DataControl::PathDataType::Save8:
-                    case DataControl::PathDataType::Save9:
-                        dataControl->PathData.row = 1001;
-                        dataControl->PathData.col = 14;
-                        dataControl->PathData.path_data_indx = 0;
-                        break;
-                    case DataControl::PathDataType::Save10:
-                    case DataControl::PathDataType::Save11:
-                        dataControl->PathData.row = 1001;
-                        dataControl->PathData.col = 14;
-                        dataControl->PathData.path_data_indx = 0;
-                        break;
-                }
+//                    case DataControl::PathDataType::Save3:
+//                    case DataControl::PathDataType::Save4:
+//                        dataControl->PathData.row = 2001;
+//                        dataControl->PathData.col = 14;
+//                        dataControl->PathData.path_data_indx = 0;
+//                        break;
+//                    case DataControl::PathDataType::Save5:
+//                    case DataControl::PathDataType::Save6:
+//                        dataControl->PathData.row = 2501;
+//                        dataControl->PathData.col = 14;
+//                        dataControl->PathData.path_data_indx = 0;
+//                        break;
+//                    case DataControl::PathDataType::Save7:
+//                        dataControl->PathData.row = 30;
+//                        dataControl->PathData.col = 7;
+//                        dataControl->PathData.path_data_indx = 0;
+//                        break;
+//                    case DataControl::PathDataType::Save8:
+//                    case DataControl::PathDataType::Save9:
+//                        dataControl->PathData.row = 1001;
+//                        dataControl->PathData.col = 14;
+//                        dataControl->PathData.path_data_indx = 0;
+//                        break;
+//                    case DataControl::PathDataType::Save10:
+//                    case DataControl::PathDataType::Save11:
+//                        dataControl->PathData.row = 1001;
+//                        dataControl->PathData.col = 14;
+//                        dataControl->PathData.path_data_indx = 0;
+//                        break;
+//                }
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'T'){
                 int indx = NRMK_SOCKET_TOKEN_SIZE;

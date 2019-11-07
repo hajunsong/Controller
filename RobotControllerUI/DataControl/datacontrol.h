@@ -59,7 +59,7 @@ public:
         double time, dxl_time, ik_time;
     }StructServerToClient;
 
-    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
+    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, PathGenerateMode, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};

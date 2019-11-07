@@ -34,3 +34,4 @@ HEADERS += \
 
 FORMS += \
         MainWindow/mainwindow.ui \
+        TorqueIde/torqueide.ui \

@@ -13,22 +13,25 @@ DataControl::DataControl()
     memset(&torqueIdeData, 0, sizeof(torqueIdeData));
     memset(&PIDControl, 0, sizeof(PIDControl));
 
-    load_data("data/motion_pick.txt", &PathData.pathDataPick, "\t");
-    load_data("data/rect_motion.txt", &PathData.pathDataRect, "\t");
-    load_data("data/motion7.txt", &PathData.pathDataRect2, "\t");
-    load_data("data/CalPos.csv", &PathData.pathDataCalibration, ",");
-    load_data("data/linear_motion_42.txt", &PathData.pathDataLinear42, "\t");
-    load_data("data/linear_motion_24.txt", &PathData.pathDataLinear24, "\t");
+//    load_data("data/motion_pick.txt", &PathData.pathDataPick, "\t");
+//    load_data("data/rect_motion.txt", &PathData.pathDataRect, "\t");
+//    load_data("data/motion7.txt", &PathData.pathDataRect2, "\t");
+//    load_data("data/CalPos.csv", &PathData.pathDataCalibration, ",");
+//    load_data("data/linear_motion_42.txt", &PathData.pathDataLinear42, "\t");
+//    load_data("data/linear_motion_24.txt", &PathData.pathDataLinear24, "\t");
 }
 
 DataControl::~DataControl()
 {
-    PathData.pathDataPick.clear();
-    PathData.pathDataRect.clear();
-    PathData.pathDataRect2.clear();
-    PathData.pathDataCalibration.clear();
-    PathData.pathDataLinear42.clear();
-    PathData.pathDataLinear24.clear();
+//    PathData.pathDataPick.clear();
+//    PathData.pathDataRect.clear();
+//    PathData.pathDataRect2.clear();
+//    PathData.pathDataCalibration.clear();
+//    PathData.pathDataLinear42.clear();
+//    PathData.pathDataLinear24.clear();
+    PathData.path_x.clear();
+    PathData.path_y.clear();
+    PathData.path_z.clear();
 }
 
 void DataControl::DataReset()
@@ -135,4 +138,17 @@ void DataControl::jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[])
     }
 }
 
+void DataControl::PathGenerator(double start_pt, double final_pt, double start_vel, double final_vel, double start_acc, double final_acc, double tf, double step_size, std::vector<double> *path){
+    double a0 = 0, a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0;
 
+    a0 = start_pt;
+    a1 = start_vel;
+    a2 = start_acc / 2;
+    a3 = (20*(final_pt - start_pt) - (8*final_vel + 12*start_vel)*tf - (3*start_acc - final_acc)*tf*tf)/(2*tf*tf*tf);
+    a4 = (30*(start_pt - final_pt) + (14*final_vel + 16*start_vel)*tf + (3*start_acc - 2*final_acc)*tf*tf)/(2*tf*tf*tf*tf);
+    a5 = (12*(final_pt - start_pt) - (6*final_vel + 6*start_vel)*tf - (start_acc - final_acc)*tf*tf)/(2*tf*tf*tf*tf*tf);
+
+    for(double t = 0; t < tf; t += step_size){
+        path->push_back(a0 + a1*t + a2*t*t + a3*t*t*t + a4*t*t*t*t + a5*t*t*t*t*t);
+    }
+}

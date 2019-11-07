@@ -71,14 +71,19 @@ public:
     }StructRobotData;
 
     typedef struct _StructPathData{
-        char type, repeat;
+//        char type;
+//        std::vector<double> pathDataPick;
+//        std::vector<double> pathDataRect;
+//        std::vector<double> pathDataRect2;
+//        std::vector<double> pathDataCalibration;
+//        std::vector<double> pathDataLinear24;
+//        std::vector<double> pathDataLinear42;
+
         uint16_t row, col;
-        std::vector<double> pathDataPick;
-        std::vector<double> pathDataRect;
-        std::vector<double> pathDataRect2;
-        std::vector<double> pathDataCalibration;
-        std::vector<double> pathDataLinear24;
-        std::vector<double> pathDataLinear42;
+        std::vector<double> point_x, point_y, point_z;
+        std::vector<double> path_x, path_y, path_z;
+        char repeat;
+        double total_time, acc_time;
         uint path_data_indx;
     }StructPathData;
 
@@ -94,7 +99,7 @@ public:
         double h;
     }StructControllerPID;
 
-    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, ReadyMode, RunMode, TorqueIDE};
+    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, PathGenerateMode, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
@@ -127,6 +132,8 @@ public:
     void jointVelocityENC2RAD(int32_t vel_enc[], double vel_rad[]);
     void jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[]);
     void jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[]);
+
+    void PathGenerator(double start_pt, double final_pt, double start_vel, double final_vel, double start_acc, double final_acc, double tf, double step_size, std::vector<double> *path);
 
     const double ENC2DEG = 0.088;
     const double DEG2ENC = 11.363636364;
