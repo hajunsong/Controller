@@ -134,6 +134,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 //    connect(ui->sbTorqueConst, SIGNAL(editingFinished()), this, SLOT(sbTorqueConstEditingFinished()));
 
     ui->tabWidget->setCurrentIndex(0);
+
+//    ui->gbRobotConfig->setEnabled(true);
+//    ui->btnSetInit->setEnabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -208,7 +211,7 @@ void MainWindow::btnSetInitClicked()
     for(int i = 0; i < 1; i++){
         for(int j = 0; j < 5; j++){
             QModelIndex indx = pathModel->index(i, j, QModelIndex());
-            pathModel->setData(indx, 0);
+            pathModel->setData(indx, "0");
         }
     }
 
@@ -726,23 +729,20 @@ void MainWindow::btnPathApplyClicked()
     txData.append(DataControl::CmdType::PathCmd);
     txData.append(DataControl::OpMode::PathGenerateMode);
 
-    int8_t tvRow = row;//static_cast<uint16_t>(pathModel->rowCount());
-    int8_t tvCol = col;//static_cast<uint16_t>(pathModel->columnCount());
+    int8_t tvRow = static_cast<int8_t>(pathModel->rowCount());
+    int8_t tvCol = static_cast<int8_t>(pathModel->columnCount());
+
+    qDebug() << "Path data row : " << tvRow;
+    qDebug() << "Path data col : " << tvCol;
 
     txData.append(tvRow);
     txData.append(tvCol);
-//    char buf[4];
-//    memcpy(buf, &tvRow, 2);
-//    memcpy(buf + 2, &tvCol, 2);
-//    txData.append(buf, 4);
+
     for(int i = 0; i < tvRow; i++){
         for(int j = 0; j < tvCol; j++){
-//            txData.append(QByteArray::number(pathModel->data(pathModel->index(i, j)).toDouble(),'f', 6));
-//            txData.append(QByteArray::number(path[i*tvCol + j], 'f', 6));
+            txData.append(QByteArray::number(pathModel->data(pathModel->index(i, j)).toDouble(), 'f', 6));
         }
     }
-
-    qDebug() << sizeof(txData);
 
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
