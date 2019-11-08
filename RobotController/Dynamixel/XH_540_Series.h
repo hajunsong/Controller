@@ -116,10 +116,10 @@ private:
     dynamixel::PortHandler *portHandler;
     dynamixel::PacketHandler *packetHandler;
     dynamixel::GroupSyncRead *groupSyncRead;
-    dynamixel::GroupSyncWrite *groupSyncWrite;
-    dynamixel::GroupSyncWrite *groupSyncWriteTorqueEnable;
-    dynamixel::GroupSyncWrite *groupSyncWritePresentPosition;
-    dynamixel::GroupSyncWrite *groupSyncWritePresentCurrent;
+//    dynamixel::GroupSyncWrite *groupSyncWrite;
+//    dynamixel::GroupSyncWrite *groupSyncWriteTorqueEnable;
+//    dynamixel::GroupSyncWrite *groupSyncWritePresentPosition;
+//    dynamixel::GroupSyncWrite *groupSyncWritePresentCurrent;
 
     bool init_flag;
 };

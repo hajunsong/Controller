@@ -186,11 +186,110 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 //                        dataControl->ClientToServer.desiredCartesian[3], dataControl->ClientToServer.desiredCartesian[4], dataControl->ClientToServer.desiredCartesian[5]);
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'U'){
-//                int indx = NRMK_SOCKET_TOKEN_SIZE;
-//                dataControl->PathData.type = static_cast<char>(lpBuffer[indx]);
-//                indx += PATH_TYPE_LEN;
-//                dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
-//                indx += OP_MODE_LEN;
+                int indx = NRMK_SOCKET_TOKEN_SIZE;
+                dataControl->PathData.cmd_type = static_cast<char>(lpBuffer[indx]);
+                indx += CMD_TYPE_LEN;
+                dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
+                indx += OP_MODE_LEN;
+
+                double path[6*5] = {
+                    0.0, -0.208, 0.1750735, 0.07, 0.3,
+                    1.0, -0.124, 0.2590735, -0.014, 0.3,
+                    2.0, -0.292, 0.2590735, -0.014, 0.3,
+                    3.0, -0.292, 0.0910735, 0.154, 0.3,
+                    4.0, -0.124, 0.0910735, 0.154, 0.3,
+                    5.0, -0.208, 0.1750735, 0.07, 0.3
+                };
+
+                switch(dataControl->PathData.cmd_type){
+                    case DataControl::CmdType::PathCmd:
+                        dataControl->PathData.row = static_cast<uchar>(lpBuffer[indx]);
+                        indx += ROW_SIZE_LEN;
+                        dataControl->PathData.col = static_cast<uchar>(lpBuffer[indx]);
+                        indx += COL_SIZE_LEN;
+                        dataControl->PathData.total_time.clear();
+                        dataControl->PathData.point_x.clear();
+                        dataControl->PathData.point_y.clear();
+                        dataControl->PathData.point_z.clear();
+                        dataControl->PathData.acc_time.clear();
+
+                        dataControl->PathData.total_time.push_back(path[0*5 + 0]);
+                        dataControl->PathData.total_time.push_back(path[1*5 + 0]);
+                        dataControl->PathData.total_time.push_back(path[2*5 + 0]);
+                        dataControl->PathData.total_time.push_back(path[3*5 + 0]);
+                        dataControl->PathData.total_time.push_back(path[4*5 + 0]);
+                        dataControl->PathData.total_time.push_back(path[5*5 + 0]);
+
+                        dataControl->PathData.point_x.push_back(path[0*5 + 1]);
+                        dataControl->PathData.point_x.push_back(path[1*5 + 1]);
+                        dataControl->PathData.point_x.push_back(path[2*5 + 1]);
+                        dataControl->PathData.point_x.push_back(path[3*5 + 1]);
+                        dataControl->PathData.point_x.push_back(path[4*5 + 1]);
+                        dataControl->PathData.point_x.push_back(path[5*5 + 1]);
+
+                        dataControl->PathData.point_y.push_back(path[0*5 + 2]);
+                        dataControl->PathData.point_y.push_back(path[1*5 + 2]);
+                        dataControl->PathData.point_y.push_back(path[2*5 + 2]);
+                        dataControl->PathData.point_y.push_back(path[3*5 + 2]);
+                        dataControl->PathData.point_y.push_back(path[4*5 + 2]);
+                        dataControl->PathData.point_y.push_back(path[5*5 + 2]);
+
+                        dataControl->PathData.point_z.push_back(path[0*5 + 3]);
+                        dataControl->PathData.point_z.push_back(path[1*5 + 3]);
+                        dataControl->PathData.point_z.push_back(path[2*5 + 3]);
+                        dataControl->PathData.point_z.push_back(path[3*5 + 3]);
+                        dataControl->PathData.point_z.push_back(path[4*5 + 3]);
+                        dataControl->PathData.point_z.push_back(path[5*5 + 3]);
+
+                        dataControl->PathData.acc_time.push_back(path[0*5 + 4]);
+                        dataControl->PathData.acc_time.push_back(path[1*5 + 4]);
+                        dataControl->PathData.acc_time.push_back(path[2*5 + 4]);
+                        dataControl->PathData.acc_time.push_back(path[3*5 + 4]);
+                        dataControl->PathData.acc_time.push_back(path[4*5 + 4]);
+                        dataControl->PathData.acc_time.push_back(path[5*5 + 4]);
+
+
+//                        char buf[8];
+//                        for(int8_t i = 0; i < dataControl->PathData.row; i++){
+//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
+//                            dataControl->PathData.total_time.push_back(atof(buf));
+//                            indx += PATH_DATA_LEN;
+//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
+//                            dataControl->PathData.path_x.push_back(atof(buf));
+//                            indx += PATH_DATA_LEN;
+//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
+//                            dataControl->PathData.path_y.push_back(atof(buf));
+//                            indx += PATH_DATA_LEN;
+//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
+//                            dataControl->PathData.path_z.push_back(atof(buf));
+//                            indx += PATH_DATA_LEN;
+//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
+//                            dataControl->PathData.acc_time.push_back(atof(buf));
+//                            indx += PATH_DATA_LEN;
+//                        }
+//                        printf("row : %d, col : %d\n", dataControl->PathData.row, dataControl->PathData.col);
+//                        printf("path : \n");
+//                        for(uint8_t i = 0; i < dataControl->PathData.row; i++){
+//                            printf("total_time : %f, x : %f, y : %f, z : %f, acc_time : %f\n",
+//                                   dataControl->PathData.total_time[i],
+//                                   dataControl->PathData.path_x[i],
+//                                   dataControl->PathData.path_y[i],
+//                                   dataControl->PathData.path_z[i],
+//                                   dataControl->PathData.acc_time[i]);
+//                        }
+                        break;
+                    case DataControl::CmdType::ReadyCmd:
+                        break;
+                    case DataControl::CmdType::RunCmd:
+                        dataControl->PathData.cycle_count = static_cast<char>(lpBuffer[indx]);
+                        indx += CYCLE_COUNT_LEN;
+                        dataControl->RobotData.run_mode = 2;
+                        printf("Start Feeding Assitant Robot\n");
+                        break;
+                    case DataControl::CmdType::StopCmd:
+                        break;
+                }
+
 //                dataControl->PathData.repeat = static_cast<char>(lpBuffer[indx]);
 //                indx += CYCLE_COUNT_LEN;
 

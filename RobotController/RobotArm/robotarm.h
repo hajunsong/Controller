@@ -14,7 +14,7 @@ using namespace std;
 class RobotArm
 {
 public:
-    RobotArm(uint numbody, uint DOF);
+    RobotArm(uint numbody, uint DOF, double step_size);
     ~RobotArm();
 #ifdef FILEIO_H_
     void run_kinematics();

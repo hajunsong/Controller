@@ -64,6 +64,7 @@ public:
     enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum PathDataType{JointPath = 1, CartPath, Save1, Save2, Save3, Save4};
+    enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd};
 
     DataControl();
     ~DataControl();

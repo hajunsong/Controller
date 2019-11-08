@@ -32,8 +32,11 @@
 #define DESIRED_CARTESIAN_LEN   8
 #define CLIENT_TO_SERVER_LEM    NRMK_SOCKET_TOKEN_SIZE + OP_MODE_LEN + SUB_MODE_LEN + DESIRED_JOINT_LEN*NUM_JOINT + DESIRED_CARTESIAN_LEN*NUM_DOF + NRMK_SOCKET_TOKEN_SIZE
 
-#define PATH_TYPE_LEN           1
+#define CMD_TYPE_LEN           1
 #define CYCLE_COUNT_LEN         1
+#define ROW_SIZE_LEN            1
+#define COL_SIZE_LEN            1
+#define PATH_DATA_LEN           8
 #define MASS_LEN                8
 #define TORQUE_CONST_LEN        8
 
@@ -68,22 +71,14 @@ public:
         unsigned long time1, time2, dxl_time1, dxl_time2, ik_time1, ik_time2;
         int32_t offset[6];
         uint8_t joint_op_mode;
+        uint8_t run_mode;
     }StructRobotData;
 
     typedef struct _StructPathData{
-//        char type;
-//        std::vector<double> pathDataPick;
-//        std::vector<double> pathDataRect;
-//        std::vector<double> pathDataRect2;
-//        std::vector<double> pathDataCalibration;
-//        std::vector<double> pathDataLinear24;
-//        std::vector<double> pathDataLinear42;
-
-        uint16_t row, col;
-        std::vector<double> point_x, point_y, point_z;
-        std::vector<double> path_x, path_y, path_z;
-        char repeat;
-        double total_time, acc_time;
+        char cmd_type, cycle_count;
+        uint8_t row, col;
+        std::vector<double> total_time, point_x, point_y, point_z, acc_time;
+        std::vector<double> path_x, path_y, path_z, ready_path_x, ready_path_y, ready_path_z;
         uint path_data_indx;
     }StructPathData;
 
@@ -104,6 +99,7 @@ public:
     enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum PathDataType{Save1=1, Save2, Save3, Save4, Save5, Save6, Save7, Save8, Save9, Save10, Save11};
+    enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd};
 
     bool config_check;
     bool cartesian_goal_reach;
@@ -132,8 +128,6 @@ public:
     void jointVelocityENC2RAD(int32_t vel_enc[], double vel_rad[]);
     void jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[]);
     void jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[]);
-
-    void PathGenerator(double start_pt, double final_pt, double start_vel, double final_vel, double start_acc, double final_acc, double tf, double step_size, std::vector<double> *path);
 
     const double ENC2DEG = 0.088;
     const double DEG2ENC = 11.363636364;

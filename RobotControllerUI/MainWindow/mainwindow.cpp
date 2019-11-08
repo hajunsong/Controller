@@ -73,24 +73,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnC5P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
     connect(ui->btnC6P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
 
-//    connect(ui->cbJointPath, SIGNAL(clicked()), this, SLOT(cbJointPathClicked()));
-//    connect(ui->cbCartesianPath, SIGNAL(clicked()), this, SLOT(cbCartesianPathClicked()));
+    connect(ui->btnPathClear, SIGNAL(clicked()), this, SLOT(btnPathClearClicked()));
+    connect(ui->btnPathApply, SIGNAL(clicked()), this, SLOT(btnPathApplyClicked()));
+    connect(ui->btnPathInsert, SIGNAL(clicked()), this, SLOT(btnPathInsertClicked()));
+    connect(ui->btnPathDelete, SIGNAL(clicked()), this, SLOT(btnPathDeleteClicked()));
+    connect(ui->btnPathAppend, SIGNAL(clicked()), this, SLOT(btnPathAppendClicked()));
 
-//    connect(ui->btnFileLoad, SIGNAL(clicked()), this, SLOT(btnFileLoadClicked()));
-//    ui->btnFileLoad->hide();
-//    connect(ui->btnPathClear, SIGNAL(clicked()), this, SLOT(btnPathClearClicked()));
-//    connect(ui->btnPathApply, SIGNAL(clicked()), this, SLOT(btnPathApplyClicked()));
-//    connect(ui->btnPathInsert, SIGNAL(clicked()), this, SLOT(btnPathInsertClicked()));
-//    connect(ui->btnPathDelete, SIGNAL(clicked()), this, SLOT(btnPathDeleteClicked()));
-//    connect(ui->btnPathAppend, SIGNAL(clicked()), this, SLOT(btnPathAppendClicked()));
-
-//    jointPathModel = new QStandardItemModel(0, NUM_JOINT + 1, this);
-//    cartPathModel = new QStandardItemModel(0, NUM_DOF + 1, this);
-//    connect(ui->tvPathData, SIGNAL(clicked(QModelIndex)), this, SLOT(tvCellClicked(QModelIndex)));
-//    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(horizontalSectionClicked(int)));
-//    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(verticalSectionClicked(int)));
-//    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
-//    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
+    connect(ui->tvPathData, SIGNAL(clicked(QModelIndex)), this, SLOT(tvCellClicked(QModelIndex)));
+    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(horizontalSectionClicked(int)));
+    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(verticalSectionClicked(int)));
+    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
+    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
 
 //    ui->txtNumJoint->setText(QString::number(NUM_JOINT));
 //    ui->txtNumDof->setText(QString::number(NUM_DOF));
@@ -139,6 +132,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 //    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClicked()));
 //    connect(ui->sbMass, SIGNAL(editingFinished()), this, SLOT(sbMassEditingFinished()));
 //    connect(ui->sbTorqueConst, SIGNAL(editingFinished()), this, SLOT(sbTorqueConstEditingFinished()));
+
+    ui->tabWidget->setCurrentIndex(0);
 }
 
 MainWindow::~MainWindow()
@@ -206,6 +201,24 @@ void MainWindow::btnSetInitClicked()
     vHeader.append("Present Vel [RPM]");
     vHeader.append("Present Cur [mA]");
     model->setVerticalHeaderLabels(vHeader);
+
+    pathModel = new QStandardItemModel(1, 5, this);
+    ui->tvPathData->setModel(pathModel);
+
+    for(int i = 0; i < 1; i++){
+        for(int j = 0; j < 5; j++){
+            QModelIndex indx = pathModel->index(i, j, QModelIndex());
+            pathModel->setData(indx, 0);
+        }
+    }
+
+    QStringList hHeader;
+    hHeader.append("Time");
+    hHeader.append("X");
+    hHeader.append("Y");
+    hHeader.append("Z");
+    hHeader.append("Acc time");
+    pathModel->setHorizontalHeaderLabels(hHeader);
 
 //    row = 2;
 //    torqueIdeModel = new QStandardItemModel(row, 1, this);
@@ -605,71 +618,13 @@ void MainWindow::cbCartAbsChanged(int checked)
     cmdCartAbs = checked;
 }
 
-void MainWindow::btnFileLoadClicked()
-{
-//    QString fileName = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("텍스트 파일"),"../RobotControllerUI/data","txt (*.txt)");
-//    qDebug() << fileName;
-//    if (fileName.size() > 1){
-//        if (ui->cbJointPath->isChecked()){
-//            load_data(fileName.toStdString(), &jointPathTxtData);
-//            int row = static_cast<int>(jointPathTxtData.size());
-//            int col = static_cast<int>(jointPathTxtData[0].size());
-//            jointPathModel->removeRows(0, jointPathModel->rowCount());
-
-//            while(1){
-//                if (col == jointPathModel->columnCount()){
-//                    break;
-//                }
-//                else{
-//                    jointPathModel->insertColumn(jointPathModel->columnCount());
-//                }
-//            }
-
-//            jointPathModel->insertRows(0, row);
-
-//            for(int i = 0; i < row; i++){
-//                for(int j = 0; j < col; j++){
-//                    QModelIndex index = jointPathModel->index(i, j);
-//                    jointPathModel->setData(index, QString::number(jointPathTxtData[static_cast<size_t>(i)][static_cast<size_t>(j)]));
-//                }
-//            }
-//        }
-//        else{
-//            load_data(fileName.toStdString(), &cartPathTxtData);
-//            int row = static_cast<int>(cartPathTxtData.size());
-//            int col = static_cast<int>(cartPathTxtData[0].size());
-//            cartPathModel->removeRows(0, cartPathModel->rowCount());
-
-//            while(1){
-//                if (col == cartPathModel->columnCount()){
-//                    break;
-//                }
-//                else{
-//                    cartPathModel->insertColumn(cartPathModel->columnCount());
-//                }
-//            }
-
-//            cartPathModel->insertRows(0, row);
-
-//            for(int i = 0; i < row; i++){
-//                for(int j = 0; j < col; j++){
-//                    QModelIndex index = cartPathModel->index(i, j);
-//                    cartPathModel->setData(index, QString::number(cartPathTxtData[static_cast<size_t>(i)][static_cast<size_t>(j)]));
-//                }
-//            }
-//        }
-    //    }
-}
-
 void MainWindow::btnRunClicked()
 {
-    char indx = 0;//static_cast<char>(ui->cbPlaylist->currentIndex());
-
     txData.clear();
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_U);
 
-    txData.append(indx);
+    txData.append(DataControl::CmdType::RunCmd);
     txData.append(DataControl::OpMode::RunMode);
 
     if (ui->cbRepeat->isChecked()){
@@ -750,166 +705,128 @@ void MainWindow::closeEvent(QCloseEvent*){
     qDebug() << "Closed MainWindow";
 }
 
+void MainWindow::btnPathApplyClicked()
+{
+    const int8_t row = 6;
+    const int8_t col = 5;
 
-//void MainWindow::btnPathApplyClicked()
-//{
-//    txData.clear();
-//    txData.append(Qt::Key_N);
-//    txData.append(Qt::Key_U);
+    double path[row*col] = {
+        0.0, -0.208, 0.1750735, 0.01, 0.1,
+        0.5, -0.124, 0.2590735, -0.014, 0.1,
+        1.0, -0.292, 0.2590735, -0.014, 0.1,
+        1.5, -0.292, 0.0910735, 0.154, 0.1,
+        2.0, -0.124, 0.0910735, 0.154, 0.1,
+        2.5, -0.208, 0.1750735, 0.07, 0.1
+    };
 
-//    if (ui->cbJointPath->isChecked()){
-//        txData.append(DataControl::PathDataType::JointPath);   // path type
-//        txData.append(-1);  // cycle count
-//        uint16_t tvRow = static_cast<uint16_t>(jointPathModel->rowCount());
-//        uint16_t tvCol = static_cast<uint16_t>(jointPathModel->columnCount());
-//        char buf[4];
-//        memcpy(buf, &tvRow, 2);
-//        memcpy(buf + 2, &tvCol, 2);
-//        txData.append(buf, 4);
-//        for(int i = 0; i < tvRow; i++){
-//            for(int j = 0; j < tvCol; j++){
-//                txData.append(QByteArray::number(
-//                                  jointPathModel->data(jointPathModel->index(i, j)).toDouble(),
-//                                  'f', 6));
-//            }
-//        }
-//    }
-//    else{
-//        txData.append(DataControl::PathDataType::CartPath);   // path type
-//        txData.append(-1);  // cycle count
-//        uint16_t tvRow = static_cast<uint16_t>(cartPathModel->rowCount());
-//        uint16_t tvCol = static_cast<uint16_t>(cartPathModel->columnCount());
-//        char tvRowColChar[4];
-//        memcpy(tvRowColChar, &tvRow, 2);
-//        memcpy(tvRowColChar + 2, &tvCol, 2);
-//        txData.append(tvRowColChar);
-//        for(int i = 0; i < tvRow; i++){
-//            for(int j = 0; j < tvCol; j++){
-//                txData.append(QByteArray::number(
-//                                  cartPathModel->data(cartPathModel->index(i, j)).toDouble(),
-//                                  'f', 6));
-//            }
-//        }
-//    }
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_U);
 
-//    txData.append(Qt::Key_N);
-//    txData.append(Qt::Key_E);
+    txData.append(DataControl::CmdType::PathCmd);
+    txData.append(DataControl::OpMode::PathGenerateMode);
 
-////    qDebug() << "txData : " << txData;
+    int8_t tvRow = row;//static_cast<uint16_t>(pathModel->rowCount());
+    int8_t tvCol = col;//static_cast<uint16_t>(pathModel->columnCount());
 
-//    tcpClient->socket->write(txData);
-//}
+    txData.append(tvRow);
+    txData.append(tvCol);
+//    char buf[4];
+//    memcpy(buf, &tvRow, 2);
+//    memcpy(buf + 2, &tvCol, 2);
+//    txData.append(buf, 4);
+    for(int i = 0; i < tvRow; i++){
+        for(int j = 0; j < tvCol; j++){
+//            txData.append(QByteArray::number(pathModel->data(pathModel->index(i, j)).toDouble(),'f', 6));
+//            txData.append(QByteArray::number(path[i*tvCol + j], 'f', 6));
+        }
+    }
 
-//void MainWindow::btnPathClearClicked()
-//{
-//    if (ui->cbJointPath->isChecked()){
-//        jointPathModel->removeRows(0, jointPathModel->rowCount());
-//    }
-//    else{
-//        cartPathModel->removeRows(0, jointPathModel->rowCount());
-//    }
-//}
+    qDebug() << sizeof(txData);
 
-//void MainWindow::btnPathInsertClicked()
-//{
-//    if (ui->cbJointPath->isChecked()){
-//        if (rowClickedIndex >= 0){
-//            jointPathModel->insertRow(rowClickedIndex);
-//        }
-//        if (colClickedIndex >= 0){
-//            jointPathModel->insertColumn(colClickedIndex);
-//        }
-//    }
-//    else{
-//        if (rowClickedIndex >= 0){
-//            cartPathModel->insertRow(rowClickedIndex);
-//        }
-//        if (colClickedIndex >= 0){
-//            cartPathModel->insertColumn(colClickedIndex);
-//        }
-//    }
-//}
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
 
-//void MainWindow::btnPathDeleteClicked()
-//{
-//    if (rowClickedIndex >= 0 && rowPressedIndex >= 0){
-//        if (ui->cbJointPath->isChecked()){
-//            jointPathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
-//        }
-//        else{
-//            cartPathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
-//        }
-//        rowClickedIndex = -1;
-//        rowPressedIndex = -1;
-//    }
-//    if (colClickedIndex >= 0 && colPressedIndex >= 0){
-//        if (ui->cbJointPath->isChecked()){
-//            jointPathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
-//        }
-//        else{
-//            cartPathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
-//        }
-//        colClickedIndex = -1;
-//        colPressedIndex = -1;
-//    }
-//}
+    qDebug() << "txData : " << txData;
 
-//void MainWindow::btnPathAppendClicked()
-//{
-//    if (ui->cbJointPath->isChecked()){
-//        if (rowClickedIndex >= 0){
-//            jointPathModel->insertRow(jointPathModel->rowCount());
-//        }
-//        if (colClickedIndex >= 0){
-//            jointPathModel->insertColumn(jointPathModel->columnCount());
-//        }
-//    }
-//    else{
-//        if (rowClickedIndex >= 0){
-//            cartPathModel->insertRow(cartPathModel->rowCount());
-//        }
-//        if (colClickedIndex >= 0){
-//            cartPathModel->insertColumn(cartPathModel->columnCount());
-//        }
-//    }
-//}
+    tcpClient->socket->write(txData);
+}
 
-//void MainWindow::tvCellClicked(const QModelIndex &index)
-//{
-//    rowClickedIndex = index.row();
-//    colClickedIndex = index.column();
-////    qDebug() << "Clicked row : " << rowClickedIndex << ", col : " << colClickedIndex;
-//}
+void MainWindow::btnPathClearClicked()
+{
+    pathModel->removeRows(0, pathModel->rowCount());
+}
 
-//void MainWindow::horizontalSectionClicked(int index)
-//{
-//    colClickedIndex = index;
-////    qDebug() << "Clicked horizontal : " << index;
-//    rowClickedIndex = -1;
-//}
+void MainWindow::btnPathInsertClicked()
+{
+    if (rowClickedIndex >= 0){
+        pathModel->insertRow(rowClickedIndex);
+    }
+    if (colClickedIndex >= 0){
+        pathModel->insertColumn(colClickedIndex);
+    }
+}
 
-//void MainWindow::verticalSectionClicked(int index)
-//{
-//    rowClickedIndex = index;
-////    qDebug() << "Clicked vertical : " << index;
-//    colClickedIndex = -1;
-//}
+void MainWindow::btnPathDeleteClicked()
+{
+    if (rowClickedIndex >= 0 && rowPressedIndex >= 0){
+        pathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
+        rowClickedIndex = -1;
+        rowPressedIndex = -1;
+    }
+    if (colClickedIndex >= 0 && colPressedIndex >= 0){
+        pathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
+        colClickedIndex = -1;
+        colPressedIndex = -1;
+    }
+}
 
-//void MainWindow::horizontalSectionPressed(int index)
-//{
-//    colPressedIndex = index;
-////    qDebug() << "Pressed horizontal : " << index;
-//    rowClickedIndex = -1;
-//    rowPressedIndex = -1;
-//}
+void MainWindow::btnPathAppendClicked()
+{
+    if (rowClickedIndex >= 0){
+        pathModel->insertRow(pathModel->rowCount());
+    }
+    if (colClickedIndex >= 0){
+        pathModel->insertColumn(pathModel->columnCount());
+    }
+}
 
-//void MainWindow::verticalSectionPressed(int index)
-//{
-//    rowPressedIndex = index;
-////    qDebug() << "Pressed vertical : " << index;
-//    colClickedIndex = -1;
-//    colPressedIndex = -1;
-//}
+void MainWindow::tvCellClicked(const QModelIndex &index)
+{
+    rowClickedIndex = index.row();
+    colClickedIndex = index.column();
+    qDebug() << "Clicked row : " << rowClickedIndex << ", col : " << colClickedIndex;
+}
+
+void MainWindow::horizontalSectionClicked(int index)
+{
+    colClickedIndex = index;
+    qDebug() << "Clicked horizontal : " << index;
+    rowClickedIndex = -1;
+}
+
+void MainWindow::verticalSectionClicked(int index)
+{
+    rowClickedIndex = index;
+    qDebug() << "Clicked vertical : " << index;
+    colClickedIndex = -1;
+}
+
+void MainWindow::horizontalSectionPressed(int index)
+{
+    colPressedIndex = index;
+    qDebug() << "Pressed horizontal : " << index;
+    rowClickedIndex = -1;
+    rowPressedIndex = -1;
+}
+
+void MainWindow::verticalSectionPressed(int index)
+{
+    rowPressedIndex = index;
+    qDebug() << "Pressed vertical : " << index;
+    colClickedIndex = -1;
+    colPressedIndex = -1;
+}
 
 //void MainWindow::sbMassEditingFinished(){
 //    ui->btnSave->setEnabled(true);

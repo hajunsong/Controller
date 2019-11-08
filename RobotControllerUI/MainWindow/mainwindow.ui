@@ -1353,7 +1353,7 @@
         <item row="0" column="0">
          <widget class="QGroupBox" name="gbTrajectory">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="font">
            <font>
@@ -1365,69 +1365,14 @@
            <string>Path Config</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_6">
-           <item row="0" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>Total time : </string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit"/>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>s</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="4">
+           <item row="0" column="2">
             <widget class="QCheckBox" name="cbRepeat">
              <property name="text">
               <string>Repeat</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <spacer name="horizontalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="2">
-            <layout class="QHBoxLayout" name="horizontalLayout_13">
-             <item>
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>Acc time : </string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit_2"/>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>s</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="1" column="4">
+           <item row="1" column="2">
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <item>
               <widget class="QPushButton" name="btnPathAppend">
@@ -1551,20 +1496,7 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="3">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="0" colspan="4">
+           <item row="0" column="0" rowspan="2" colspan="2">
             <widget class="QTableView" name="tvPathData">
              <property name="minimumSize">
               <size>

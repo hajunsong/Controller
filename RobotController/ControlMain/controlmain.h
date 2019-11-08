@@ -51,12 +51,13 @@ private:
     void robotDynamics();
     void robotJointMove(char mode, double desJoint[NUM_JOINT]);
     void robotCartesianMove(char mode, double desCartesian[NUM_DOF]);
-    void robotPathMake();
-    void robotRun(int16_t type);
-    void robotReady(int16_t type);
+    void robotPathGenerate();
+    void robotRun();
+    void robotReady();
     void robotPositionControl();
 
     void goalReach(double desired_pose[NUM_DOF], double present_pose[NUM_DOF], bool *goal_reach);
+    void path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path);
 
     unsigned char data_indx;
     uint8_t module_indx;

@@ -43,10 +43,10 @@ private:
     DataControl *dataControl;
     KeyInputClass *keyInputClass;
 
-    QStandardItemModel *model, *torqueIdeModel;
+    QStandardItemModel *model, *pathModel;
 //    QStandardItemModel *jointPathModel, *cartPathModel;
     QByteArray txData;
-//    int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
+    int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
 
     void componentEnable(bool enable);
 
@@ -65,12 +65,11 @@ public slots:
     void btnJogMoveClicked();
     void btnSetJCommandClicked();
     void btnSetCCommandClicked();
-    void btnFileLoadClicked();
-//    void btnPathApplyClicked();
-//    void btnPathClearClicked();
-//    void btnPathInsertClicked();
-//    void btnPathDeleteClicked();
-//    void btnPathAppendClicked();
+    void btnPathApplyClicked();
+    void btnPathClearClicked();
+    void btnPathInsertClicked();
+    void btnPathDeleteClicked();
+    void btnPathAppendClicked();
     void btnRunClicked();
     void btnStopClicked();
     void btnReadyClicked();
@@ -95,11 +94,11 @@ public slots:
      void closeEvent(QCloseEvent* event);
 
     // tableview event
-//    void tvCellClicked(const QModelIndex &index);
-//    void verticalSectionClicked(int index);
-//    void horizontalSectionClicked(int index);
-//    void verticalSectionPressed(int index);
-//    void horizontalSectionPressed(int index);
+    void tvCellClicked(const QModelIndex &index);
+    void verticalSectionClicked(int index);
+    void horizontalSectionClicked(int index);
+    void verticalSectionPressed(int index);
+    void horizontalSectionPressed(int index);
 
      // spin box event
 //     void sbMassEditingFinished();

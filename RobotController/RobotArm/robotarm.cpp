@@ -78,7 +78,7 @@ void RobotArm::mat(double *mat_1, double *vec_2, uint row_1, uint col_1, uint ro
     }
 }
 
-RobotArm::RobotArm(uint numbody, uint DOF) {
+RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     num_body = numbody;
     dof = DOF;
 
@@ -100,7 +100,7 @@ RobotArm::RobotArm(uint numbody, uint DOF) {
 
     // read data
     start_time = 0;
-    h = 0.001;
+    h = step_size;
     g = -9.80665;
 
     // DH paramter
@@ -394,12 +394,12 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
         double ang_p = abs(des_pose[4] - cur_pose[4]);
         double ang_y = abs(des_pose[5] - cur_pose[5]);
 
-        printf("[IK]pos : %f\n", pos);
-        printf("[IK]ang_r : %f\t ang_p : %f\t ang_y : %f\n", ang_r, ang_p, ang_y);
+//        printf("[IK]pos : %f\n", pos);
+//        printf("[IK]ang_r : %f\t ang_p : %f\t ang_y : %f\n", ang_r, ang_p, ang_y);
 
         if (pos < epsilon_pos && ang_r < epsilon_ang && ang_p < epsilon_ang && ang_y < epsilon_ang){
             goal_reach = true;
-            printf("[IK]iteration : %d\n", i);
+//            printf("[IK]iteration : %d\n", i);
             break;
         }
         else{
@@ -581,7 +581,7 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         NRcount++;
     }while(errmax > 1e-3 && NRcount < 5);
 
-    printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+//    printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
 
     delete[] indx;
     delete[] fac;
