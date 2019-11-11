@@ -108,6 +108,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     keyInputClass = new KeyInputClass(ui);
 
     ui->tabWidget->setCurrentIndex(0);
+
+//    ui->gbRobotConfig->setEnabled(true);
+//    ui->btnSetInit->setEnabled(true);
 }
 
 MainWindow::~MainWindow()
