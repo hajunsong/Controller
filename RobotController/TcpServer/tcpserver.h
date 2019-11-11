@@ -26,6 +26,8 @@
 #include "DataControl/datacontrol.h"
 
 #include <QString>
+#include <QByteArray>
+#include <QtDebug>
 
 namespace NRMKHelper{
     class TcpServer : public NRMKSocketBase

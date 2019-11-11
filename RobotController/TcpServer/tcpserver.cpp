@@ -179,28 +179,22 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 
 //                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
 //                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
-//                printf("Desired Joint : %f\n", dataControl->ClientToServer.desiredJoint[0]);
 //                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
 //                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
 //                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredCartesian[0], dataControl->ClientToServer.desiredCartesian[1], dataControl->ClientToServer.desiredCartesian[2],
 //                        dataControl->ClientToServer.desiredCartesian[3], dataControl->ClientToServer.desiredCartesian[4], dataControl->ClientToServer.desiredCartesian[5]);
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'U'){
+                QByteArray rxData;
+                rxData = QByteArray::fromRawData(reinterpret_cast<const char*>(lpBuffer), static_cast<int>(dwCount));
+
                 int indx = NRMK_SOCKET_TOKEN_SIZE;
                 dataControl->PathData.cmd_type = static_cast<char>(lpBuffer[indx]);
                 indx += CMD_TYPE_LEN;
                 dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
                 indx += OP_MODE_LEN;
 
-                double path[6*5] = {
-                    0.0, -0.208, 0.1750735, 0.07, 0.3,
-                    1.0, -0.124, 0.2590735, -0.014, 0.3,
-                    2.0, -0.292, 0.2590735, -0.014, 0.3,
-                    3.0, -0.292, 0.0910735, 0.154, 0.3,
-                    4.0, -0.124, 0.0910735, 0.154, 0.3,
-                    5.0, -0.208, 0.1750735, 0.07, 0.3
-                };
-
+                QByteArrayList data;
                 switch(dataControl->PathData.cmd_type){
                     case DataControl::CmdType::PathCmd:
                         dataControl->PathData.row = static_cast<uchar>(lpBuffer[indx]);
@@ -211,140 +205,48 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                         dataControl->PathData.point_x.clear();
                         dataControl->PathData.point_y.clear();
                         dataControl->PathData.point_z.clear();
+                        dataControl->PathData.path_x.clear();
+                        dataControl->PathData.path_y.clear();
+                        dataControl->PathData.path_z.clear();
                         dataControl->PathData.acc_time.clear();
 
-                        dataControl->PathData.total_time.push_back(path[0*5 + 0]);
-                        dataControl->PathData.total_time.push_back(path[1*5 + 0]);
-                        dataControl->PathData.total_time.push_back(path[2*5 + 0]);
-                        dataControl->PathData.total_time.push_back(path[3*5 + 0]);
-                        dataControl->PathData.total_time.push_back(path[4*5 + 0]);
-                        dataControl->PathData.total_time.push_back(path[5*5 + 0]);
+                        data = rxData.split(',');
+                        for(int8_t i = 1; i <= dataControl->PathData.row*dataControl->PathData.col; i += dataControl->PathData.col){
+                            dataControl->PathData.total_time.push_back(data[i].toDouble());
+                            dataControl->PathData.point_x.push_back(data[i + 1].toDouble());
+                            dataControl->PathData.point_y.push_back(data[i + 2].toDouble());
+                            dataControl->PathData.point_z.push_back(data[i + 3].toDouble());
+                            dataControl->PathData.acc_time.push_back(data[i + 4].toDouble());
+                        }
 
-                        dataControl->PathData.point_x.push_back(path[0*5 + 1]);
-                        dataControl->PathData.point_x.push_back(path[1*5 + 1]);
-                        dataControl->PathData.point_x.push_back(path[2*5 + 1]);
-                        dataControl->PathData.point_x.push_back(path[3*5 + 1]);
-                        dataControl->PathData.point_x.push_back(path[4*5 + 1]);
-                        dataControl->PathData.point_x.push_back(path[5*5 + 1]);
-
-                        dataControl->PathData.point_y.push_back(path[0*5 + 2]);
-                        dataControl->PathData.point_y.push_back(path[1*5 + 2]);
-                        dataControl->PathData.point_y.push_back(path[2*5 + 2]);
-                        dataControl->PathData.point_y.push_back(path[3*5 + 2]);
-                        dataControl->PathData.point_y.push_back(path[4*5 + 2]);
-                        dataControl->PathData.point_y.push_back(path[5*5 + 2]);
-
-                        dataControl->PathData.point_z.push_back(path[0*5 + 3]);
-                        dataControl->PathData.point_z.push_back(path[1*5 + 3]);
-                        dataControl->PathData.point_z.push_back(path[2*5 + 3]);
-                        dataControl->PathData.point_z.push_back(path[3*5 + 3]);
-                        dataControl->PathData.point_z.push_back(path[4*5 + 3]);
-                        dataControl->PathData.point_z.push_back(path[5*5 + 3]);
-
-                        dataControl->PathData.acc_time.push_back(path[0*5 + 4]);
-                        dataControl->PathData.acc_time.push_back(path[1*5 + 4]);
-                        dataControl->PathData.acc_time.push_back(path[2*5 + 4]);
-                        dataControl->PathData.acc_time.push_back(path[3*5 + 4]);
-                        dataControl->PathData.acc_time.push_back(path[4*5 + 4]);
-                        dataControl->PathData.acc_time.push_back(path[5*5 + 4]);
-
-
-//                        char buf[8];
-//                        for(int8_t i = 0; i < dataControl->PathData.row; i++){
-//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
-//                            dataControl->PathData.total_time.push_back(atof(buf));
-//                            indx += PATH_DATA_LEN;
-//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
-//                            dataControl->PathData.path_x.push_back(atof(buf));
-//                            indx += PATH_DATA_LEN;
-//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
-//                            dataControl->PathData.path_y.push_back(atof(buf));
-//                            indx += PATH_DATA_LEN;
-//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
-//                            dataControl->PathData.path_z.push_back(atof(buf));
-//                            indx += PATH_DATA_LEN;
-//                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
-//                            dataControl->PathData.acc_time.push_back(atof(buf));
-//                            indx += PATH_DATA_LEN;
-//                        }
-//                        printf("row : %d, col : %d\n", dataControl->PathData.row, dataControl->PathData.col);
-//                        printf("path : \n");
-//                        for(uint8_t i = 0; i < dataControl->PathData.row; i++){
-//                            printf("total_time : %f, x : %f, y : %f, z : %f, acc_time : %f\n",
-//                                   dataControl->PathData.total_time[i],
-//                                   dataControl->PathData.path_x[i],
-//                                   dataControl->PathData.path_y[i],
-//                                   dataControl->PathData.path_z[i],
-//                                   dataControl->PathData.acc_time[i]);
-//                        }
+                        printf("row : %d, col : %d\n", dataControl->PathData.row, dataControl->PathData.col);
+                        printf("path : \n");
+                        for(uint8_t i = 0; i < dataControl->PathData.row; i++){
+                            printf("time : %f, x : %f, y : %f, z : %f, acc_time : %f\n",
+                                   dataControl->PathData.total_time[i],
+                                   dataControl->PathData.point_x[i],
+                                   dataControl->PathData.point_y[i],
+                                   dataControl->PathData.point_z[i],
+                                   dataControl->PathData.acc_time[i]);
+                        }
                         break;
                     case DataControl::CmdType::ReadyCmd:
+                        dataControl->RobotData.run_mode = 1;
+                        dataControl->PathData.path_data_indx = 0;
+                        printf("Ready Feeding Assitant Robot\n");
                         break;
                     case DataControl::CmdType::RunCmd:
                         dataControl->PathData.cycle_count = static_cast<char>(lpBuffer[indx]);
                         indx += CYCLE_COUNT_LEN;
                         dataControl->RobotData.run_mode = 2;
+                        dataControl->PathData.path_data_indx = 0;
                         printf("Start Feeding Assitant Robot\n");
                         break;
                     case DataControl::CmdType::StopCmd:
+                        dataControl->RobotData.run_mode = 0;
+                        dataControl->PathData.path_data_indx = 0;
                         break;
                 }
-
-//                dataControl->PathData.repeat = static_cast<char>(lpBuffer[indx]);
-//                indx += CYCLE_COUNT_LEN;
-
-                //                if (dataControl->PathData.type == DataControl::PathDataType::CartPath || dataControl->PathData.type == DataControl::PathDataType::JointPath){
-                //                    dataControl->PathData.data.clear();
-                //                    for(int i = 0; i < dataControl->PathData.row; i++){
-                //                        std::vector<double> vec_temp;
-                //                        for(int j = 0; j < dataControl->PathData.col; j++){
-                //                            char buf[8];
-                //                            memcpy(buf, lpBuffer + indx, PATH_DATA_LEN);
-                //                            vec_temp.push_back(atof(buf));
-                //                            indx += PATH_DATA_LEN;
-                //                        }
-                //                        dataControl->PathData.data.push_back(vec_temp);
-                //                    }
-                //                }
-
-//                switch(dataControl->PathData.type){
-//                    case DataControl::PathDataType::Save1:
-//                    case DataControl::PathDataType::Save2:
-//                        dataControl->PathData.row = 8001;
-//                        dataControl->PathData.col = 14;
-//                        dataControl->PathData.path_data_indx = 0;
-//                        break;
-
-//                    case DataControl::PathDataType::Save3:
-//                    case DataControl::PathDataType::Save4:
-//                        dataControl->PathData.row = 2001;
-//                        dataControl->PathData.col = 14;
-//                        dataControl->PathData.path_data_indx = 0;
-//                        break;
-//                    case DataControl::PathDataType::Save5:
-//                    case DataControl::PathDataType::Save6:
-//                        dataControl->PathData.row = 2501;
-//                        dataControl->PathData.col = 14;
-//                        dataControl->PathData.path_data_indx = 0;
-//                        break;
-//                    case DataControl::PathDataType::Save7:
-//                        dataControl->PathData.row = 30;
-//                        dataControl->PathData.col = 7;
-//                        dataControl->PathData.path_data_indx = 0;
-//                        break;
-//                    case DataControl::PathDataType::Save8:
-//                    case DataControl::PathDataType::Save9:
-//                        dataControl->PathData.row = 1001;
-//                        dataControl->PathData.col = 14;
-//                        dataControl->PathData.path_data_indx = 0;
-//                        break;
-//                    case DataControl::PathDataType::Save10:
-//                    case DataControl::PathDataType::Save11:
-//                        dataControl->PathData.row = 1001;
-//                        dataControl->PathData.col = 14;
-//                        dataControl->PathData.path_data_indx = 0;
-//                        break;
-//                }
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'T'){
                 int indx = NRMK_SOCKET_TOKEN_SIZE;
@@ -379,7 +281,7 @@ void NRMKHelper::TcpServer::comm_run(void *arg){
     NRMKHelper::TcpServer* pTcpServer = static_cast<NRMKHelper::TcpServer*>(arg);
     pTcpServer->comm_thread_run = false;
 
-    rt_task_set_periodic(&pTcpServer->comm_task, TM_NOW, 10e6);
+    rt_task_set_periodic(&pTcpServer->comm_task, TM_NOW, 100e6);
 
     //    printf("connected : %d\n", pTcpServer->connected);
     while(1){
@@ -411,9 +313,6 @@ void NRMKHelper::TcpServer::sendData()
 
     dataControl->jointPositionENC2DEG(dataControl->RobotData.command_joint_position, dataControl->ServerToClient.desiredJointPosition);
     dataControl->cartesianPoseScaleUp(dataControl->RobotData.desired_end_pose, dataControl->ServerToClient.desiredCartesianPose);
-
-    dataControl->ServerToClient.dxl_time = static_cast<double>((dataControl->RobotData.dxl_time2 - dataControl->RobotData.dxl_time1)/1000000.0);
-    dataControl->ServerToClient.ik_time = static_cast<double>((dataControl->RobotData.ik_time2 - dataControl->RobotData.ik_time1)/1000000.0);
 
     memcpy(_buf, NRMK_SOCKET_START_TOKEN, NRMK_SOCKET_TOKEN_SIZE); // 2 byte, START token
     indx += NRMK_SOCKET_TOKEN_SIZE;

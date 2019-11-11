@@ -85,26 +85,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
     connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
 
-//    ui->txtNumJoint->setText(QString::number(NUM_JOINT));
-//    ui->txtNumDof->setText(QString::number(NUM_DOF));
-//    ui->txtModuleType->setText(MODULE_TYPE == 1 ? "FAR" : MODULE_TYPE == 2 ? "SEA" : "JS-R8");
-//    ui->txtCommType->setText(COMM_TYPE == 1 ? "RS485" : "RS232");
-
-//    QStringList items;
-//    items.append("");
-//    items.append("pick up motion (joint path command)");
-//    items.append("pick up motion (cartesian path command)");
-//    items.append("rectangle motion (joint path command)");
-//    items.append("rectangle motion (cartesian path command)");
-//    items.append("rectangle motion for evaluation (joint path command)");
-//    items.append("rectangle motion for evaluation (cartesian path command");
-//    items.append("joint motion for calibration");
-//    items.append("linear motion 42 (joint path command)");
-//    items.append("linear motion 42 (cartesian path command)");
-//    items.append("linear motion 24 (joint path command)");
-//    items.append("linear motion 24 (cartesian path command)");
-//    ui->cbPlaylist->addItems(items);
-
     connect(ui->btnRun, SIGNAL(clicked()), this, SLOT(btnRunClicked()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(btnStopClicked()));
     connect(ui->btnReady, SIGNAL(clicked()), this, SLOT(btnReadyClicked()));
@@ -123,15 +103,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     customSettings->loadConfigFile();
 
     ui->btnRun->setEnabled(false);
+    ui->btnReady->setEnabled(false);
 
     keyInputClass = new KeyInputClass(ui);
-
-//    ui->gbTorqueIDE->hide();
-
-//    connect(ui->btnSave, SIGNAL(clicked()), this, SLOT(btnSaveClicked()));
-//    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClicked()));
-//    connect(ui->sbMass, SIGNAL(editingFinished()), this, SLOT(sbMassEditingFinished()));
-//    connect(ui->sbTorqueConst, SIGNAL(editingFinished()), this, SLOT(sbTorqueConstEditingFinished()));
 
     ui->tabWidget->setCurrentIndex(0);
 }
@@ -208,7 +182,7 @@ void MainWindow::btnSetInitClicked()
     for(int i = 0; i < 1; i++){
         for(int j = 0; j < 5; j++){
             QModelIndex indx = pathModel->index(i, j, QModelIndex());
-            pathModel->setData(indx, 0);
+            pathModel->setData(indx, "0");
         }
     }
 
@@ -219,19 +193,6 @@ void MainWindow::btnSetInitClicked()
     hHeader.append("Z");
     hHeader.append("Acc time");
     pathModel->setHorizontalHeaderLabels(hHeader);
-
-//    row = 2;
-//    torqueIdeModel = new QStandardItemModel(row, 1, this);
-//    ui->tvIdeResult->setModel(torqueIdeModel);
-
-//    for(int i = 0; i < row; i++){
-//        QModelIndex index = torqueIdeModel->index(i, 0, QModelIndex());
-//        torqueIdeModel->setData(index, 0);
-//    }
-//    QStringList vHeaderIde;
-//    vHeaderIde.append("Mass [Kg]");
-//    vHeaderIde.append("Kt [Nm/A]");
-//    torqueIdeModel->setVerticalHeaderLabels(vHeaderIde);
 }
 
 void MainWindow::btnServOnClicked()
@@ -523,7 +484,6 @@ void MainWindow::componentEnable(bool enable){
     ui->gbServoControl->setEnabled(enable);
     ui->gbCartMoveCommand->setEnabled(enable);
     ui->gbJointMoveCommand->setEnabled(enable);
-//    ui->gbPlay->setEnabled(enable);
     ui->gbTrajectory->setEnabled(enable);
 
     if (ui->cbNumJoint->currentText().toInt() == 1){
@@ -550,7 +510,6 @@ void MainWindow::componentEnable(bool enable){
 
     if (ui->cbNumDOF->currentText().toInt() == 1){
         ui->gbCartMoveCommand->setEnabled(false);
-//        ui->gbPlay->setEnabled(false);
     }
 }
 
@@ -565,26 +524,6 @@ void MainWindow::setTxtCommandClear()
         txtCCmd[i]->setText("0");
     }
 }
-
-//void MainWindow::cbJointPathClicked()
-//{
-//    ui->cbCartesianPath->setChecked(!ui->cbJointPath->isChecked());
-//    ui->tvPathData->setModel(jointPathModel);
-
-//    if (jointPathModel->rowCount() == 0){
-//        btnPathAppendClicked();
-//    }
-//}
-
-//void MainWindow::cbCartesianPathClicked()
-//{
-//    ui->cbJointPath->setChecked(!ui->cbCartesianPath->isChecked());
-//    ui->tvPathData->setModel(cartPathModel);
-
-//    if (cartPathModel->rowCount() == 0){
-//        btnPathAppendClicked();
-//    }
-//}
 
 void MainWindow::cbJointRelChanged(int checked)
 {
@@ -648,7 +587,7 @@ void MainWindow::btnStopClicked()
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_U);
 
-    txData.append(-1);
+    txData.append(DataControl::CmdType::StopCmd);
     txData.append(DataControl::OpMode::Wait);
 
     if (ui->cbRepeat->isChecked()){
@@ -666,17 +605,16 @@ void MainWindow::btnStopClicked()
     tcpClient->socket->write(txData);
 
     ui->btnRun->setEnabled(false);
+    ui->btnReady->setEnabled(false);
 }
 
 void MainWindow::btnReadyClicked()
 {
-    char indx = 0;//static_cast<char>(ui->cbPlaylist->currentIndex());
-
     txData.clear();
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_U);
 
-    txData.append(indx);
+    txData.append(DataControl::CmdType::ReadyCmd);
     txData.append(DataControl::OpMode::ReadyMode);
 
     if (ui->cbRepeat->isChecked()){
@@ -707,18 +645,6 @@ void MainWindow::closeEvent(QCloseEvent*){
 
 void MainWindow::btnPathApplyClicked()
 {
-    const int8_t row = 6;
-    const int8_t col = 5;
-
-    double path[row*col] = {
-        0.0, -0.208, 0.1750735, 0.01, 0.1,
-        0.5, -0.124, 0.2590735, -0.014, 0.1,
-        1.0, -0.292, 0.2590735, -0.014, 0.1,
-        1.5, -0.292, 0.0910735, 0.154, 0.1,
-        2.0, -0.124, 0.0910735, 0.154, 0.1,
-        2.5, -0.208, 0.1750735, 0.07, 0.1
-    };
-
     txData.clear();
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_U);
@@ -726,23 +652,19 @@ void MainWindow::btnPathApplyClicked()
     txData.append(DataControl::CmdType::PathCmd);
     txData.append(DataControl::OpMode::PathGenerateMode);
 
-    int8_t tvRow = row;//static_cast<uint16_t>(pathModel->rowCount());
-    int8_t tvCol = col;//static_cast<uint16_t>(pathModel->columnCount());
+    int8_t tvRow = static_cast<int8_t>(pathModel->rowCount());
+    int8_t tvCol = static_cast<int8_t>(pathModel->columnCount());
 
     txData.append(tvRow);
     txData.append(tvCol);
-//    char buf[4];
-//    memcpy(buf, &tvRow, 2);
-//    memcpy(buf + 2, &tvCol, 2);
-//    txData.append(buf, 4);
+
     for(int i = 0; i < tvRow; i++){
         for(int j = 0; j < tvCol; j++){
-//            txData.append(QByteArray::number(pathModel->data(pathModel->index(i, j)).toDouble(),'f', 6));
-//            txData.append(QByteArray::number(path[i*tvCol + j], 'f', 6));
+            txData.append(',');
+            txData.append(QByteArray::number(pathModel->data(pathModel->index(i, j)).toDouble() ,'f', 6));
         }
     }
-
-    qDebug() << sizeof(txData);
+    txData.append(',');
 
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
@@ -750,6 +672,8 @@ void MainWindow::btnPathApplyClicked()
     qDebug() << "txData : " << txData;
 
     tcpClient->socket->write(txData);
+
+    ui->btnReady->setEnabled(true);
 }
 
 void MainWindow::btnPathClearClicked()
@@ -827,43 +751,3 @@ void MainWindow::verticalSectionPressed(int index)
     colClickedIndex = -1;
     colPressedIndex = -1;
 }
-
-//void MainWindow::sbMassEditingFinished(){
-//    ui->btnSave->setEnabled(true);
-//}
-
-//void MainWindow::sbTorqueConstEditingFinished(){
-//    ui->btnSave->setEnabled(true);
-//}
-
-//void MainWindow::btnStartClicked(){
-//    txData.clear();
-//    txData.append(Qt::Key_N);
-//    txData.append(Qt::Key_T);
-
-//    txData.append(DataControl::OpMode::TorqueIDE);
-//    txData.append(QByteArray::number(ui->sbMass->value(), 'f', 6));
-//    txData.append(QByteArray::number(ui->sbTorqueConst->value(), 'f', 6));
-
-//    txData.append(Qt::Key_N);
-//    txData.append(Qt::Key_E);
-
-//    qDebug() << "txData : " << txData;
-
-//    tcpClient->socket->write(txData);
-//}
-
-//void MainWindow::btnSaveClicked(){
-//    QModelIndex index1 = torqueIdeModel->index(0, torqueIdeModel->columnCount()-1);
-//    torqueIdeModel->setData(index1, ui->sbMass->value());
-//    ui->tvIdeResult->update(index1);
-
-//    QModelIndex index2 = torqueIdeModel->index(1, torqueIdeModel->columnCount()-1);
-//    double Kt = ui->sbMass->value()*9.80665*0.2 / dataControl->ServerToClient.presentJointCurrent[0]*0.001;
-//    torqueIdeModel->setData(index2, Kt);
-//    ui->tvIdeResult->update(index2);
-
-//    torqueIdeModel->insertColumn(torqueIdeModel->columnCount());
-
-//    ui->btnSave->setEnabled(false);
-//}

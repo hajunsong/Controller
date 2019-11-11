@@ -101,7 +101,7 @@ public:
     void getPresentCurrent(uint8_t ID, int16_t *present_current_ptr);
 
     void initGroupSyncReadIndirectAddress(uint8_t ID);
-    void getGroupSyncReadIndirectAddress(uint8_t ID, int32_t *present_position, int32_t *present_velocity, int16_t *present_current);
+    void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint);
 
     void initGroupSyncWriteIndirectAddress(uint8_t ID);
     void setGroupSyncWriteIndirectAddress(uint8_t *torque_enable, int32_t *goal_position, int16_t *goal_current, uint8_t num_joint);
@@ -115,11 +115,6 @@ public:
 private:
     dynamixel::PortHandler *portHandler;
     dynamixel::PacketHandler *packetHandler;
-    dynamixel::GroupSyncRead *groupSyncRead;
-//    dynamixel::GroupSyncWrite *groupSyncWrite;
-//    dynamixel::GroupSyncWrite *groupSyncWriteTorqueEnable;
-//    dynamixel::GroupSyncWrite *groupSyncWritePresentPosition;
-//    dynamixel::GroupSyncWrite *groupSyncWritePresentCurrent;
 
     bool init_flag;
 };

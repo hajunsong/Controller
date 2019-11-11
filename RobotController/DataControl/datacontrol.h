@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <NRMKSocketBase.h>
+#include <native/timer.h>
 
 #include "FileIO/fileio.h"
 
@@ -32,7 +33,7 @@
 #define DESIRED_CARTESIAN_LEN   8
 #define CLIENT_TO_SERVER_LEM    NRMK_SOCKET_TOKEN_SIZE + OP_MODE_LEN + SUB_MODE_LEN + DESIRED_JOINT_LEN*NUM_JOINT + DESIRED_CARTESIAN_LEN*NUM_DOF + NRMK_SOCKET_TOKEN_SIZE
 
-#define CMD_TYPE_LEN           1
+#define CMD_TYPE_LEN            1
 #define CYCLE_COUNT_LEN         1
 #define ROW_SIZE_LEN            1
 #define COL_SIZE_LEN            1

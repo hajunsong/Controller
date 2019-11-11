@@ -16,6 +16,7 @@ public:
 private:
     void* ui;
     void* torque_ide;
+    void* MainWindow;
 };
 
 #endif // KEYINPUTNOMODIFIEDCLASS_H

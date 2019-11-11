@@ -11,10 +11,10 @@ DxlControl::DxlControl()
 DxlControl::~DxlControl()
 {
     if(init_flag){
-        groupSyncRead->clearParam();
-        printf("groupSyncRead cleared param\n");
-        delete groupSyncRead;
-        printf("Deleted groupSyncRead\n");
+//        groupSyncRead->clearParam();
+//        printf("groupSyncRead cleared param\n");
+//        delete groupSyncRead;
+//        printf("Deleted groupSyncRead\n");
 
 //        groupSyncWrite->clearParam();
 //        printf("groupSyncWrite cleared param\n");
@@ -65,7 +65,7 @@ void DxlControl::init() {
     }
 
     // Initialize Groupsyncread instance
-    groupSyncRead = new dynamixel::GroupSyncRead(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_READ, LEN_INDIRECTADDRESS_FOR_READ);
+//    groupSyncRead = new dynamixel::GroupSyncRead(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_READ, LEN_INDIRECTADDRESS_FOR_READ);
 
     // Initialize GroupSyncWrite instance
 //    groupSyncWrite = new dynamixel::GroupSyncWrite(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_WRITE, LEN_INDIRECTADDRESS_FOR_WRITE);
@@ -168,15 +168,15 @@ int DxlControl::dxl_init(uint8_t ID, uint8_t operating_mode)
     // Enable Dynamixel Torque
     //	packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
 
-    bool dxl_addparam_result = false;	// addParam result
+//    bool dxl_addparam_result = false;	// addParam result
 
     // Add parameter storage
-    dxl_addparam_result = groupSyncRead->addParam(ID);
-    if (dxl_addparam_result != true)
-    {
-//        fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", ID);
-        printf("[ID:%03d] groupSyncRead add param failed", ID);
-    }
+//    dxl_addparam_result = groupSyncRead->addParam(ID);
+//    if (dxl_addparam_result != true)
+//    {
+////        fprintf(stderr, "[ID:%03d] groupSyncRead add param failed", ID);
+//        printf("[ID:%03d] groupSyncRead add param failed", ID);
+//    }
 
     printf("Dynamixel(ID : %d) has been successfully connected\n", ID);
 
@@ -579,42 +579,61 @@ void DxlControl::initGroupSyncReadIndirectAddress(uint8_t ID){
     }
 }
 
-void DxlControl::getGroupSyncReadIndirectAddress(uint8_t ID, int32_t *present_position, int32_t *present_velocity, int16_t *present_current){
+void DxlControl::getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint){
     // Syncread present data from indirectdata
-    dxl_comm_result = groupSyncRead->txRxPacket();
+    dynamixel::GroupSyncRead groupSyncRead(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_READ, LEN_INDIRECTADDRESS_FOR_READ);
+
+    bool dxl_addparam_result = false;	// addParam result
+
+    for(uint8_t ID = 0; ID < num_joint; ID++){
+        // Add parameter storage
+        dxl_addparam_result = groupSyncRead.addParam(ID);
+        if (dxl_addparam_result != true)
+        {
+            printf("[ID:%03d] groupSyncRead add param failed", ID);
+        }
+    }
+
+    dxl_comm_result = groupSyncRead.txRxPacket();
     if (dxl_comm_result != COMM_SUCCESS) {
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
         return;
     }
 
-    // Check if groupsyncread data of Dyanamixel is available
-    int dxl_getdata_result = 0;
-    dxl_getdata_result = groupSyncRead->isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION);
-    if (dxl_getdata_result != true)
-    {
-        fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+    for (uint8_t ID = 0; ID < num_joint; ID++){
+        // Check if groupsyncread data of Dyanamixel is available
+        int dxl_getdata_result = 0;
+        dxl_getdata_result = groupSyncRead.isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION);
+        if (dxl_getdata_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", ID);
+        }
+
+        // Check if groupsyncread data of Dyanamixel is available
+        dxl_getdata_result = groupSyncRead.isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY);
+        if (dxl_getdata_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", ID);
+        }
+
+        // Check if groupsyncread data of Dyanamixel is available
+        dxl_getdata_result = groupSyncRead.isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT);
+        if (dxl_getdata_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed\n", ID);
+        }
     }
 
-    // Check if groupsyncread data of Dyanamixel is available
-    dxl_getdata_result = groupSyncRead->isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY);
-    if (dxl_getdata_result != true)
-    {
-        fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+    for (uint8_t ID = 0; ID < num_joint; ID++){
+        // Get Dynamixel present position value
+        present_position[ID] = static_cast<int32_t>(groupSyncRead.getData(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION));
+
+        // Get Dynamixel present velocity value
+        present_velocity[ID] = static_cast<int32_t>(groupSyncRead.getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY));
+
+        // Get Dynamixel present current value
+        present_current[ID] = static_cast<int16_t>(groupSyncRead.getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT));
     }
 
-    // Check if groupsyncread data of Dyanamixel is available
-    dxl_getdata_result = groupSyncRead->isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT);
-    if (dxl_getdata_result != true)
-    {
-        fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
-    }
-
-    // Get Dynamixel present position value
-    *present_position = static_cast<int32_t>(groupSyncRead->getData(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION));
-
-    // Get Dynamixel present velocity value
-    *present_velocity = static_cast<int32_t>(groupSyncRead->getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY));
-
-    // Get Dynamixel present current value
-    *present_current = static_cast<int16_t>(groupSyncRead->getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT));
+    groupSyncRead.clearParam();
 }

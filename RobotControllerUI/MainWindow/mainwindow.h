@@ -44,7 +44,6 @@ private:
     KeyInputClass *keyInputClass;
 
     QStandardItemModel *model, *pathModel;
-//    QStandardItemModel *jointPathModel, *cartPathModel;
     QByteArray txData;
     int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
 
@@ -73,12 +72,8 @@ public slots:
     void btnRunClicked();
     void btnStopClicked();
     void btnReadyClicked();
-//    void btnStartClicked();
-//    void btnSaveClicked();
 
     // checkbox event
-//    void cbJointPathClicked();
-//    void cbCartesianPathClicked();
     void cbJointRelChanged(int arg);
     void cbJointAbsChanged(int arg);
     void cbCartRelChanged(int arg);
@@ -99,10 +94,6 @@ public slots:
     void horizontalSectionClicked(int index);
     void verticalSectionPressed(int index);
     void horizontalSectionPressed(int index);
-
-     // spin box event
-//     void sbMassEditingFinished();
-//     void sbTorqueConstEditingFinished();
 };
 
 #endif // MAINWINDOW_H
