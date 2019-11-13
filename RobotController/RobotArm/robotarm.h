@@ -25,6 +25,11 @@ public:
     void run_inverse_kinematics(double* cur_joint, double* des_pose, double* res_joint, double* res_pose);
     void gravity_compensation(double *q, double *q_dot, double *torque);
 
+    static void rpy2mat(double yaw, double pitch, double roll, double *mat);
+    static void mat2rpy(double mat[9], double ori[3]);
+    static void mat_to_axis_angle(double R_init[9], double R_final[9], double r[3], double *theta);
+    static void axis_angle_to_mat(double r[3], double theta, double mat[9]);
+
 private:
     inline void tilde(double *a, double *b) {
         *(b++) = 0;	*(b++) = -a[2];	*(b++) = a[1];
@@ -45,7 +50,7 @@ private:
         // orientation
         double Ai[9], Aijpp[9], Ai_Cij[9], Cij[9], u_vec[3];
         // position
-        double sij[3], sijp[3], ri[3], re[3], Ae[9], roll, pitch, yaw;
+        double sij[3], sijp[3], ri[3], re[3], Ae[9], re_dot[3], we[3], ori[3];
         // jacobian
         double Jvi[3], Jwi[3], re_qi[3], Ae_qi[9], r6_qi[3], A6_qi[9], Aijpp_qi[9], Cij_Aijpp[9], Ai_Cij_Aijpp_qi[9];
         double Ae_qi_31, Ae_qi_32, Ae_qi_33, Ae_qi_21, Ae_qi_11, roll_qi, pitch_qi, yaw_qi;
@@ -96,7 +101,3 @@ private:
     double pitch_q_temp1, pitch_q_temp2, pitch_q_temp3, pitch_q_temp4;
     double yaw_q_temp1, yaw_q_temp2, yaw_q_temp3, yaw_q_temp4;
 };
-
-// Euler Angle to Transformation Matrix(body 3-1-3)
-void Euler2Trans(double psi, double theta, double phi, double* Mat);
-

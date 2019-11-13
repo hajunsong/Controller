@@ -78,8 +78,8 @@ public:
     typedef struct _StructPathData{
         char cmd_type, cycle_count;
         uint8_t row, col;
-        std::vector<double> total_time, point_x, point_y, point_z, acc_time;
-        std::vector<double> path_x, path_y, path_z, ready_path_x, ready_path_y, ready_path_z;
+        std::vector<double> total_time, point_x, point_y, point_z, point_theta, acc_time, point_roll, point_pitch, point_yaw, point_r;
+        std::vector<double> path_x, path_y, path_z, path_theta, ready_path_x, ready_path_y, ready_path_z, ready_path_theta, ready_r;
         uint path_data_indx;
     }StructPathData;
 

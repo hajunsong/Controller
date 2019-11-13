@@ -194,6 +194,9 @@ void MainWindow::btnSetInitClicked()
     hHeader.append("X");
     hHeader.append("Y");
     hHeader.append("Z");
+    hHeader.append("Roll");
+    hHeader.append("Pitch");
+    hHeader.append("Yaw");
     hHeader.append("Acc time");
     pathModel->setHorizontalHeaderLabels(hHeader);
 }

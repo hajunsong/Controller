@@ -455,6 +455,22 @@ void ControlMain::robotPathGenerate()
                 dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], 0.005, &dataControl->PathData.path_z);
     }
 
+    for(uint8_t i = 0; i < dataControl->PathData.row - 1; i++){
+        double R_init[9], R_final[9], r[3], theta;
+        RobotArm::rpy2mat(dataControl->PathData.point_yaw[i], dataControl->PathData.point_pitch[i], dataControl->PathData.point_roll[i], R_init);
+        RobotArm::rpy2mat(dataControl->PathData.point_yaw[i + 1], dataControl->PathData.point_pitch[i + 1], dataControl->PathData.point_roll[i + 1], R_final);
+        RobotArm::mat_to_axis_angle(R_init, R_final, r, &theta);
+        dataControl->PathData.point_r.push_back(r[0]);
+        dataControl->PathData.point_r.push_back(r[1]);
+        dataControl->PathData.point_r.push_back(r[2]);
+        dataControl->PathData.point_theta.push_back(theta);
+    }
+
+    for(uint8_t i = 0; i < dataControl->PathData.row - 1; i++){
+        path_generator(dataControl->PathData.point_theta[i], dataControl->PathData.point_theta[i + 1],
+                dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], 0.005, &dataControl->PathData.path_theta);
+    }
+
     rt_printf("path size : %d\n", dataControl->PathData.path_x.size());
     dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
 }
@@ -463,9 +479,20 @@ void ControlMain::robotRun()
 {
     switch(dataControl->RobotData.run_mode){
         case 1:
+        {
             dataControl->RobotData.desired_end_pose[0] = dataControl->PathData.ready_path_x[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[1] = dataControl->PathData.ready_path_y[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[2] = dataControl->PathData.ready_path_z[dataControl->PathData.path_data_indx];
+
+            double Ri[9];
+            RobotArm::axis_angle_to_mat(dataControl->PathData.ready_r.data(), dataControl->PathData.ready_path_theta[dataControl->PathData.path_data_indx], Ri);
+            RobotArm::mat2rpy(Ri, dataControl->RobotData.desired_end_pose + 3);
+
+            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
+                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
+                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
+                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
+
             dataControl->RobotData.desired_end_pose[3] = 1.5707963;
             dataControl->RobotData.desired_end_pose[4] = 0;
             dataControl->RobotData.desired_end_pose[5] = -2.094399;
@@ -503,6 +530,7 @@ void ControlMain::robotRun()
             }
 
             break;
+        }
         case 2:
             dataControl->RobotData.desired_end_pose[0] = dataControl->PathData.path_x[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[1] = dataControl->PathData.path_y[dataControl->PathData.path_data_indx];
@@ -554,12 +582,23 @@ void ControlMain::robotReady()
     dataControl->PathData.ready_path_x.clear();
     dataControl->PathData.ready_path_y.clear();
     dataControl->PathData.ready_path_z.clear();
+    dataControl->PathData.ready_path_theta.clear();
     path_generator(dataControl->RobotData.present_end_pose[0], dataControl->PathData.point_x[0],
             dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], 0.005, &dataControl->PathData.ready_path_x);
     path_generator(dataControl->RobotData.present_end_pose[1], dataControl->PathData.point_y[0],
             dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], 0.005, &dataControl->PathData.ready_path_y);
     path_generator(dataControl->RobotData.present_end_pose[2], dataControl->PathData.point_z[0],
             dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], 0.005, &dataControl->PathData.ready_path_z);
+
+    double R_init[9], R_final[9], r[3], theta;
+    RobotArm::rpy2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], R_init);
+    RobotArm::rpy2mat(dataControl->PathData.point_yaw[0], dataControl->PathData.point_pitch[0], dataControl->PathData.point_roll[0], R_final);
+    RobotArm::mat_to_axis_angle(R_init, R_final, r, &theta);
+    dataControl->PathData.ready_r.push_back(r[0]);
+    dataControl->PathData.ready_r.push_back(r[1]);
+    dataControl->PathData.ready_r.push_back(r[2]);
+
+    path_generator(0, theta, dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], 0.005, &dataControl->PathData.ready_path_theta);
 
     dataControl->RobotData.run_mode = 1;
 

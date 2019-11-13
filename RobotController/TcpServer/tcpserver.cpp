@@ -209,6 +209,11 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                         dataControl->PathData.path_y.clear();
                         dataControl->PathData.path_z.clear();
                         dataControl->PathData.acc_time.clear();
+                        dataControl->PathData.point_roll.clear();
+                        dataControl->PathData.point_pitch.clear();
+                        dataControl->PathData.point_yaw.clear();
+                        dataControl->PathData.point_theta.clear();
+                        dataControl->PathData.path_theta.clear();
 
                         data = rxData.split(',');
                         for(int8_t i = 1; i <= dataControl->PathData.row*dataControl->PathData.col; i += dataControl->PathData.col){
@@ -216,17 +221,23 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                             dataControl->PathData.point_x.push_back(data[i + 1].toDouble());
                             dataControl->PathData.point_y.push_back(data[i + 2].toDouble());
                             dataControl->PathData.point_z.push_back(data[i + 3].toDouble());
-                            dataControl->PathData.acc_time.push_back(data[i + 4].toDouble());
+                            dataControl->PathData.point_roll.push_back(data[i + 4].toDouble());
+                            dataControl->PathData.point_pitch.push_back(data[i + 5].toDouble());
+                            dataControl->PathData.point_yaw.push_back(data[i + 6].toDouble());
+                            dataControl->PathData.acc_time.push_back(data[i + 7].toDouble());
                         }
 
                         printf("row : %d, col : %d\n", dataControl->PathData.row, dataControl->PathData.col);
                         printf("path : \n");
                         for(uint8_t i = 0; i < dataControl->PathData.row; i++){
-                            printf("time : %f, x : %f, y : %f, z : %f, acc_time : %f\n",
+                            printf("time : %f, x : %f, y : %f, z : %f, roll : %f, pitch : %f, yaw : %f, acc_time : %f\n",
                                    dataControl->PathData.total_time[i],
                                    dataControl->PathData.point_x[i],
                                    dataControl->PathData.point_y[i],
                                    dataControl->PathData.point_z[i],
+                                   dataControl->PathData.point_roll[i],
+                                   dataControl->PathData.point_pitch[i],
+                                   dataControl->PathData.point_yaw[i],
                                    dataControl->PathData.acc_time[i]);
                         }
                         break;
@@ -245,6 +256,7 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                     case DataControl::CmdType::StopCmd:
                         dataControl->RobotData.run_mode = 0;
                         dataControl->PathData.path_data_indx = 0;
+                        dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
                         break;
                 }
             }

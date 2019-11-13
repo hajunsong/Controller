@@ -216,19 +216,19 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
             static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
             static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,6);
 
-            double path[6*5] = {
-                0.0, -0.208, 0.1750735, 0.07, 0.3,
-                1.0, -0.124, 0.2590735, -0.014, 0.3,
-                2.0, -0.292, 0.2590735, -0.014, 0.3,
-                3.0, -0.292, 0.0910735, 0.154, 0.3,
-                4.0, -0.124, 0.0910735, 0.154, 0.3,
-                5.0, -0.208, 0.1750735, 0.07, 0.3
+            double path[6*8] = {
+                0.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3,
+                1.0, -0.124, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+                2.0, -0.292, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+                3.0, -0.292, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+                4.0, -0.124, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+                5.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3
             };
 
             for(int i = 0; i < 6; i++){
-                for(int j = 0; j < 5; j++){
+                for(int j = 0; j < 8; j++){
                     QModelIndex indx = static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->index(i, j, QModelIndex());
-                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->setData(indx, QString::number(path[i*5 + j]));
+                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->setData(indx, QString::number(path[i*8 + j]));
                 }
             }
             break;

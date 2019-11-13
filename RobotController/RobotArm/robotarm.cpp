@@ -78,6 +78,84 @@ void RobotArm::mat(double *mat_1, double *vec_2, uint row_1, uint col_1, uint ro
     }
 }
 
+void RobotArm::rpy2mat(double yaw, double pitch, double roll, double *mat)
+{
+    double R_yaw[9] = {cos(yaw), -sin(yaw), 0, sin(yaw), cos(yaw), 0, 0, 0, 1};
+    double R_pitch[9] = {cos(pitch), 0, sin(pitch), 0, 1, 0, -sin(pitch), 0, cos(pitch)};
+    double R_roll[9] = {1, 0, 0, 0, cos(roll), -sin(roll), 0, sin(roll), cos(roll)};
+    double R_yaw_R_pitch[9] = {0,};
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            for(int k = 0; k < 3; k++){
+                R_yaw_R_pitch[i*3+j] += R_yaw[i*3+k]*R_pitch[k*3+j];
+            }
+        }
+    }
+
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            mat[i*3+j] = 0;
+            for(int k = 0; k < 3; k++){
+                mat[i*3+j] += R_yaw_R_pitch[i*3+k]*R_roll[k*3+j];
+            }
+        }
+    }
+}
+
+void RobotArm::mat_to_axis_angle(double R_init[], double R_final[], double r[], double *theta)
+{
+    double R[9] = {0,};
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            for(int k = 0; k < 3; k++){
+                R[i*3+j] += R_init[k*3+i]*R_final[k*3+j];
+            }
+        }
+    }
+
+    double m00, m01, m02, m10, m11, m12, m20, m21, m22;
+
+    m00 = R[0*3 + 0]; m01 = R[0*3 + 1]; m02 = R[0*3 + 2];
+    m10 = R[1*3 + 0]; m11 = R[1*3 + 1]; m12 = R[1*3 + 2];
+    m20 = R[2*3 + 0]; m21 = R[2*3 + 1]; m22 = R[2*3 + 2];
+
+    *theta = acos((m00 + m11 + m22 - 1)/2);
+
+    r[0] = (m21 - m12)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
+    r[1] = (m02 - m20)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
+    r[2] = (m10 - m01)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
+}
+
+void RobotArm::axis_angle_to_mat(double r[], double theta, double mat[])
+{
+    double c = cos(theta);
+    double s = sin(theta);
+    double t = 1 - c;
+    double mag = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+    double x = r[0]/mag;
+    double y = r[1]/mag;
+    double z = r[2]/mag;
+
+    mat[0] = t*x*x + c;
+    mat[1] = t*x*y - z*s;
+    mat[2] = t*x*z + y*s;
+
+    mat[3] = t*x*y + z*s;
+    mat[4] = t*y*y + c;
+    mat[5] = t*y*z - x*s;
+
+    mat[6] = t*x*z - y*s;
+    mat[7] = t*y*z + x*s;
+    mat[8] = t*z*z + c;
+}
+
+void RobotArm::mat2rpy(double mat[], double ori[])
+{
+    ori[0] = atan2(mat[2 * 3 + 1], mat[2 * 3 + 2]);
+    ori[1] = atan2(-mat[2 * 3 + 0], sqrt(pow(mat[2 * 3 + 1], 2.0) + pow(mat[2 * 3 + 2], 2.0)));
+    ori[2] = atan2(mat[1 * 3 + 0], mat[0 * 3 + 0]);
+}
+
 RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     num_body = numbody;
     dof = DOF;
@@ -309,9 +387,9 @@ void RobotArm::run_kinematics(double *q, double *des_pose){
     des_pose[0] = body[6].re[0];
     des_pose[1] = body[6].re[1];
     des_pose[2] = body[6].re[2];
-    des_pose[3] = body[6].roll;
-    des_pose[4] = body[6].pitch;
-    des_pose[5] = body[6].yaw;
+    des_pose[3] = body[6].ori[0];
+    des_pose[4] = body[6].ori[1];
+    des_pose[5] = body[6].ori[2];
 }
 
 #ifdef FILEIO_H_
@@ -353,7 +431,7 @@ void RobotArm::run_inverse_kinematics() {
 #endif
 
 void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double* cur_joint, double* cur_pose){
-    bool goal_reach;
+    bool goal_reach = false;
 
     double epsilon_pos = 0.05;
     double epsilon_ang = 1;
@@ -385,9 +463,9 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
         cur_pose[0] = body[num_body].re[0];
         cur_pose[1] = body[num_body].re[1];
         cur_pose[2] = body[num_body].re[2];
-        cur_pose[3] = body[num_body].roll;
-        cur_pose[4] = body[num_body].pitch;
-        cur_pose[5] = body[num_body].yaw;
+        cur_pose[3] = body[num_body].ori[0];
+        cur_pose[4] = body[num_body].ori[1];
+        cur_pose[5] = body[num_body].ori[2];
 
         double pos = sqrt(pow(des_pose[0] - cur_pose[0], 2) + pow(des_pose[1] - cur_pose[1], 2) + pow(des_pose[2] - cur_pose[2], 2));
         double ang_r = abs(des_pose[3] - cur_pose[3]);
@@ -484,19 +562,19 @@ void RobotArm::kinematics()
 
     mat(body_end->Ai, body_end->Cij, 3, 3, 3, 3, body_end->Ae);
 
-    body_end->roll = atan2(body_end->Ae[2 * 3 + 1], body_end->Ae[2 * 3 + 2]);
-    body_end->pitch = atan2(-body_end->Ae[2 * 3 + 0], sqrt(pow(body_end->Ae[2 * 3 + 1], 2.0) + pow(body_end->Ae[2 * 3 + 2], 2.0)));
-    body_end->yaw = atan2(body_end->Ae[1 * 3 + 0], body_end->Ae[0 * 3 + 0]);
+    mat2rpy(body_end->Ae, body_end->ori);
+
+//    body_end->ori[0] = atan2(body_end->Ae[2 * 3 + 1], body_end->Ae[2 * 3 + 2]);
+//    body_end->ori[1] = atan2(-body_end->Ae[2 * 3 + 0], sqrt(pow(body_end->Ae[2 * 3 + 1], 2.0) + pow(body_end->Ae[2 * 3 + 2], 2.0)));
+//    body_end->ori[2] = atan2(body_end->Ae[1 * 3 + 0], body_end->Ae[0 * 3 + 0]);
 }
 
 void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
     Body *body_end = &body[num_body];
     for (uint i = 0; i < 3; i++) {
         PH_pos[i] = des_pos[i] - body_end->re[i];
+        PH_ori[i] = des_ang[i] - body_end->ori[i];
     }
-    PH_ori[0] = des_ang[0] - body_end->roll;
-    PH_ori[1] = des_ang[1] - body_end->pitch;
-    PH_ori[2] = des_ang[2] - body_end->yaw;
 
     for (uint i = 0; i < 3; i++) {
         PH[i] = PH_pos[i];
@@ -563,10 +641,8 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
 
         for (uint i = 0; i < 3; i++) {
             PH_pos[i] = des_pos[i] - body_end->re[i];
+            PH_ori[i] = des_ang[i] - body_end->ori[i];
         }
-        PH_ori[0] = des_ang[0] - body_end->roll;
-        PH_ori[1] = des_ang[1] - body_end->pitch;
-        PH_ori[2] = des_ang[2] - body_end->yaw;
 
         for (uint i = 0; i < 3; i++) {
             PH[i] = PH_pos[i];
@@ -877,7 +953,7 @@ void RobotArm::save_data() {
     kinematics();
 
     fprintf(fp, "%.7f\t%.7f\t%.7f\t", body[num_body].re[0], body[num_body].re[1], body[num_body].re[2]);
-    fprintf(fp, "%.7f\t%.7f\t%.7f\t", body[num_body].roll, body[num_body].pitch, body[num_body].yaw);
+    fprintf(fp, "%.7f\t%.7f\t%.7f\t", body[num_body].ori[0], body[num_body].ori[1], body[num_body].ori[2]);
 
     for (uint i = 1; i <= num_body; i++) {
         fprintf(fp, "%.7f\t", body[i].qi_dot);
