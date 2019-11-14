@@ -172,9 +172,6 @@ void ControlMain::robot_run(void *arg)
                                                            pThis->dataControl->RobotData.present_joint_velocity,
                                                            pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
         }
-        else if(MODULE_TYPE == DataControl::Module::SEA){
-            pThis->module->getPresentPosition(1, &pThis->dataControl->RobotData.present_joint_position[0]);
-        }
         pThis->dataControl->RobotData.dxl_time2 = static_cast<unsigned long>(rt_timer_read());
 
         pThis->robotKinematics();
@@ -484,18 +481,15 @@ void ControlMain::robotRun()
             dataControl->RobotData.desired_end_pose[1] = dataControl->PathData.ready_path_y[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[2] = dataControl->PathData.ready_path_z[dataControl->PathData.path_data_indx];
 
-            double Ri[9];
+            double Ri[9], Rd[9];
             RobotArm::axis_angle_to_mat(dataControl->PathData.ready_r.data(), dataControl->PathData.ready_path_theta[dataControl->PathData.path_data_indx], Ri);
-            RobotArm::mat2rpy(Ri, dataControl->RobotData.desired_end_pose + 3);
+            RobotArm::mat(dataControl->PathData.end_R_init, Ri, 3, 3, 3, 3, Rd);
+            RobotArm::mat2rpy(Rd, dataControl->RobotData.desired_end_pose + 3);
 
-            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
-                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
-                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
-                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
-
-            dataControl->RobotData.desired_end_pose[3] = 1.5707963;
-            dataControl->RobotData.desired_end_pose[4] = 0;
-            dataControl->RobotData.desired_end_pose[5] = -2.094399;
+//            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
+//                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
+//                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
+//                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
 
             dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
             robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
@@ -535,9 +529,16 @@ void ControlMain::robotRun()
             dataControl->RobotData.desired_end_pose[0] = dataControl->PathData.path_x[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[1] = dataControl->PathData.path_y[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[2] = dataControl->PathData.path_z[dataControl->PathData.path_data_indx];
-            dataControl->RobotData.desired_end_pose[3] = 1.5707963;
-            dataControl->RobotData.desired_end_pose[4] = 0;
-            dataControl->RobotData.desired_end_pose[5] = -2.094399;
+
+            double Ri[9], Rd[9];
+            RobotArm::axis_angle_to_mat(dataControl->PathData.ready_r.data(), dataControl->PathData.ready_path_theta[dataControl->PathData.path_data_indx], Ri);
+            RobotArm::mat(dataControl->PathData.end_R_init, Ri, 3, 3, 3, 3, Rd);
+            RobotArm::mat2rpy(Rd, dataControl->RobotData.desired_end_pose + 3);
+
+//            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
+//                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
+//                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
+//                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
 
             dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
             robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
@@ -599,6 +600,7 @@ void ControlMain::robotReady()
     dataControl->PathData.ready_r.push_back(r[2]);
 
     path_generator(0, theta, dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], 0.005, &dataControl->PathData.ready_path_theta);
+    memcpy(dataControl->PathData.end_R_init, robotArm->body[robotArm->num_body].Ae, sizeof(double)*9);
 
     dataControl->RobotData.run_mode = 1;
 

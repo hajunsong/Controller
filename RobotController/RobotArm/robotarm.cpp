@@ -1,14 +1,14 @@
 #include "robotarm.h"
 
-RobotArm::Body::Body(){
+Body::Body(){
     u_vec[0] = 0;
     u_vec[1] = 0;
     u_vec[2] = 1;
 }
 
-RobotArm::Body::~Body(){}
+Body::~Body(){}
 
-void RobotArm::Body::ang2mat(double ang_z1, double ang_x, double ang_z2, double *mat, bool deg_flag)
+void Body::ang2mat(double ang_z1, double ang_x, double ang_z2, double *mat, bool deg_flag)
 {
     double z1, x, z2;
     if (deg_flag){
