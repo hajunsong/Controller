@@ -124,6 +124,12 @@ void RobotArm::mat_to_axis_angle(double R_init[], double R_final[], double r[], 
     r[0] = (m21 - m12)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
     r[1] = (m02 - m20)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
     r[2] = (m10 - m01)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
+
+    if (abs(m00 - m11) < 1e-10 && abs(m11 - m22) < 1e-10 && abs(m22 - m00) < 1e-10){
+        r[0] = 0;
+        r[1] = 0;
+        r[2] = 1;
+    }
 }
 
 void RobotArm::axis_angle_to_mat(double r[], double theta, double mat[])
@@ -541,10 +547,11 @@ void RobotArm::kinematics()
         double *Aijpp_ptr = body1->Aijpp;
         *(Aijpp_ptr++) = cos(body1->qi);	*(Aijpp_ptr++) = -sin(body1->qi);	*(Aijpp_ptr++) = 0;
         *(Aijpp_ptr++) = sin(body1->qi);	*(Aijpp_ptr++) = cos(body1->qi);	*(Aijpp_ptr++) = 0;
-        *(Aijpp_ptr++) = 0;						*(Aijpp_ptr++) = 0;						*(Aijpp_ptr++) = 1;
+        *(Aijpp_ptr++) = 0;					*(Aijpp_ptr++) = 0;					*(Aijpp_ptr++) = 1;
 
         mat(body0->Ai, body0->Cij, 3, 3, 3, 3, body1->Ai_Cij);
         mat(body1->Ai_Cij, body1->Aijpp, 3, 3, 3, 3, body1->Ai);
+        mat(body1->Ai_Cij, body1->u_vec, 3, 3, 3, body1->zi);
 
         // position
         mat(body0->Ai, body0->sijp, 3, 3, 3, body0->sij);
@@ -672,6 +679,26 @@ void RobotArm::jacobian()
     Body *body0, *body1;
     Body *body_end = &body[num_body];
 
+#if 0
+    double A[9] = {cos(M_PI), -sin(M_PI), 0, sin(M_PI), cos(M_PI), 0, 0, 0, 1};
+
+    for (uint indx = 1; indx <= num_body; indx++){
+        body0 = &body[indx - 1];
+        body1 = &body[indx];
+
+        for(uint i = 0; i < 3; i++){
+            body1->oi[i] = body_end->re[i] - body1->ri[i];
+        }
+        tilde(body1->zi, body1->zit);
+        mat(body1->zit, body1->oi, 3, 3, 3, body1->Jvi);
+        mat(A, body1->zi, 3, 3, 3, body1->Jwi);
+
+        for (uint i = 0; i < 3; i++){
+            Jv[i*num_body + (indx - 1)] = body1->Jvi[i];
+            Jw[i*num_body + (indx - 1)] = body1->Jwi[i];
+        }
+    }
+#else
     for (uint indx = 1; indx <= num_body; indx++) {
         body0 = &body[indx - 1];
         body1 = &body[indx];
@@ -757,6 +784,7 @@ void RobotArm::jacobian()
         Jw[1 * num_body + indx - 1] = body1->pitch_qi;
         Jw[2 * num_body + indx - 1] = body1->yaw_qi;
     }
+#endif
 
     memcpy(J, Jv, sizeof(double) * 3 * num_body);
     memcpy(J + 3 * num_body, Jw, sizeof(double) * 3 * num_body);

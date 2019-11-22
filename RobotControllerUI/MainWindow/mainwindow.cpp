@@ -22,18 +22,34 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnServoOn, SIGNAL(clicked()), this, SLOT(btnServOnClicked()));
     connect(ui->btnServoOff, SIGNAL(clicked()), this, SLOT(btnServoOffClicked()));
 
-    connect(ui->btnJ1N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ1P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ2N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ2P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ3N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ3P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ4N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ4P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ5N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ5P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ6N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnJ6P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
+    connect(ui->btnJSet, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnCSet, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+
+    connect(ui->btnJ1N, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ2N, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ3N, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ4N, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ5N, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ6N, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ1P, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ2P, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ3P, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ4P, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ5P, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+    connect(ui->btnJ6P, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
+
+    connect(ui->btnC1N, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC2N, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC3N, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC4N, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC5N, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC6N, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC1P, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC2P, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC3P, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC4P, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC5P, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
+    connect(ui->btnC6P, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
 
     txtJCmd.push_back(ui->txtJCmd1);
     txtJCmd.push_back(ui->txtJCmd2);
@@ -56,22 +72,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     {
         txtCCmd[i]->setText("0");
     }
-
-    connect(ui->btnJSet, SIGNAL(clicked()), this, SLOT(btnSetJCommandClicked()));
-    connect(ui->btnCSet, SIGNAL(clicked()), this, SLOT(btnSetCCommandClicked()));
-
-    connect(ui->btnC1N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC2N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC3N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC4N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC5N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC6N, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC1P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC2P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC3P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC4P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC5P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
-    connect(ui->btnC6P, SIGNAL(clicked()), this, SLOT(btnJogMoveClicked()));
 
     connect(ui->btnPathClear, SIGNAL(clicked()), this, SLOT(btnPathClearClicked()));
     connect(ui->btnPathApply, SIGNAL(clicked()), this, SLOT(btnPathApplyClicked()));
@@ -108,6 +108,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     keyInputClass = new KeyInputClass(ui);
 
     ui->tabWidget->setCurrentIndex(0);
+
+    connect(ui->btnFileReady, SIGNAL(clicked()), this, SLOT(btnFileReadyClicked()));
+    connect(ui->btnFileRun, SIGNAL(clicked()), this, SLOT(btnFileRunClicked()));
 
 //    ui->gbRobotConfig->setEnabled(true);
 //    ui->btnSetInit->setEnabled(true);
@@ -206,7 +209,7 @@ void MainWindow::btnServOnClicked()
     dataControl->ClientToServer.opMode = OpMode::ServoOnOff;
     dataControl->ClientToServer.subMode = Servo::On;
     memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
+    memset(dataControl->ClientToServer.desiredPose, 0, sizeof(double)*NUM_DOF);
 
     txData.clear();
     txData.append(Qt::Key_N);
@@ -217,7 +220,7 @@ void MainWindow::btnServOnClicked()
         txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
     }
     for(int i = 0; i < NUM_DOF; i++){
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
+        txData.append(QByteArray::number(dataControl->ClientToServer.desiredPose[i], 'f', 6));
     }
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
@@ -233,7 +236,7 @@ void MainWindow::btnServoOffClicked()
     dataControl->ClientToServer.opMode = OpMode::ServoOnOff;
     dataControl->ClientToServer.subMode = Servo::Off;
     memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
+    memset(dataControl->ClientToServer.desiredPose, 0, sizeof(double)*NUM_DOF);
 
     txData.clear();
     txData.append(Qt::Key_N);
@@ -244,7 +247,7 @@ void MainWindow::btnServoOffClicked()
         txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
     }
     for(int i = 0; i < NUM_DOF; i++){
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
+        txData.append(QByteArray::number(dataControl->ClientToServer.desiredPose[i], 'f', 6));
     }
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
@@ -254,59 +257,10 @@ void MainWindow::btnServoOffClicked()
     tcpClient->socket->write(txData);
 }
 
-void MainWindow::btnJogMoveClicked()
-{
+void MainWindow::btnSetJCommandClicked() {
+    dataControl->ClientToServer.opMode = DataControl::OpMode::JointMove;
     QString objName = sender()->objectName();
-    QString moduleStr = objName.at(objName.length() - 2);
-    int moduleIndex = moduleStr.toInt();
-    QString PN = objName.at(objName.length() - 1);
-    QString CJ = objName.at(3);
-
-    dataControl->ClientToServer.opMode = CJ == "J" ? OpMode::JointMove : OpMode::CartesianMove;
-    dataControl->ClientToServer.subMode = CJ == "J" ? Motion::JogMotion : Motion::CartesianJogMotion;
-    memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
-
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_S);
-    txData.append(dataControl->ClientToServer.opMode);
-    txData.append(dataControl->ClientToServer.subMode);
-    for(int i = 0; i < NUM_JOINT; i++){
-        if (CJ == "J"){
-            if (i + 1 == moduleIndex){
-                dataControl->ClientToServer.desiredJoint[i] = PN == "N" ? -5 : 5;
-            }
-        }
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
-    }
-    for(int i = 0; i < NUM_DOF; i++){
-        if (CJ == "C"){
-            if (i + 1 == moduleIndex){
-                if (i < 3){
-                    dataControl->ClientToServer.desiredCartesian[i] = PN == "N" ? -10 : 10;
-                }
-                else{
-                    dataControl->ClientToServer.desiredCartesian[i] = PN == "N" ? -5 : 5;
-                }
-            }
-        }
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
-    }
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
-
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
-}
-
-void MainWindow::btnSetJCommandClicked()
-{
-    if (cmdJointRel || cmdJointAbs)
-    {
-        dataControl->ClientToServer.opMode = DataControl::OpMode::JointMove;
-
+    if (cmdJointRel || cmdJointAbs) {
         if (cmdJointRel){
             dataControl->ClientToServer.subMode = Motion::JogMotion;
         }
@@ -314,10 +268,29 @@ void MainWindow::btnSetJCommandClicked()
         if (cmdJointAbs){
             dataControl->ClientToServer.subMode = Motion::JointMotion;
         }
-    }
 
-    memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
+        memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
+
+        for(int i = 0; i < NUM_JOINT; i++)
+        {
+            dataControl->ClientToServer.desiredJoint[i] = txtJCmd[i]->text().toDouble();
+        }
+    }
+    else if(objName.contains("P") || objName.contains("N")){
+        dataControl->ClientToServer.subMode = Motion::JogMotion;
+        memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
+        int indx = objName.at(4).digitValue() - 1;
+        if (objName.contains("P")){
+            dataControl->ClientToServer.desiredJoint[indx] = 5;
+        }
+        else{
+            dataControl->ClientToServer.desiredJoint[indx] = -5;
+        }
+    }
+    else{
+        qDebug() << "Select Relative or Absolute";
+        return;
+    }
 
     txData.clear();
     txData.append(Qt::Key_N);
@@ -326,13 +299,10 @@ void MainWindow::btnSetJCommandClicked()
     txData.append(dataControl->ClientToServer.subMode);
     for(int i = 0; i < NUM_JOINT; i++)
     {
-        dataControl->ClientToServer.desiredJoint[i] = txtJCmd[i]->text().toDouble();
+        txData.append(',');
         txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
     }
-    for(int i = 0; i < NUM_DOF; i++)
-    {
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
-    }
+    txData.append(',');
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
 
@@ -343,12 +313,11 @@ void MainWindow::btnSetJCommandClicked()
     setTxtCommandClear();
 }
 
-void MainWindow::btnSetCCommandClicked()
-{
-    if(cmdCartRel || cmdCartAbs)
-    {
-        dataControl->ClientToServer.opMode = DataControl::OpMode::CartesianMove;
-
+void MainWindow::btnSetCCommandClicked() {
+    dataControl->ClientToServer.opMode = DataControl::OpMode::CartesianMove;
+    QString objName = sender()->objectName();
+    double move_time = 0, acc_time = 0;
+    if(cmdCartRel || cmdCartAbs) {
         if (cmdCartRel){
             dataControl->ClientToServer.subMode = Motion::CartesianJogMotion;
         }
@@ -356,10 +325,30 @@ void MainWindow::btnSetCCommandClicked()
         if (cmdCartAbs){
             dataControl->ClientToServer.subMode = Motion::CartesianMotion;
         }
-    }
 
-    memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredCartesian, 0, sizeof(double)*NUM_DOF);
+        memset(dataControl->ClientToServer.desiredPose, 0, sizeof(double)*NUM_DOF);
+
+        for(int i = 0; i < NUM_DOF; i++){
+            dataControl->ClientToServer.desiredPose[i] = txtCCmd[i]->text().toDouble();
+        }
+        move_time = ui->txtCartesianMoveTime->text().toDouble();
+        acc_time = ui->txtCartesianMoveAccTime->text().toDouble();
+    }
+    else if(objName.contains("P") || objName.contains("N")){
+        dataControl->ClientToServer.subMode = Motion::CartesianJogMotion;
+        memset(dataControl->ClientToServer.desiredPose, 0, sizeof(double)*NUM_DOF);
+        int indx = objName.at(4).digitValue() - 1;
+        if (objName.contains("P")){
+            dataControl->ClientToServer.desiredPose[indx] = indx < 3 ? 10 : 5;
+        }
+        else{
+            dataControl->ClientToServer.desiredPose[indx] = indx < 3 ? -10 : -5;
+        }
+    }
+    else{
+        qDebug() << "Select Relative or Absolute";
+        return;
+    }
 
     txData.clear();
     txData.append(Qt::Key_N);
@@ -368,9 +357,14 @@ void MainWindow::btnSetCCommandClicked()
     txData.append(dataControl->ClientToServer.subMode);
     for(int i = 0; i < NUM_DOF; i++)
     {
-        dataControl->ClientToServer.desiredCartesian[i] = txtCCmd[i]->text().toDouble();
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredCartesian[i], 'f', 6));
+        txData.append(',');
+        txData.append(QByteArray::number(dataControl->ClientToServer.desiredPose[i], 'f', 6));
     }
+    txData.append(',');
+    txData.append(QByteArray::number(move_time, 'f', 6));
+    txData.append(',');
+    txData.append(QByteArray::number(acc_time, 'f', 6));
+    txData.append(',');
     txData.append(Qt::Key_N);
     txData.append(Qt::Key_E);
 
@@ -640,13 +634,52 @@ void MainWindow::btnReadyClicked()
     ui->btnRun->setEnabled(true);
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
+void MainWindow::btnFileReadyClicked()
 {
-    keyInputClass->InputKeyboard(event);
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_U);
+
+    txData.append(DataControl::CmdType::FileReady);
+    txData.append(DataControl::OpMode::RunMode);
+
+    if (ui->cbRepeat->isChecked()){
+        txData.append(-1);
+    }
+    else{
+        txData.append(1);
+    }
+
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
+
+    qDebug() << "txData : " << txData;
+
+    tcpClient->socket->write(txData);
 }
 
-void MainWindow::closeEvent(QCloseEvent*){
-    qDebug() << "Closed MainWindow";
+void MainWindow::btnFileRunClicked()
+{
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_U);
+
+    txData.append(DataControl::CmdType::FileRun);
+    txData.append(DataControl::OpMode::RunMode);
+
+    if (ui->cbRepeat->isChecked()){
+        txData.append(-1);
+    }
+    else{
+        txData.append(1);
+    }
+
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
+
+    qDebug() << "txData : " << txData;
+
+    tcpClient->socket->write(txData);
 }
 
 void MainWindow::btnPathApplyClicked()
@@ -756,4 +789,13 @@ void MainWindow::verticalSectionPressed(int index)
     qDebug() << "Pressed vertical : " << index;
     colClickedIndex = -1;
     colPressedIndex = -1;
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    keyInputClass->InputKeyboard(event);
+}
+
+void MainWindow::closeEvent(QCloseEvent*){
+    qDebug() << "Closed MainWindow";
 }

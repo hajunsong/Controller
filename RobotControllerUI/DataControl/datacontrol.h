@@ -47,7 +47,7 @@ public:
 
     typedef struct _StructClientToServer{
         char opMode, subMode;
-        double desiredJoint[NUM_JOINT], desiredCartesian[NUM_DOF];
+        double desiredJoint[NUM_JOINT], desiredPose[NUM_DOF];
     }StructClientToServer;
 
     typedef struct _StructServerToClient{
@@ -63,8 +63,7 @@ public:
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
-    enum PathDataType{JointPath = 1, CartPath, Save1, Save2, Save3, Save4};
-    enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd};
+    enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun};
 
     DataControl();
     ~DataControl();

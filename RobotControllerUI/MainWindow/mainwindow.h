@@ -61,7 +61,6 @@ public slots:
     void btnSetInitClicked();
     void btnServOnClicked();
     void btnServoOffClicked();
-    void btnJogMoveClicked();
     void btnSetJCommandClicked();
     void btnSetCCommandClicked();
     void btnPathApplyClicked();
@@ -72,6 +71,8 @@ public slots:
     void btnRunClicked();
     void btnStopClicked();
     void btnReadyClicked();
+    void btnFileReadyClicked();
+    void btnFileRunClicked();
 
     // checkbox event
     void cbJointRelChanged(int arg);

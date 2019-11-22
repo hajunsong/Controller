@@ -27,15 +27,18 @@ public:
     explicit ControlMain(QObject *parent = nullptr);
     ~ControlMain();
     void start();
+    bool robot_thread_run;
+
+    RT_TASK robot_task;
+
+    QTimer *dxlTimer;
 private:
     void robot_RT();
+    void robot_RT_stop();
     static void robot_run(void *arg);
 
     NRMKHelper::TcpServer *tcpServer;
     DataControl *dataControl;
-
-    RT_TASK robot_task;
-    bool robot_thread_run;
 
     RobotArm *robotArm;
 
@@ -62,13 +65,15 @@ private:
     unsigned char data_indx;
     uint8_t module_indx;
 
-    QTimer *dxlTimer;
-
     bool ready_pose;
     bool cartesian_move_flag;
-    int delay;
+    int delay_cnt, delay_cnt_max;
+
+signals:
+    void disconnectClientSignal();
 
 public slots:
     void dxlTimeout();
+    void disconnectClient();
 };
 

@@ -25,7 +25,7 @@ void Numerical::ludcmp(double *A, int n, int* indx, double d, double *fac)
         for (j = 0; j < n; j++)
             if ((temp = fabs(a[i*n + j])) > big) big = temp;
         if (big == 0.0) {
-            printf("Singular matrix in LUdcmp");
+//            printf("Singular matrix in LUdcmp");
         }
         vv[i] = 1.0 / big;
     }

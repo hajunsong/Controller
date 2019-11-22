@@ -34,11 +34,10 @@ namespace NRMKHelper{
     {
     public:
         TcpServer(DataControl *dataControl_);
-    public:
-        TcpServer();
         ~TcpServer();
         void setting(QString _ip, int _port);
         void OnEvent(UINT uEvent, LPVOID lpvData);
+
         // sendKey is used to send key input only
         void sendKey(char key);
         void getKey(char & key);
@@ -48,14 +47,13 @@ namespace NRMKHelper{
         QString getIP(){return IP;}
         bool getDataCorrected(){return data_corrected;}
         void setConnected(bool flag);
-//        void getCmdBuf(unsigned char* CmdBuf);
+        volatile bool connected;
 
     private:
         QString IP;
         int PORT;
         volatile char commandkey;
         Poco::Event dataReceiveEvent;
-        volatile bool connected;
 
         RT_TASK comm_task;
         static void comm_run[ [noreturn] ](void *arg);
@@ -65,5 +63,8 @@ namespace NRMKHelper{
         DataControl *dataControl;
 
         void sendData();
+
+    signals:
+        void disconnectClient();
     };
 }

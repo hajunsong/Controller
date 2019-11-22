@@ -45,7 +45,8 @@ class DataControl{
 public:
     typedef struct _StructClientToServer{
         char opMode, subMode;
-        double desiredJoint[NUM_JOINT], desiredCartesian[NUM_DOF];
+        double desiredJoint[NUM_JOINT], desiredPose[NUM_DOF];
+        double move_time, acc_time;
     }StructClientToServer;
 
     typedef struct _StructServerToClient{
@@ -75,13 +76,20 @@ public:
         uint8_t run_mode;
     }StructRobotData;
 
+    typedef struct _StructPathGenerateData{
+        std::vector<double> path_x, path_y, path_z, path_theta;
+        double r[3], R_init[9];
+        unsigned int data_size;
+    }StructPathGenerateData;
+
     typedef struct _StructPathData{
-        char cmd_type, cycle_count;
+        char cmd_type, cycle_count, cycle_count_max;
         uint8_t row, col;
-        std::vector<double> total_time, point_x, point_y, point_z, point_theta, acc_time, point_roll, point_pitch, point_yaw, point_r;
-        std::vector<double> path_x, path_y, path_z, path_theta, ready_path_x, ready_path_y, ready_path_z, ready_path_theta, ready_r;
-        double end_R_init[9];
+        std::vector<double> total_time, point_x, point_y, point_z, point_theta, acc_time, point_roll, point_pitch, point_yaw;
+        StructPathGenerateData movePath[10], readyPath;
         uint path_data_indx;
+        uint8_t path_struct_indx;
+        std::vector<double> file_data;
     }StructPathData;
 
     typedef struct _StructTorqueIDEData{
@@ -100,8 +108,7 @@ public:
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
     enum Module{FAR_V1=1, FAR_V2, SEA};
     enum Comm{RS485=1, RS232, EtherCAT};
-    enum PathDataType{Save1=1, Save2, Save3, Save4, Save5, Save6, Save7, Save8, Save9, Save10, Save11};
-    enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd};
+    enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun};
 
     bool config_check;
     bool cartesian_goal_reach;

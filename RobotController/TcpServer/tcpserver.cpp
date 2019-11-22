@@ -1,6 +1,6 @@
 #include "tcpserver.h"
 
-NRMKHelper::TcpServer::TcpServer(DataControl *dataControl_) : NRMKSocketBase (), dataReceiveEvent(true)
+NRMKHelper::TcpServer::TcpServer(DataControl *dataControl_) : NRMKSocketBase(), dataReceiveEvent(true)
 {
     commandkey = 0;
     connected = false;
@@ -13,7 +13,10 @@ NRMKHelper::TcpServer::~TcpServer()
 {
     if (comm_thread_run){
         rt_task_suspend(&comm_task);
+        printf("Tcp Comm RT Task Stop\n");
         rt_task_delete(&comm_task);
+        printf("Tcp Comm RT Task Delet\n");
+        comm_thread_run = false;
     }
     if (IsOpen()){
         StopComm();
@@ -66,12 +69,14 @@ void NRMKHelper::TcpServer::OnEvent(UINT uEvent, LPVOID lpvData)
                 comm_thread_run = false;
             }
 
+            if (dataControl->config_check){
+                dataControl->config_check = false;
+            }
+
             connected = false;
             commandkey = 0;
 
             StopComm();
-
-            //        dataControl->ClientToServer.opMode = DataControl::OpMode::Initialize;
 
             if (IsServer())
                 waitForConnection(0);
@@ -138,9 +143,6 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                     printf("Client & Server configuration check complete\n");
                     dataControl->RobotData.joint_op_mode = lpBuffer[5];
                     dataControl->config_check = true;
-//                    if (dataControl->ClientToServer.opMode == DataControl::OpMode::Initialize){
-//                        sendKey('S');
-//                    }
                 }
                 else{
                     if (lpBuffer[2] != NUM_JOINT){
@@ -159,30 +161,45 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                 }
             }
             else if (lpBuffer[0] == 'N' && lpBuffer[1] == 'S'){
+                QByteArray rxData;
+                rxData = QByteArray::fromRawData(reinterpret_cast<const char*>(lpBuffer), static_cast<int>(dwCount));
+
                 int indx = NRMK_SOCKET_TOKEN_SIZE;
                 dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
                 indx += OP_MODE_LEN;
                 dataControl->ClientToServer.subMode = static_cast<char>(lpBuffer[indx]);
                 indx += SUB_MODE_LEN;
-                char buf[8];
-                for(int i = 0; i < NUM_JOINT; i++){
-                    memcpy(buf, lpBuffer + indx, DESIRED_JOINT_LEN);
-                    dataControl->ClientToServer.desiredJoint[i] = atof(buf);
-                    indx += DESIRED_JOINT_LEN;
+                QByteArrayList data;
+                data = rxData.split(',');
+                if (dataControl->ClientToServer.opMode == DataControl::OpMode::JointMove){
+                    for(int i = 1; i <= NUM_JOINT; i++){
+                        dataControl->ClientToServer.desiredJoint[i - 1] = data[i].toDouble();
+                    }
+                    for(int i = 1; i <= NUM_DOF; i++){
+                        dataControl->ClientToServer.desiredPose[i - 1] = 0;
+                    }
                 }
-                for(int i = 0; i < NUM_DOF; i++){
-                    memcpy(buf, lpBuffer + indx, DESIRED_CARTESIAN_LEN);
-                    dataControl->ClientToServer.desiredCartesian[i] = atof(buf);
-                    indx += DESIRED_CARTESIAN_LEN;
+                else if(dataControl->ClientToServer.opMode == DataControl::OpMode::CartesianMove){
+                    int i = 0;
+                    for(i = 1; i <= NUM_DOF; i++){
+                        dataControl->ClientToServer.desiredPose[i - 1] = data[i].toDouble();
+                    }
+                    dataControl->ClientToServer.move_time = data[i++].toDouble();
+                    dataControl->ClientToServer.acc_time = data[i].toDouble();
+                    for(int i = 1; i <= NUM_JOINT; i++){
+                        dataControl->ClientToServer.desiredJoint[i - 1] = 0;
+                    }
                 }
-                dataControl->cartesianPoseScaleDown(dataControl->ClientToServer.desiredCartesian, dataControl->RobotData.desired_end_pose);
 
-//                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
-//                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
-//                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
-//                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
-//                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n", dataControl->ClientToServer.desiredCartesian[0], dataControl->ClientToServer.desiredCartesian[1], dataControl->ClientToServer.desiredCartesian[2],
-//                        dataControl->ClientToServer.desiredCartesian[3], dataControl->ClientToServer.desiredCartesian[4], dataControl->ClientToServer.desiredCartesian[5]);
+                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
+                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
+                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n",
+                       dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
+                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
+                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n",
+                       dataControl->ClientToServer.desiredPose[0], dataControl->ClientToServer.desiredPose[1], dataControl->ClientToServer.desiredPose[2],
+                        dataControl->ClientToServer.desiredPose[3], dataControl->ClientToServer.desiredPose[4], dataControl->ClientToServer.desiredPose[5]);
+                printf("Move time : %f, Acc Time : %f\n", dataControl->ClientToServer.move_time, dataControl->ClientToServer.acc_time);
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'U'){
                 QByteArray rxData;
@@ -205,15 +222,11 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                         dataControl->PathData.point_x.clear();
                         dataControl->PathData.point_y.clear();
                         dataControl->PathData.point_z.clear();
-                        dataControl->PathData.path_x.clear();
-                        dataControl->PathData.path_y.clear();
-                        dataControl->PathData.path_z.clear();
                         dataControl->PathData.acc_time.clear();
                         dataControl->PathData.point_roll.clear();
                         dataControl->PathData.point_pitch.clear();
                         dataControl->PathData.point_yaw.clear();
                         dataControl->PathData.point_theta.clear();
-                        dataControl->PathData.path_theta.clear();
 
                         data = rxData.split(',');
                         for(int8_t i = 1; i <= dataControl->PathData.row*dataControl->PathData.col; i += dataControl->PathData.col){
@@ -226,37 +239,46 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                             dataControl->PathData.point_yaw.push_back(data[i + 6].toDouble());
                             dataControl->PathData.acc_time.push_back(data[i + 7].toDouble());
                         }
-
-                        printf("row : %d, col : %d\n", dataControl->PathData.row, dataControl->PathData.col);
-                        printf("path : \n");
-                        for(uint8_t i = 0; i < dataControl->PathData.row; i++){
-                            printf("time : %f, x : %f, y : %f, z : %f, roll : %f, pitch : %f, yaw : %f, acc_time : %f\n",
-                                   dataControl->PathData.total_time[i],
-                                   dataControl->PathData.point_x[i],
-                                   dataControl->PathData.point_y[i],
-                                   dataControl->PathData.point_z[i],
-                                   dataControl->PathData.point_roll[i],
-                                   dataControl->PathData.point_pitch[i],
-                                   dataControl->PathData.point_yaw[i],
-                                   dataControl->PathData.acc_time[i]);
-                        }
                         break;
                     case DataControl::CmdType::ReadyCmd:
-                        dataControl->RobotData.run_mode = 1;
+                        dataControl->RobotData.run_mode = DataControl::CmdType::ReadyCmd;
                         dataControl->PathData.path_data_indx = 0;
+                        dataControl->PathData.path_struct_indx = 0;
+                        for(uint i = 0; i < dataControl->PathData.row; i++){
+                            dataControl->PathData.movePath[i].path_x.clear();
+                            dataControl->PathData.movePath[i].path_y.clear();
+                            dataControl->PathData.movePath[i].path_z.clear();
+                            dataControl->PathData.movePath[i].path_theta.clear();
+                        }
+                        dataControl->PathData.readyPath.path_x.clear();
+                        dataControl->PathData.readyPath.path_y.clear();
+                        dataControl->PathData.readyPath.path_z.clear();
+                        dataControl->PathData.readyPath.path_theta.clear();
                         printf("Ready Feeding Assitant Robot\n");
                         break;
                     case DataControl::CmdType::RunCmd:
-                        dataControl->PathData.cycle_count = static_cast<char>(lpBuffer[indx]);
+                        dataControl->PathData.cycle_count_max = static_cast<char>(lpBuffer[indx]);
                         indx += CYCLE_COUNT_LEN;
-                        dataControl->RobotData.run_mode = 2;
+                        dataControl->RobotData.run_mode = DataControl::CmdType::RunCmd;
                         dataControl->PathData.path_data_indx = 0;
+                        dataControl->PathData.path_struct_indx = 0;
+                        dataControl->PathData.cycle_count = 1;
                         printf("Start Feeding Assitant Robot\n");
                         break;
                     case DataControl::CmdType::StopCmd:
-                        dataControl->RobotData.run_mode = 0;
                         dataControl->PathData.path_data_indx = 0;
+                        dataControl->PathData.path_struct_indx = 0;
                         dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+                        break;
+                    case DataControl::CmdType::FileReady:
+                        dataControl->PathData.cycle_count_max = static_cast<char>(lpBuffer[indx]);
+                        dataControl->RobotData.run_mode = DataControl::CmdType::FileReady;
+                        dataControl->PathData.path_data_indx = 0;
+                        break;
+                    case DataControl::CmdType::FileRun:
+                        dataControl->PathData.cycle_count_max = static_cast<char>(lpBuffer[indx]);
+                        dataControl->RobotData.run_mode = DataControl::CmdType::FileRun;
+                        dataControl->PathData.path_data_indx = 0;
                         break;
                 }
             }
@@ -295,24 +317,16 @@ void NRMKHelper::TcpServer::comm_run(void *arg){
 
     rt_task_set_periodic(&pTcpServer->comm_task, TM_NOW, 100e6);
 
-    //    printf("connected : %d\n", pTcpServer->connected);
     while(1){
         if (pTcpServer->connected){
             pTcpServer->comm_thread_run = true;
             rt_task_wait_period(nullptr); //wait for next cycle
 
-            //        if (pTcpServer->dataControl->ClientToServer.opMode == DataControl::OpMode::Initialize){
-            //            pTcpServer->sendKey('S');
-            //        }
             if (pTcpServer->dataControl->ClientToServer.opMode >= 2){
                 pTcpServer->sendData();
             }
 
             now = rt_timer_read();
-
-            //            rt_printf("Comm : Time since last turn: %ld.%06ld ms\n",
-            //                      static_cast<unsigned long>(now - previous) / 1000000,
-            //                      static_cast<unsigned long>(now - previous) % 1000000);
             previous = now;
         }
     }

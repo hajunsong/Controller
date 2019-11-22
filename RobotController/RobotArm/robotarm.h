@@ -28,6 +28,7 @@ public:
     // jacobian
     double Jvi[3], Jwi[3], re_qi[3], Ae_qi[9], r6_qi[3], A6_qi[9], Aijpp_qi[9], Cij_Aijpp[9], Ai_Cij_Aijpp_qi[9];
     double Ae_qi_31, Ae_qi_32, Ae_qi_33, Ae_qi_21, Ae_qi_11, roll_qi, pitch_qi, yaw_qi;
+    double oi[3], zi[3], zit[9];
     // velocity state
     double Hi[3], rit[9], Bi[6], Yih[6];
     // cartesian velocity
@@ -67,16 +68,19 @@ public:
     static void mat(double *mat_1, double *mat_2, uint row_1, uint col_1, uint row_2, uint col_2, double *mat_3);
     static void mat(double *mat_1, double *vec_2, uint row_1, uint col_1, uint row_2, double *vec_3);
 
+    double *J;
+    void jacobian();
+
 private:
     inline void tilde(double *a, double *b) {
-        *(b++) = 0;	*(b++) = -a[2];	*(b++) = a[1];
-        *(b++) = a[2];	*(b++) = 0;	*(b++) = -a[0];
+        *(b++) = 0;     *(b++) = -a[2];	*(b++) = a[1];
+        *(b++) = a[2];	*(b++) = 0;     *(b++) = -a[0];
         *(b++) = -a[1];	*(b++) = a[0];	*(b++) = 0;
     }
 
     double DH[6*4];
 
-    double *PH, *PH_pos, *PH_ori, *delta_q, *J, *JD;
+    double *PH, *PH_pos, *PH_ori, *delta_q, *JD;
     double *M, *Q, *Q_c, *Q_g;
 
     // system variable
@@ -93,7 +97,6 @@ private:
 
     void kinematics();
     void inverse_kinematics(double pos_d[3], double ori_d[3]=nullptr);
-        void jacobian();
     void dynamics();
     void save_data();
 

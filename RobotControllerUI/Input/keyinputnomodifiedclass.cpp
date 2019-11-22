@@ -202,33 +202,72 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
             break;
 
         case Qt::Key_F9:
-
-
+        {
+            QString path = qApp->applicationDirPath();
+            if (path.contains("keti")){
+                static_cast<Ui::MainWindow*>(ui)->cbCartAbs->setChecked(true);
+                double path[6] = {-0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399};
+                static_cast<Ui::MainWindow*>(ui)->txtCCmd1->setText(QString::number(path[0]*1000));
+                static_cast<Ui::MainWindow*>(ui)->txtCCmd2->setText(QString::number(path[1]*1000));
+                static_cast<Ui::MainWindow*>(ui)->txtCCmd3->setText(QString::number(path[2]*1000));
+                static_cast<Ui::MainWindow*>(ui)->txtCCmd4->setText(QString::number(path[3]*57.295779513));
+                static_cast<Ui::MainWindow*>(ui)->txtCCmd5->setText(QString::number(path[4]*57.295779513));
+                static_cast<Ui::MainWindow*>(ui)->txtCCmd6->setText(QString::number(path[5]*57.295779513));
+                static_cast<Ui::MainWindow*>(ui)->txtCartesianMoveTime->setText("1.0");
+                static_cast<Ui::MainWindow*>(ui)->txtCartesianMoveAccTime->setText("0.3");
+            }
             break;
+        }
+
 
         case Qt::Key_F10:
+        {
+            QString path = qApp->applicationDirPath();
+            if (path.contains("keti")){
+                if (static_cast<Ui::MainWindow*>(ui)->gbTrajectory->isEnabled()){
+                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
+                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,3);
 
+                    double path[3*8] = {
+                        0.0, -0.124, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+                        1.0, -0.292, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+                        2.0, -0.124, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+                    };
 
+                    for(int i = 0; i < 3; i++){
+                        for(int j = 0; j < 8; j++){
+                            QModelIndex indx = static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->index(i, j, QModelIndex());
+                            static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->setData(indx, QString::number(path[i*8 + j]));
+                        }
+                    }
+                }
+            }
             break;
+        }
 
         case Qt::Key_F11:
         {
-            static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
-            static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,6);
+            QString path = qApp->applicationDirPath();
+            if (path.contains("keti")){
+                if (static_cast<Ui::MainWindow*>(ui)->gbTrajectory->isEnabled()){
+                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
+                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,6);
 
-            double path[6*8] = {
-                0.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3,
-                1.0, -0.124, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
-                2.0, -0.292, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
-                3.0, -0.292, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
-                4.0, -0.124, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
-                5.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3
-            };
+                    double path[6*8] = {
+                        0.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3,
+                        1.0, -0.124, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+                        2.0, -0.292, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+                        3.0, -0.292, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+                        4.0, -0.124, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+                        5.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3
+                    };
 
-            for(int i = 0; i < 6; i++){
-                for(int j = 0; j < 8; j++){
-                    QModelIndex indx = static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->index(i, j, QModelIndex());
-                    static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->setData(indx, QString::number(path[i*8 + j]));
+                    for(int i = 0; i < 6; i++){
+                        for(int j = 0; j < 8; j++){
+                            QModelIndex indx = static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->index(i, j, QModelIndex());
+                            static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->setData(indx, QString::number(path[i*8 + j]));
+                        }
+                    }
                 }
             }
             break;
@@ -238,7 +277,6 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         {
             QString path = qApp->applicationDirPath();
             if (path.contains("keti")){
-                qDebug() << "Pressed F12";
 //                if (static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->isHidden()){
 //                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setEnabled(true);
 //                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(false);

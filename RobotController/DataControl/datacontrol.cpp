@@ -13,25 +13,21 @@ DataControl::DataControl()
     memset(&torqueIdeData, 0, sizeof(torqueIdeData));
     memset(&PIDControl, 0, sizeof(PIDControl));
 
-//    load_data("data/motion_pick.txt", &PathData.pathDataPick, "\t");
-//    load_data("data/rect_motion.txt", &PathData.pathDataRect, "\t");
-//    load_data("data/motion7.txt", &PathData.pathDataRect2, "\t");
-//    load_data("data/CalPos.csv", &PathData.pathDataCalibration, ",");
-//    load_data("data/linear_motion_42.txt", &PathData.pathDataLinear42, "\t");
-//    load_data("data/linear_motion_24.txt", &PathData.pathDataLinear24, "\t");
+    load_data("motion.txt", &PathData.file_data, "\t");
 }
 
 DataControl::~DataControl()
 {
-//    PathData.pathDataPick.clear();
-//    PathData.pathDataRect.clear();
-//    PathData.pathDataRect2.clear();
-//    PathData.pathDataCalibration.clear();
-//    PathData.pathDataLinear42.clear();
-//    PathData.pathDataLinear24.clear();
-    PathData.path_x.clear();
-    PathData.path_y.clear();
-    PathData.path_z.clear();
+    PathData.readyPath.path_x.clear();
+    PathData.readyPath.path_y.clear();
+    PathData.readyPath.path_z.clear();
+    for(uint i = 0; i < PathData.row; i++){
+        PathData.movePath[i].path_x.clear();
+        PathData.movePath[i].path_y.clear();
+        PathData.movePath[i].path_z.clear();
+        PathData.movePath[i].path_theta.clear();
+    }
+    PathData.file_data.clear();
 }
 
 void DataControl::DataReset()

@@ -194,7 +194,7 @@ void DxlControl::dxl_deinit(uint8_t ID, int32_t home_pos)
         printf("Goal pos : %d, Current pos : %d\n", home_pos, pos);
     } while (abs(home_pos - pos) > 200);
     // Disable Dynamixel Torque
-    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+//    packetHandler->write1ByteTxRx(portHandler, ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
 
     printf("Dynamixel has been successfully disconnected\n");
 }
@@ -382,7 +382,7 @@ void DxlControl::setGroupSyncWriteGoalPosition(int32_t *goalPosition, uint8_t nu
 
 void DxlControl::setGroupSyncWriteGoalCurrent(int16_t *goalCurrent, uint8_t num_joint)
 {
-    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_GOAL_POSITION, LEN_GOAL_POSITION);
+    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_GOAL_CURRENT, LEN_GOAL_CURRENT);
     bool dxl_addparam_result = false;	// addParam result
 
     for (uint8_t i = 0; i < num_joint; i++) {
