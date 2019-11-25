@@ -73,6 +73,7 @@ public slots:
     void btnReadyClicked();
     void btnFileReadyClicked();
     void btnFileRunClicked();
+    void btnCustomRunClicked();
 
     // checkbox event
     void cbJointRelChanged(int arg);

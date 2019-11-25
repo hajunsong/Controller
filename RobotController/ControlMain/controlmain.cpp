@@ -22,7 +22,7 @@ ControlMain::ControlMain(QObject *parent) : QObject(parent)
     ready_pose = false;
     cartesian_move_flag = false;
 
-    delay_cnt_max = 0;
+    delay_cnt_max = 1000;
     delay_cnt = 0;
 
     connect(this, SIGNAL(disconnectClientSignal()), this, SLOT(disconnectClient()));
@@ -760,9 +760,6 @@ void ControlMain::robotRun()
                 if (dataControl->PathData.path_struct_indx >= dataControl->PathData.row - 1){
                     if(dataControl->PathData.cycle_count_max == -1)
                     {
-//                        double angle[6] = {0.77811285, -0.31936499, 2.2571916, -1.9378266, 0.26908082, -1.9854194e-014};
-//                        dataControl->jointPositionRAD2ENC(angle, dataControl->RobotData.command_joint_position);
-//                        module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
                         dataControl->PathData.path_data_indx = 0;
                         dataControl->PathData.path_struct_indx = 0;
                     }
@@ -845,6 +842,86 @@ void ControlMain::robotRun()
                 dataControl->PathData.path_data_indx = 0;
                 dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
             }
+            break;
+        }
+        case DataControl::CmdType::CustomRun:
+        {
+            dataControl->RobotData.desired_end_pose[0] = dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_x[dataControl->PathData.path_data_indx];
+            dataControl->RobotData.desired_end_pose[1] = dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_y[dataControl->PathData.path_data_indx];
+            dataControl->RobotData.desired_end_pose[2] = dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_z[dataControl->PathData.path_data_indx];
+
+            double Ri[9], Rd[9];
+            RobotArm::axis_angle_to_mat(dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].r,
+                    dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_theta[dataControl->PathData.path_data_indx], Ri);
+            RobotArm::mat(dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].R_init, Ri, 3, 3, 3, 3, Rd);
+            RobotArm::mat2rpy(Rd, dataControl->RobotData.desired_end_pose + 3);
+
+            //            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
+            //                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
+            //                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
+            //                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
+
+            dataControl->jointPositionENC2RAD(dataControl->RobotData.present_joint_position, dataControl->RobotData.present_q);
+
+            dataControl->RobotData.ik_time1 = static_cast<unsigned long>(rt_timer_read());
+            robotArm->run_inverse_kinematics(dataControl->RobotData.present_q, dataControl->RobotData.desired_end_pose,
+                                             dataControl->RobotData.desired_q, dataControl->RobotData.present_end_pose);
+            dataControl->RobotData.ik_time2 = static_cast<unsigned long>(rt_timer_read());
+
+            dataControl->cartesianPoseScaleUp(dataControl->RobotData.present_end_pose, dataControl->ServerToClient.calculateCartesianPose);
+
+            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+
+            if (delay_cnt == 0){
+                if (dataControl->PathData.path_struct_indx <= 3){
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                }
+                else{
+                    double angle[6] = {0.77811285, -0.31936499, 2.2571916, -1.9378266, 0.26908082, -1.9854194e-014};
+                    dataControl->jointPositionRAD2ENC(angle, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                }
+            }
+
+            rt_printf("path_data_indx : %d\n", dataControl->PathData.path_data_indx);
+            rt_printf("path_indx : %d\n", dataControl->PathData.path_struct_indx);
+
+            if (delay_cnt == 0){
+                goalReach(dataControl->RobotData.desired_end_pose, dataControl->RobotData.present_end_pose, &dataControl->cartesian_goal_reach);
+
+                if (dataControl->cartesian_goal_reach){
+                    dataControl->PathData.path_data_indx += 1;
+                }
+            }
+
+            if (dataControl->PathData.path_data_indx >= dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].data_size-1){
+                if (delay_cnt >= delay_cnt_max){
+                    dataControl->PathData.path_data_indx = 0;
+                    dataControl->PathData.path_struct_indx++;
+                    delay_cnt = 0;
+                }
+                else{
+                    delay_cnt++;
+                }
+
+                if (dataControl->PathData.path_struct_indx >= dataControl->PathData.row - 1){
+                    if(dataControl->PathData.cycle_count_max == -1)
+                    {
+                        dataControl->PathData.path_data_indx = 0;
+                        dataControl->PathData.path_struct_indx = 0;
+                    }
+                    else
+                    {
+                        dataControl->PathData.path_data_indx = 0;
+                        dataControl->PathData.path_struct_indx = 0;
+                        dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+                    }
+                }
+                else{
+                    memcpy(dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].R_init, robotArm->body[robotArm->num_body].Ae, sizeof(double)*9);
+                }
+            }
+
             break;
         }
         default:

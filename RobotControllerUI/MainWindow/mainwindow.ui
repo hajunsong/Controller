@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1058</width>
+    <width>1072</width>
     <height>797</height>
    </rect>
   </property>
@@ -1749,6 +1749,19 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="btnCustomRun">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Custom Run</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
           </layout>
@@ -1781,7 +1794,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1058</width>
+     <width>1072</width>
      <height>22</height>
     </rect>
    </property>

@@ -17,7 +17,7 @@
 #include <NRMKSocketBase.h>
 #include <native/timer.h>
 
-#include "/home/hajun/Project/Controller/Deploy/Deploy_Controller/FileIO/fileio.h"
+#include "FileIO/fileio.h"
 
 #define NUM_JOINT               6
 #define NUM_DOF                 6

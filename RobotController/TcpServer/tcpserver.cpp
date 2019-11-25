@@ -280,6 +280,11 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                         dataControl->RobotData.run_mode = DataControl::CmdType::FileRun;
                         dataControl->PathData.path_data_indx = 0;
                         break;
+                    case DataControl::CmdType::CustomRun:
+                        dataControl->PathData.cycle_count_max = static_cast<char>(lpBuffer[indx]);
+                        dataControl->RobotData.run_mode = DataControl::CmdType::CustomRun;
+                        dataControl->PathData.path_data_indx = 0;
+                        break;
                 }
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'T'){

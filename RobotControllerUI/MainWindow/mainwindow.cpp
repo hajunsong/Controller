@@ -114,6 +114,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 //    ui->gbRobotConfig->setEnabled(true);
 //    ui->btnSetInit->setEnabled(true);
+
+    connect(ui->btnCustomRun, SIGNAL(clicked()), this, SLOT(btnCustomRunClicked()));
 }
 
 MainWindow::~MainWindow()
@@ -665,6 +667,30 @@ void MainWindow::btnFileRunClicked()
     txData.append(Qt::Key_U);
 
     txData.append(DataControl::CmdType::FileRun);
+    txData.append(DataControl::OpMode::RunMode);
+
+    if (ui->cbRepeat->isChecked()){
+        txData.append(-1);
+    }
+    else{
+        txData.append(1);
+    }
+
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
+
+    qDebug() << "txData : " << txData;
+
+    tcpClient->socket->write(txData);
+}
+
+void MainWindow::btnCustomRunClicked()
+{
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_U);
+
+    txData.append(DataControl::CmdType::CustomRun);
     txData.append(DataControl::OpMode::RunMode);
 
     if (ui->cbRepeat->isChecked()){
