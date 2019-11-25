@@ -3,12 +3,12 @@ QT -= gui
 TEMPLATE = lib
 DEFINES += DYNAMIXELLIB_LIBRARY
 
-DESTDIR = $$PWD/lib
+DESTDIR = $$PWD/dynamixel_lib
 
 CONFIG += c++11
 
 SOURCES += \
-    dynamixellib.cpp
+    dynamixel.cpp
 
-HEADERS += \
-    dynamixellib.h \
+HEADERS += \ \
+    dynamixel.h

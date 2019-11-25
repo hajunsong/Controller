@@ -1,4 +1,4 @@
-#include "dynamixellib.h"
+#include "dynamixel.h"
 
 DxlControl::DxlControl()
 {

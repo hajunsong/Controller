@@ -8,6 +8,14 @@
 #ifndef NUMERICAL_H_
 #define NUMERICAL_H_
 
+#include <QtCore/qglobal.h>
+
+#if defined(ROBOTARMLIB_LIBRARY)
+#  define ROBOTARMLIB_EXPORT Q_DECL_EXPORT
+#else
+#  define ROBOTARMLIB_EXPORT Q_DECL_IMPORT
+#endif
+
 #include <iostream>
 #include <math.h>
 #include <memory.h>
@@ -22,7 +30,7 @@ const double TINY = 1.0e-20;
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)>(y)?(y):(x))
 
-class Numerical {
+class ROBOTARMLIB_EXPORT Numerical {
 public:
     Numerical();
     ~Numerical();

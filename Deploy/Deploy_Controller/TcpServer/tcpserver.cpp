@@ -310,8 +310,6 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 }
 
 void NRMKHelper::TcpServer::comm_run(void *arg){
-    RTIME now, previous;
-    previous = rt_timer_read();
     NRMKHelper::TcpServer* pTcpServer = static_cast<NRMKHelper::TcpServer*>(arg);
     pTcpServer->comm_thread_run = false;
 
@@ -325,9 +323,6 @@ void NRMKHelper::TcpServer::comm_run(void *arg){
             if (pTcpServer->dataControl->ClientToServer.opMode >= 2){
                 pTcpServer->sendData();
             }
-
-            now = rt_timer_read();
-            previous = now;
         }
     }
 }

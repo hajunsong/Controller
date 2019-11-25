@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DYNAMIXELLIB_H
+#define DYNAMIXELLIB_H
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <fcntl.h>
@@ -12,6 +13,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "dynamixel_sdk/dynamixel_sdk.h"
+
+#include <QtCore/qglobal.h>
+
+#if defined(DYNAMIXELLIB_LIBRARY)
+#  define DYNAMIXELLIB_EXPORT Q_DECL_EXPORT
+#else
+#  define DYNAMIXELLIB_EXPORT Q_DECL_IMPORT
+#endif
 
 using namespace std;
 typedef unsigned int uint;
@@ -74,7 +83,7 @@ const uint8_t OPERATION_MODE = 0x01;                // 0xFF : reset all values
                                                     // 0x01 : reset all values except ID
                                                     // 0x02 : reset all values except ID and baudrate
 
-class DxlControl
+class DYNAMIXELLIB_EXPORT DxlControl
 {
 public:
     DxlControl();
@@ -127,7 +136,8 @@ enum JointOpMode{ current_mode = 0, velocity_mode, position_mode = 3, extended_p
 const double TORQUE_CONSTANT_W270 = 2.8;
 const double TORQUE_CONSTANT_W150 = 1.65;
 
-
 }
 
 using namespace FAR;
+
+#endif // DYNAMIXELLIB_H

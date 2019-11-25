@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 #include "DataControl/datacontrol.h"
-#include "Dynamixel/XH_540_Series.h"
+#include "Dynamixel/dynamixel.h"
 #include "TcpServer/tcpserver.h"
 #include "RobotArm/robotarm.h"
 
