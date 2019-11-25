@@ -10,49 +10,53 @@ target.path = /home/user/Project/RobotController
 INSTALLS += target
 
 SOURCES += main.cpp \
-        Dynamixel/H42_20_S300_RA.cpp \
-        Dynamixel/XH_540_Series.cpp \
-        ControlMain/controlmain.cpp \
-        DataControl/datacontrol.cpp \
-        TcpServer/tcpserver.cpp \
-        RobotArm/robotarm.cpp \
-        Numerical/numerical.cpp \
-        Input/keyinput.cpp \
-        FileIO/fileio.cpp \
+    ControlMain/controlmain.cpp \
+    CustomFunc/tcpserver_custom.cpp \
+    CustomFunc/controlmain_custom.cpp \
 
 HEADERS += \
-    Dynamixel/H42_20_S300_RA.h \
-    Dynamixel/XH_540_Series.h \
     ControlMain/controlmain.h \
+    Dynamixel/dynamixel.h \
     DataControl/datacontrol.h \
     TcpServer/tcpserver.h \
     RobotArm/robotarm.h \
-    Numerical/numerical.h \
+    RobotArm/numerical.h \
     Input/keyinput.h \
     FileIO/fileio.h \
+    CustomFunc/tcpserver_custom.h \
+    CustomFunc/controlmain_custom.h \
 
-DXL_PATH = $$PWD/Dynamixel
-
-LIBS += -L$$NRMK_LIB_PATH/ -lNRMKHelperi686 \
+LIBS += \
+    -L$$NRMK_LIB_PATH/ -lNRMKHelperi686 \
     -L$$NRMK_POCO_LIB_PATH/i686/ -lPocoNet \
     -L$$NRMK_POCO_LIB_PATH/i686/ -lPocoFoundation \
     -L$$NRMK_XENO_PATH/lib/ -lnative \
     -L$$NRMK_XENO_PATH/lib/ -lrtdm \
     -L$$NRMK_XENO_PATH/lib/ -lxenomai \
-    -L$$DXL_PATH/lib -ldxl_x86_cpp \
 
-INCLUDEPATH += $$NRMK_PATH \
-            $$NRMK_POCO_LIB_PATH/i686 \
-            $$NRMK_XENO_PATH/include \
-            $$NRMK_POCO_INC_PATH \
-            $$NRMK_HELPER_INC_PATH \
-            $$DXL_PATH \
+INCLUDEPATH += \
+    $$NRMK_PATH \
+    $$NRMK_POCO_LIB_PATH/i686 \
+    $$NRMK_XENO_PATH/include \
+    $$NRMK_POCO_INC_PATH \
+    $$NRMK_HELPER_INC_PATH \
 
-DEPENDPATH += $$NRMK_PATH \
-            $$NRMK_POCO_LIB_PATH/i686 \
-            $$NRMK_XENO_PATH/include \
-            $$NRMK_POCO_INC_PATH \
-            $$NRMK_HELPER_INC_PATH \
-            $$DXL_PATH \
+DEPENDPATH += \
+    $$NRMK_PATH \
+    $$NRMK_POCO_LIB_PATH/i686 \
+    $$NRMK_XENO_PATH/include \
+    $$NRMK_POCO_INC_PATH \
+    $$NRMK_HELPER_INC_PATH \
 
-PRE_TARGETDEPS += $$NRMK_LIB_PATH/libNRMKHelperi686.a
+PRE_TARGETDEPS += \
+    $$NRMK_LIB_PATH/libNRMKHelperi686.a
+
+unix:!macx: LIBS += -L$$PWD/lib/ -lRobotControllerLib
+
+INCLUDEPATH += $$PWD/.
+DEPENDPATH += $$PWD/.
+
+unix:!macx: LIBS += -L$$PWD/Dynamixel/ -ldxl_x86_cpp
+
+INCLUDEPATH += $$PWD/Dynamixel
+DEPENDPATH += $$PWD/Dynamixel

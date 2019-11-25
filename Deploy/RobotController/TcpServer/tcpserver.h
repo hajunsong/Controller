@@ -13,21 +13,23 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-//-xenomai-///////////////////////////////////////////////////////////////
-#include <native/task.h>
-#include <native/timer.h>
-#include <native/mutex.h>
-#include <rtdk.h>		//The rdtk real-time printing library
-/****************************************************************************/
-
 #include <Poco/Event.h>
 #include <NRMKSocketBase.h>
 
 #include "DataControl/datacontrol.h"
+#include "CustomFunc/tcpserver_custom.h"
 
 #include <QString>
 #include <QByteArray>
 #include <QtDebug>
+
+#include <QtCore/qglobal.h>
+
+#if defined(TCPSERVERLIB_LIBRARY)
+#  define TCPSERVERLIB_EXPORT Q_DECL_EXPORT
+#else
+#  define TCPSERVERLIB_EXPORT Q_DECL_IMPORT
+#endif
 
 namespace NRMKHelper{
     class TcpServer : public NRMKSocketBase
@@ -35,34 +37,32 @@ namespace NRMKHelper{
     public:
         TcpServer(DataControl *dataControl_);
         ~TcpServer();
-        void setting(QString _ip, int _port);
-        void OnEvent(UINT uEvent, LPVOID lpvData);
+
+        DataControl *dataControl;
+        void sendData();
+        bool comm_thread_run;
+        TcpServerCustom *tcpServerCustom;
+        bool isConnected();
 
         // sendKey is used to send key input only
         void sendKey(char key);
         void getKey(char & key);
-        bool isConnected();
-        void OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount);
+        void setting(QString _ip, int _port);
+        bool getDataCorrected(){return data_corrected;}
         int getPort(){return PORT;}
         QString getIP(){return IP;}
-        bool getDataCorrected(){return data_corrected;}
-        void setConnected(bool flag);
-        volatile bool connected;
 
     private:
         QString IP;
         int PORT;
         volatile char commandkey;
         Poco::Event dataReceiveEvent;
-
-        RT_TASK comm_task;
-        static void comm_run[ [noreturn] ](void *arg);
-        bool comm_thread_run;
         unsigned char *cmdbuf;
         bool data_corrected;
-        DataControl *dataControl;
-
-        void sendData();
+        void OnEvent(UINT uEvent, LPVOID lpvData);
+        void OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount);
+        void setConnected(bool flag);
+        volatile bool connected;
 
     signals:
         void disconnectClient();

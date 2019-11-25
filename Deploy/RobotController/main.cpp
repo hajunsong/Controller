@@ -6,7 +6,6 @@ static KeyInput *keyInput;
 static ControlMain *controlMain;
 
 void keyInputSlot(char key){
-    //        printf("Pressed Key : %d\n", static_cast<int>(key));
     if (key == 'q' || key == 27){
         printf("Pressed 'q' or 'ESC'\n");
         delete controlMain;

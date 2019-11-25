@@ -1,4 +1,13 @@
-#pragma once
+#ifndef DATACONTROL_H
+#define DATACONTROL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(DATACONTROLLIB_LIBRARY)
+#  define DATACONTROLLIB_EXPORT Q_DECL_EXPORT
+#else
+#  define DATACONTROLLIB_EXPORT Q_DECL_IMPORT
+#endif
 
 #include <string.h>
 #include <stdio.h>
@@ -41,7 +50,8 @@
 #define MASS_LEN                8
 #define TORQUE_CONST_LEN        8
 
-class DataControl{
+class DATACONTROLLIB_EXPORT DataControl
+{
 public:
     typedef struct _StructClientToServer{
         char opMode, subMode;
@@ -149,3 +159,5 @@ public:
 
 //    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};
 };
+
+#endif // DATACONTROL_H

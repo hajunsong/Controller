@@ -1,12 +1,13 @@
-/*
- * fileio.h
- *
- *  Created on: 2019. 5. 27.
- *      Author: keti-hajun
- */
+#ifndef FILEIO_H
+#define FILEIO_H
 
-#ifndef FILEIO_H_
-#define FILEIO_H_
+#include <QtCore/qglobal.h>
+
+#if defined(FILEIOLIB_LIBRARY)
+#  define FILEIOLIB_EXPORT Q_DECL_EXPORT
+#else
+#  define FILEIOLIB_EXPORT Q_DECL_IMPORT
+#endif
 
 #include <iostream>
 #include <vector>
@@ -18,8 +19,6 @@
 
 using namespace std;
 
-// Text file data load
-void load_data(string file_name, vector<double> *data, string delimiter);
-void load_data(string file_name, vector<float> *data);
+void FILEIOLIB_EXPORT load_data(string file_name, vector<double> *data, string delimiter);
 
-#endif /* FILEIO_H_ */
+#endif // FILEIO_H

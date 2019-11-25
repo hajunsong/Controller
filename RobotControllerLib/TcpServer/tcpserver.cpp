@@ -13,8 +13,8 @@ NRMKHelper::TcpServer::TcpServer(DataControl *dataControl_) : NRMKSocketBase(), 
 NRMKHelper::TcpServer::~TcpServer()
 {
     if (comm_thread_run){
-        delete tcpServerCustom;
         comm_thread_run = false;
+        delete tcpServerCustom;
     }
     if (IsOpen()){
         StopComm();

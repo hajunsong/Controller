@@ -10,16 +10,21 @@
 #include <pthread.h>
 
 #include "DataControl/datacontrol.h"
-#if(MODULE_TYPE == 1)
-#include "Dynamixel/XH_540_Series.h"
-#elif(MODULE_TYPE == 2)
-#include "Dynamixel/H42_20_S300_RA.h"
-#endif
+#include "Dynamixel/dynamixel.h"
 #include "TcpServer/tcpserver.h"
 #include "RobotArm/robotarm.h"
+#include "CustomFunc/controlmain_custom.h"
 
 #include <QObject>
 #include <QTimer>
+
+#include <QtCore/qglobal.h>
+
+#if defined(CONTROLMAINLIB_LIBRARY)
+#  define CONTROLMAINLIB_EXPORT Q_DECL_EXPORT
+#else
+#  define CONTROLMAINLIB_EXPORT Q_DECL_IMPORT
+#endif
 
 class ControlMain : public QObject{
     Q_OBJECT
@@ -28,25 +33,10 @@ public:
     ~ControlMain();
     void start();
     bool robot_thread_run;
-
     RT_TASK robot_task;
-
-    QTimer *dxlTimer;
-private:
-    void robot_RT();
+    ControlMainCustom *controlMainCustom;
     void robot_RT_stop();
-    static void robot_run(void *arg);
-
-    NRMKHelper::TcpServer *tcpServer;
     DataControl *dataControl;
-
-    RobotArm *robotArm;
-
-    DxlControl *module;
-    void moduleInitSEA();
-    void moduleInitFAR();
-    bool module_init;
-    bool old_end_pose_update;
 
     void robotInitialize();
     void robotServoOn(char enable);
@@ -57,12 +47,26 @@ private:
     void robotPathGenerate();
     void robotRun();
     void robotReady();
+
+    DxlControl *module;
+    unsigned char data_indx;
+
+    NRMKHelper::TcpServer *tcpServer;
+private:
+    QTimer *dxlTimer;
+    void robot_RT();
+
+    RobotArm *robotArm;
+
+    void moduleInitSEA();
+    void moduleInitFAR();
+    bool module_init;
+    bool old_end_pose_update;
     void robotPositionControl();
 
     void goalReach(double desired_pose[NUM_DOF], double present_pose[NUM_DOF], bool *goal_reach);
     void path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path);
 
-    unsigned char data_indx;
     uint8_t module_indx;
 
     bool ready_pose;

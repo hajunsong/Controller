@@ -1,4 +1,13 @@
-#pragma once
+#ifndef ROBOTARM_H
+#define ROBOTARM_H
+
+//#include <QtCore/qglobal.h>
+
+//#if defined(ROBOTARMLIB_LIBRARY)
+//#  define ROBOTARMLIB_EXPORT Q_DECL_EXPORT
+//#else
+//#  define ROBOTARMLIB_EXPORT Q_DECL_IMPORT
+//#endif
 
 #include <iostream>
 #include <stdio.h>
@@ -6,12 +15,11 @@
 #include <string.h>
 #include <memory.h>
 
-//#include "FileIO/fileio.h"
-#include "Numerical/numerical.h"
+#include "numerical.h"
 
 using namespace std;
 
-class Body
+class ROBOTARMLIB_EXPORT Body
 {
 public:
     Body();
@@ -43,7 +51,7 @@ public:
     static void ang2mat(double ang_z1, double ang_x, double ang_z2, double* mat, bool deg_flag = true);
 };
 
-class RobotArm
+class ROBOTARMLIB_EXPORT RobotArm
 {
 public:
     RobotArm(uint numbody, uint DOF, double step_size);
@@ -105,3 +113,5 @@ private:
     double pitch_q_temp1, pitch_q_temp2, pitch_q_temp3, pitch_q_temp4;
     double yaw_q_temp1, yaw_q_temp2, yaw_q_temp3, yaw_q_temp4;
 };
+
+#endif // ROBOTARM_H
