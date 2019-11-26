@@ -19,6 +19,7 @@
 #define CARTESIAN_CALCULATE_LEN 8
 #define JOINT_VELOCITY_LEN      8
 #define JOINT_CURRENT_LEN       8
+#define CARTESIAN_VELOCITY_LEN  8
 #define TIME_LEN                8
 #define SERVER_TO_CLIENT_LEN    NRMK_SOCKET_TOKEN_SIZE + DATA_INDEX_LEN + \
     JOINT_POSITION_LEN*NUM_JOINT + CARTESIAN_POSE_LEN*NUM_DOF + JOINT_COMMAND_LEN*NUM_JOINT + \
@@ -38,6 +39,7 @@
 #define PATH_COL_LEN            2
 #define PATH_DATA_LEN           8
 
+#define DATA_MAX_INDX           250
 
 class DataControl{
 public:
@@ -51,11 +53,12 @@ public:
     }StructClientToServer;
 
     typedef struct _StructServerToClient{
-        unsigned char data_index;
-        double presentJointPosition[NUM_JOINT], presentCartesianPose[NUM_DOF];
-        double desiredJointPosition[NUM_JOINT], desiredCartesianPose[NUM_DOF];
-        double calculateCartesianPose[NUM_DOF];
-        double presentJointVelocity[NUM_JOINT], presentJointCurrent[NUM_JOINT];
+        uint8_t data_index;
+        double presentJointPosition[DATA_MAX_INDX][NUM_JOINT], presentCartesianPose[DATA_MAX_INDX][NUM_DOF];
+        double desiredJointPosition[DATA_MAX_INDX][NUM_JOINT], desiredCartesianPose[DATA_MAX_INDX][NUM_DOF];
+        double calculateCartesianPose[DATA_MAX_INDX][NUM_DOF];
+        double presentJointVelocity[DATA_MAX_INDX][NUM_JOINT], presentJointCurrent[DATA_MAX_INDX][NUM_JOINT];
+        double presentCartesianVelocity[DATA_MAX_INDX][NUM_DOF];
         double time, dxl_time, ik_time;
     }StructServerToClient;
 

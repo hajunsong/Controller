@@ -6,18 +6,16 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
-#if __win32__
-#include <direct.h>
-#elif __linux__
 #include <sys/stat.h>
 #include <sys/types.h>
-#endif
+#include <QApplication>
+#include <QDir>
 
 class Logger : public QObject
 {
     Q_OBJECT
 public:
-    explicit Logger(QObject *parent, QString fileName, QPlainTextEdit *editer = 0);
+    explicit Logger(QObject *parent, QString fileName, QPlainTextEdit *editer = nullptr);
     ~Logger();
     void setShowDateTime(bool value);
     QFile *file;

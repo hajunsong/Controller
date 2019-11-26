@@ -3,9 +3,15 @@
 Logger::Logger(QObject *parent, QString fileName, QPlainTextEdit *editor) : QObject(parent) {
     m_editor = editor;
     m_showDate = false;
-    if (!fileName.isEmpty()) {
+
+    QString folder = qApp->applicationDirPath() + "/logging";
+    QString newFilename = folder + "/" + fileName;
+    QDir dir;
+    dir.mkdir(folder);
+
+    if (!newFilename.isEmpty()) {
         file = new QFile;
-        file->setFileName(fileName);
+        file->setFileName(newFilename);
         file->open(QIODevice::Append | QIODevice::Text);
     }
 }

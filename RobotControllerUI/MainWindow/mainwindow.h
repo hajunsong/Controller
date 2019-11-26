@@ -19,6 +19,7 @@
 #include "DataControl/datacontrol.h"
 #include "FileIO/fileio.h"
 #include "Input/keyinputclass.h"
+#include "Logger/logger.h"
 
 namespace Ui {
 class MainWindow;
@@ -54,6 +55,8 @@ private:
 
     bool cmdJointRel, cmdJointAbs, cmdCartRel, cmdCartAbs;
 
+    Logger *logger;
+
 public slots:
     // button event
     void btnConnectClicked();
@@ -74,6 +77,8 @@ public slots:
     void btnFileReadyClicked();
     void btnFileRunClicked();
     void btnCustomRunClicked();
+    void btnLoggingStartClicked();
+    void btnLoggingStopClicked();
 
     // checkbox event
     void cbJointRelChanged(int arg);

@@ -52,8 +52,6 @@ namespace NRMKHelper{
         int getPort(){return PORT;}
         QString getIP(){return IP;}
 
-        uint8_t data_size;
-
     private:
         QString IP;
         int PORT;

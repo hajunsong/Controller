@@ -311,30 +311,39 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 
 void NRMKHelper::TcpServer::sendData()
 {
-    unsigned char _buf[SERVER_TO_CLIENT_LEN];
+    unsigned char _buf[SERVER_TO_CLIENT_LEN*DATA_MAX_INDX];
     uint indx = 0;
-
-    dataControl->jointPositionENC2DEG(dataControl->RobotData.command_joint_position, dataControl->ServerToClient.desiredJointPosition);
-    dataControl->cartesianPoseScaleUp(dataControl->RobotData.desired_end_pose, dataControl->ServerToClient.desiredCartesianPose);
 
     memcpy(_buf, NRMK_SOCKET_START_TOKEN, NRMK_SOCKET_TOKEN_SIZE); // 2 byte, START token
     indx += NRMK_SOCKET_TOKEN_SIZE;
+
     memcpy(_buf + indx, &dataControl->ServerToClient.data_index, DATA_INDEX_LEN); // 1 byte, data index
     indx += DATA_INDEX_LEN;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentJointPosition, JOINT_POSITION_LEN*NUM_JOINT); // 8 byte x 6, present joint position data
-    indx += JOINT_POSITION_LEN*NUM_JOINT;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentCartesianPose, CARTESIAN_POSE_LEN*NUM_JOINT); // 8 byte x 6, present Cartesian position data
-    indx += CARTESIAN_POSE_LEN*NUM_DOF;
-    memcpy(_buf + indx, dataControl->ServerToClient.desiredJointPosition, JOINT_COMMAND_LEN*NUM_JOINT); // 8 byte x 6, command joint position data
-    indx += JOINT_COMMAND_LEN*NUM_JOINT;
-    memcpy(_buf + indx, dataControl->ServerToClient.desiredCartesianPose, CARTESIAN_COMMAND_LEN*NUM_DOF); // 8 byte x 6, command joint Cartesian data
-    indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
-    memcpy(_buf + indx, dataControl->ServerToClient.calculateCartesianPose, CARTESIAN_CALCULATE_LEN*NUM_DOF); // 8 byte x 6, calculate cartesian position data
-    indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentJointVelocity, JOINT_VELOCITY_LEN*NUM_JOINT); // 8 byte x 6, present joint velocity data
-    indx += JOINT_VELOCITY_LEN*NUM_JOINT;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentJointCurrent, JOINT_CURRENT_LEN*NUM_JOINT); // 8 byte x 6, present joint current data
-    indx += JOINT_CURRENT_LEN*NUM_JOINT;
+//    rt_printf("total indx : %d\n", dataControl->ServerToClient.data_index);
+
+//    for(int i = 0; i < dataControl->ServerToClient.data_index; i++){
+        dataControl->jointPositionENC2DEG(dataControl->RobotData.command_joint_position, dataControl->ServerToClient.desiredJointPosition);
+        dataControl->cartesianPoseScaleUp(dataControl->RobotData.desired_end_pose, dataControl->ServerToClient.desiredCartesianPose);
+
+        memcpy(_buf + indx, &dataControl->ServerToClient.data_index, DATA_INDEX_LEN); // 1 byte, data index
+        indx += DATA_INDEX_LEN;
+        memcpy(_buf + indx, dataControl->ServerToClient.presentJointPosition, JOINT_POSITION_LEN*NUM_JOINT); // 8 byte x 6, present joint position data
+        indx += JOINT_POSITION_LEN*NUM_JOINT;
+        memcpy(_buf + indx, dataControl->ServerToClient.presentCartesianPose, CARTESIAN_POSE_LEN*NUM_JOINT); // 8 byte x 6, present Cartesian position data
+        indx += CARTESIAN_POSE_LEN*NUM_DOF;
+        memcpy(_buf + indx, dataControl->ServerToClient.desiredJointPosition, JOINT_COMMAND_LEN*NUM_JOINT); // 8 byte x 6, command joint position data
+        indx += JOINT_COMMAND_LEN*NUM_JOINT;
+        memcpy(_buf + indx, dataControl->ServerToClient.desiredCartesianPose, CARTESIAN_COMMAND_LEN*NUM_DOF); // 8 byte x 6, command joint Cartesian data
+        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
+        memcpy(_buf + indx, dataControl->ServerToClient.calculateCartesianPose, CARTESIAN_CALCULATE_LEN*NUM_DOF); // 8 byte x 6, calculate cartesian position data
+        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+        memcpy(_buf + indx, dataControl->ServerToClient.presentJointVelocity, JOINT_VELOCITY_LEN*NUM_JOINT); // 8 byte x 6, present joint velocity data
+        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+        memcpy(_buf + indx, dataControl->ServerToClient.presentJointCurrent, JOINT_CURRENT_LEN*NUM_JOINT); // 8 byte x 6, present joint current data
+        indx += JOINT_CURRENT_LEN*NUM_JOINT;
+        memcpy(_buf + indx, dataControl->ServerToClient.presentCartesianVelocity, CARTESIAN_VELOCITY_LEN*NUM_DOF); // 8 byte x 6, present joint current data
+        indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
+//    }
     memcpy(_buf + indx, &dataControl->ServerToClient.time, TIME_LEN); // 8 byte, Thread time
     indx += TIME_LEN;
     memcpy(_buf + indx, &dataControl->ServerToClient.dxl_time, TIME_LEN); // 8 byte, Dynamixel time

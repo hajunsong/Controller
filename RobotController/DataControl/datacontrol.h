@@ -30,6 +30,7 @@
 #define CARTESIAN_CALCULATE_LEN 8
 #define JOINT_VELOCITY_LEN      8
 #define JOINT_CURRENT_LEN       8
+#define CARTESIAN_VELOCITY_LEN  8
 #define TIME_LEN                8
 #define SERVER_TO_CLIENT_LEN    NRMK_SOCKET_TOKEN_SIZE + DATA_INDEX_LEN + \
     JOINT_POSITION_LEN*NUM_JOINT + CARTESIAN_POSE_LEN*NUM_DOF + JOINT_COMMAND_LEN*NUM_JOINT + \
@@ -50,6 +51,8 @@
 #define MASS_LEN                8
 #define TORQUE_CONST_LEN        8
 
+#define DATA_MAX_INDX           30
+
 class DATACONTROLLIB_EXPORT DataControl
 {
 public:
@@ -60,11 +63,12 @@ public:
     }StructClientToServer;
 
     typedef struct _StructServerToClient{
-        unsigned char data_index;
+        uint8_t data_index;
         double presentJointPosition[NUM_JOINT], presentCartesianPose[NUM_DOF];
         double desiredJointPosition[NUM_JOINT], desiredCartesianPose[NUM_DOF];
         double calculateCartesianPose[NUM_DOF];
         double presentJointVelocity[NUM_JOINT], presentJointCurrent[NUM_JOINT];
+        double presentCartesianVelocity[NUM_DOF];
         double time, dxl_time, ik_time;
     }StructServerToClient;
 
@@ -130,6 +134,7 @@ public:
 
     StructClientToServer ClientToServer;
     StructServerToClient ServerToClient;
+//    std::vector<StructServerToClient> ServerToClient;
     StructRobotData RobotData;
     StructPathData PathData;
     StructTorqueIDEData torqueIdeData;

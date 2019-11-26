@@ -59,7 +59,10 @@ void ControlMainCustom::robot_run(void *arg)
         pThis->robotKinematics();
         pThis->robotDynamics();
 
+        pThis->tcpServer->data_size = pThis->data_indx;
         pThis->dataControl->ServerToClient.data_index = pThis->data_indx;
+
+//        rt_printf("data index : %d\n", pThis->dataControl->ServerToClient.data_index);
 
         pThis->dataControl->jointPositionENC2DEG(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->ServerToClient.presentJointPosition);
         pThis->dataControl->cartesianPoseScaleUp(pThis->dataControl->RobotData.present_end_pose, pThis->dataControl->ServerToClient.presentCartesianPose);
@@ -76,6 +79,10 @@ void ControlMainCustom::robot_run(void *arg)
         if (!pThis->tcpServer->isConnected()){
             pThis->robot_thread_run = false;
             emit pThis->disconnectClientSignal();
+        }
+
+        if (pThis->data_indx >= DATA_MAX_INDX){
+            pThis->data_indx = 0;
         }
     }
 }

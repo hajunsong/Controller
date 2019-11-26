@@ -116,6 +116,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 //    ui->btnSetInit->setEnabled(true);
 
     connect(ui->btnCustomRun, SIGNAL(clicked()), this, SLOT(btnCustomRunClicked()));
+
+    connect(ui->btnLoggingStart, SIGNAL(clicked()), this, SLOT(btnLoggingStartClicked()));
+    connect(ui->btnLoggingStop, SIGNAL(clicked()), this, SLOT(btnLoggingStopClicked()));
 }
 
 MainWindow::~MainWindow()
@@ -405,22 +408,31 @@ void MainWindow::readMessage(){
     {
         char *pData = rxData.data();
         int indx = NRMK_SOCKET_TOKEN_SIZE;
-        memcpy(&dataControl->ServerToClient, pData + indx, DATA_INDEX_LEN);
+        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
         indx += DATA_INDEX_LEN;
-        memcpy(dataControl->ServerToClient.presentJointPosition, pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
-        indx += JOINT_POSITION_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.presentCartesianPose, pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
-        indx += CARTESIAN_POSE_LEN*NUM_DOF;
-        memcpy(dataControl->ServerToClient.desiredJointPosition, pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
-        indx += JOINT_COMMAND_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.desiredCartesianPose, pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
-        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
-        memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
-        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
-        memcpy(dataControl->ServerToClient.presentJointVelocity, pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
-        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.presentJointCurrent, pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
-        indx += JOINT_CURRENT_LEN*NUM_JOINT;
+
+        qDebug() << dataControl->ServerToClient.data_index;
+
+        for (int i = 0; i < dataControl->ServerToClient.data_index; i++){
+            memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
+            indx += DATA_INDEX_LEN;
+            memcpy(dataControl->ServerToClient.presentJointPosition[i], pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
+            indx += JOINT_POSITION_LEN*NUM_JOINT;
+            memcpy(dataControl->ServerToClient.presentCartesianPose[i], pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
+            indx += CARTESIAN_POSE_LEN*NUM_DOF;
+            memcpy(dataControl->ServerToClient.desiredJointPosition[i], pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
+            indx += JOINT_COMMAND_LEN*NUM_JOINT;
+            memcpy(dataControl->ServerToClient.desiredCartesianPose[i], pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
+            indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
+            memcpy(dataControl->ServerToClient.calculateCartesianPose[i], pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
+            indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+            memcpy(dataControl->ServerToClient.presentJointVelocity[i], pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
+            indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+            memcpy(dataControl->ServerToClient.presentJointCurrent[i], pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
+            indx += JOINT_CURRENT_LEN*NUM_JOINT;
+            memcpy(dataControl->ServerToClient.presentCartesianVelocity[i], pData + indx, CARTESIAN_VELOCITY_LEN*NUM_DOF);
+            indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
+        }
 
         memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
         indx += TIME_LEN;
@@ -429,47 +441,47 @@ void MainWindow::readMessage(){
         memcpy(&dataControl->ServerToClient.ik_time, pData + indx, TIME_LEN);
         indx += TIME_LEN;
 
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(0, i);
-            model->setData(index, dataControl->ServerToClient.presentJointPosition[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            QModelIndex index = model->index(0, i);
+//            model->setData(index, dataControl->ServerToClient.presentJointPosition[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(1, i);
-            model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_DOF; i++){
+//            QModelIndex index = model->index(1, i);
+//            model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(2, i);
-            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            QModelIndex index = model->index(2, i);
+//            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(3, i);
-            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_DOF; i++){
+//            QModelIndex index = model->index(3, i);
+//            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(4, i);
-            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_DOF; i++){
+//            QModelIndex index = model->index(4, i);
+//            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(5, i);
-            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            QModelIndex index = model->index(5, i);
+//            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(6, i);
-            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
-            ui->tvRobotInfor->update(index);
-        }
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            QModelIndex index = model->index(6, i);
+//            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
 
         ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
         ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));
@@ -487,6 +499,7 @@ void MainWindow::componentEnable(bool enable){
     ui->gbCartMoveCommand->setEnabled(enable);
     ui->gbJointMoveCommand->setEnabled(enable);
     ui->gbTrajectory->setEnabled(enable);
+    ui->gbLoggingControl->setEnabled(enable);
 
     if (ui->cbNumJoint->currentText().toInt() == 1){
         ui->lbJoint2->setEnabled(false);
@@ -824,4 +837,46 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::closeEvent(QCloseEvent*){
     qDebug() << "Closed MainWindow";
+}
+
+void MainWindow::btnLoggingStartClicked()
+{
+    qDebug() << "Logging Start";
+    QDateTime date;
+    QString fileName = "../logging/" + date.currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".csv";
+    logger = new Logger(this, fileName);
+
+    QString data = "Indx";
+    data += ",";
+    for (uint i = 0; i < NUM_JOINT; i++){
+        data += "Joint Position " + QString::number(i+1) + " [deg]";
+        data += ",";
+    }
+    data += "End X [mm],";
+    data += "End Y [mm],";
+    data += "End Z [mm],";
+    data += "End Roll [deg],";
+    data += "End Pitch [deg],";
+    data += "End Yaw [deg],";
+    for (uint i = 0; i < NUM_JOINT; i++){
+        data += "Joint Velocity " + QString::number(i+1) + " [RPM]";
+        data += ",";
+    }
+    data += "End VX [mm/s],";
+    data += "End VY [mm/s],";
+    data += "End VZ [mm/s],";
+    data += "End WX [deg/s],";
+    data += "End WY [deg/s],";
+    data += "End WZ [deg/s],";
+    for (uint i = 0; i < NUM_JOINT; i++){
+        data += "Joint Current" + QString::number(i+1) + " [mA]";
+        data += ",";
+    }
+    logger->write(data);
+}
+
+void MainWindow::btnLoggingStopClicked()
+{
+    qDebug() << "Logging Stop";
+    delete logger;
 }
