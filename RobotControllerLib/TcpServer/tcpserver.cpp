@@ -13,8 +13,8 @@ NRMKHelper::TcpServer::TcpServer(DataControl *dataControl_) : NRMKSocketBase(), 
 NRMKHelper::TcpServer::~TcpServer()
 {
     if (comm_thread_run){
-        comm_thread_run = false;
         delete tcpServerCustom;
+        comm_thread_run = false;
     }
     if (IsOpen()){
         StopComm();
@@ -186,15 +186,15 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                     }
                 }
 
-                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
-                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
-                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n",
-                       dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
-                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
-                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n",
-                       dataControl->ClientToServer.desiredPose[0], dataControl->ClientToServer.desiredPose[1], dataControl->ClientToServer.desiredPose[2],
-                        dataControl->ClientToServer.desiredPose[3], dataControl->ClientToServer.desiredPose[4], dataControl->ClientToServer.desiredPose[5]);
-                printf("Move time : %f, Acc Time : %f\n", dataControl->ClientToServer.move_time, dataControl->ClientToServer.acc_time);
+//                printf("OpMode : %d\n", dataControl->ClientToServer.opMode);
+//                printf("SubMode : %d\n", dataControl->ClientToServer.subMode);
+//                printf("Desired Joint : %f, %f, %f, %f, %f, %f\n",
+//                       dataControl->ClientToServer.desiredJoint[0], dataControl->ClientToServer.desiredJoint[1], dataControl->ClientToServer.desiredJoint[2],
+//                        dataControl->ClientToServer.desiredJoint[3], dataControl->ClientToServer.desiredJoint[4], dataControl->ClientToServer.desiredJoint[5]);
+//                printf("Desired Cartesian : %f, %f, %f, %f, %f, %f\n",
+//                       dataControl->ClientToServer.desiredPose[0], dataControl->ClientToServer.desiredPose[1], dataControl->ClientToServer.desiredPose[2],
+//                        dataControl->ClientToServer.desiredPose[3], dataControl->ClientToServer.desiredPose[4], dataControl->ClientToServer.desiredPose[5]);
+//                printf("Move time : %f, Acc Time : %f\n", dataControl->ClientToServer.move_time, dataControl->ClientToServer.acc_time);
             }
             else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'U'){
                 QByteArray rxData;
@@ -233,6 +233,10 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                             dataControl->PathData.point_pitch.push_back(data[i + 5].toDouble());
                             dataControl->PathData.point_yaw.push_back(data[i + 6].toDouble());
                             dataControl->PathData.acc_time.push_back(data[i + 7].toDouble());
+//                            printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
+//                                   data[i].toDouble(), data[i + 1].toDouble(), data[i + 2].toDouble(),
+//                                    data[i + 3].toDouble(), data[i + 4].toDouble(), data[i + 5].toDouble(),
+//                                    data[i + 6].toDouble(), data[i + 7].toDouble());
                         }
                         break;
                     case DataControl::CmdType::ReadyCmd:
@@ -311,38 +315,96 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 
 void NRMKHelper::TcpServer::sendData()
 {
-    unsigned char _buf[SERVER_TO_CLIENT_LEN];
-    uint indx = 0;
+    uint data_size = static_cast<uint>(dataControl->ServerToClient.size());
+//    rt_printf("data size : %d\n", data_size);
+    QByteArray txData;
+    txData.append(NRMK_SOCKET_START_TOKEN);
+    txData.append(static_cast<char>(data_size));
 
-    dataControl->jointPositionENC2DEG(dataControl->RobotData.command_joint_position, dataControl->ServerToClient.desiredJointPosition);
-    dataControl->cartesianPoseScaleUp(dataControl->RobotData.desired_end_pose, dataControl->ServerToClient.desiredCartesianPose);
+    txData.append('=');
+    for(uint i = 0; i < data_size; i++){
+//        rt_printf("time : %f\n", dataControl->ServerToClient[i].time);
+        dataControl->RobotData.t += dataControl->ServerToClient[i].time;
+        txData.append(QString::number(dataControl->RobotData.t, 'f', 6));
+        txData.append(',');
+        for(uint j = 0; j < NUM_JOINT; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].presentJointPosition[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_DOF; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].presentCartesianPose[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_JOINT; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].desiredJointPosition[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_DOF; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].desiredCartesianPose[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_DOF; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].calculateCartesianPose[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_JOINT; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].presentJointVelocity[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_JOINT; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].presentJointCurrent[j], 'f', 6));
+            txData.append(',');
+        }
+        for(uint j = 0; j < NUM_DOF; j++){
+            txData.append(QString::number(dataControl->ServerToClient[i].presentCartesianVelocity[j], 'f', 6));
+            txData.append(',');
+        }
+        txData.append(QString::number(dataControl->ServerToClient[i].time, 'f', 6));
+        txData.append(',');
+        txData.append(QString::number(dataControl->ServerToClient[i].dxl_time, 'f', 6));
+        txData.append(',');
+        txData.append(QString::number(dataControl->ServerToClient[i].ik_time, 'f', 6));
+        txData.append('=');
+    }
+    txData.append(NRMK_SOCKET_END_TOKEN);
 
-    memcpy(_buf, NRMK_SOCKET_START_TOKEN, NRMK_SOCKET_TOKEN_SIZE); // 2 byte, START token
-    indx += NRMK_SOCKET_TOKEN_SIZE;
-    memcpy(_buf + indx, &dataControl->ServerToClient.data_index, DATA_INDEX_LEN); // 1 byte, data index
-    indx += DATA_INDEX_LEN;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentJointPosition, JOINT_POSITION_LEN*NUM_JOINT); // 8 byte x 6, present joint position data
-    indx += JOINT_POSITION_LEN*NUM_JOINT;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentCartesianPose, CARTESIAN_POSE_LEN*NUM_JOINT); // 8 byte x 6, present Cartesian position data
-    indx += CARTESIAN_POSE_LEN*NUM_DOF;
-    memcpy(_buf + indx, dataControl->ServerToClient.desiredJointPosition, JOINT_COMMAND_LEN*NUM_JOINT); // 8 byte x 6, command joint position data
-    indx += JOINT_COMMAND_LEN*NUM_JOINT;
-    memcpy(_buf + indx, dataControl->ServerToClient.desiredCartesianPose, CARTESIAN_COMMAND_LEN*NUM_DOF); // 8 byte x 6, command joint Cartesian data
-    indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
-    memcpy(_buf + indx, dataControl->ServerToClient.calculateCartesianPose, CARTESIAN_CALCULATE_LEN*NUM_DOF); // 8 byte x 6, calculate cartesian position data
-    indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentJointVelocity, JOINT_VELOCITY_LEN*NUM_JOINT); // 8 byte x 6, present joint velocity data
-    indx += JOINT_VELOCITY_LEN*NUM_JOINT;
-    memcpy(_buf + indx, dataControl->ServerToClient.presentJointCurrent, JOINT_CURRENT_LEN*NUM_JOINT); // 8 byte x 6, present joint current data
-    indx += JOINT_CURRENT_LEN*NUM_JOINT;
-    memcpy(_buf + indx, &dataControl->ServerToClient.time, TIME_LEN); // 8 byte, Thread time
-    indx += TIME_LEN;
-    memcpy(_buf + indx, &dataControl->ServerToClient.dxl_time, TIME_LEN); // 8 byte, Dynamixel time
-    indx += TIME_LEN;
-    memcpy(_buf + indx, &dataControl->ServerToClient.ik_time, TIME_LEN); // 8 byte, Inverse Kinematics time
-    indx += TIME_LEN;
-    memcpy(_buf + indx, NRMK_SOCKET_END_TOKEN, NRMK_SOCKET_TOKEN_SIZE); // 2 byte, END token
-    indx += NRMK_SOCKET_TOKEN_SIZE;
+//    memcpy(_buf, NRMK_SOCKET_START_TOKEN, NRMK_SOCKET_TOKEN_SIZE); // 2 byte, START token
+//    indx += NRMK_SOCKET_TOKEN_SIZE;
 
-    WriteComm(_buf, indx, INFINITE);
+//    memcpy(_buf + indx, &data_size, DATA_INDEX_LEN); // 1 byte, data index
+//    indx += DATA_INDEX_LEN;
+//    rt_printf("total indx : %d\n", data_size);
+
+//    for(int i = 0; i < data_size; i++){
+//        memcpy(_buf + indx, &dataControl->ServerToClient[i].data_index, DATA_INDEX_LEN); // 1 byte, data index
+//        indx += DATA_INDEX_LEN;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].presentJointPosition, JOINT_POSITION_LEN*NUM_JOINT); // 8 byte x 6, present joint position data
+//        indx += JOINT_POSITION_LEN*NUM_JOINT;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].presentCartesianPose, CARTESIAN_POSE_LEN*NUM_JOINT); // 8 byte x 6, present Cartesian position data
+//        indx += CARTESIAN_POSE_LEN*NUM_DOF;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].desiredJointPosition, JOINT_COMMAND_LEN*NUM_JOINT); // 8 byte x 6, command joint position data
+//        indx += JOINT_COMMAND_LEN*NUM_JOINT;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].desiredCartesianPose, CARTESIAN_COMMAND_LEN*NUM_DOF); // 8 byte x 6, command joint Cartesian data
+//        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].calculateCartesianPose, CARTESIAN_CALCULATE_LEN*NUM_DOF); // 8 byte x 6, calculate cartesian position data
+//        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].presentJointVelocity, JOINT_VELOCITY_LEN*NUM_JOINT); // 8 byte x 6, present joint velocity data
+//        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].presentJointCurrent, JOINT_CURRENT_LEN*NUM_JOINT); // 8 byte x 6, present joint current data
+//        indx += JOINT_CURRENT_LEN*NUM_JOINT;
+//        memcpy(_buf + indx, dataControl->ServerToClient[i].presentCartesianVelocity, CARTESIAN_VELOCITY_LEN*NUM_DOF); // 8 byte x 6, present joint current data
+//        indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
+//        memcpy(_buf + indx, &dataControl->ServerToClient[i].time, TIME_LEN); // 8 byte, Thread time
+//        indx += TIME_LEN;
+//        memcpy(_buf + indx, &dataControl->ServerToClient[i].dxl_time, TIME_LEN); // 8 byte, Dynamixel time
+//        indx += TIME_LEN;
+//        memcpy(_buf + indx, &dataControl->ServerToClient[i].ik_time, TIME_LEN); // 8 byte, Inverse Kinematics time
+//        indx += TIME_LEN;
+//    }
+//    memcpy(_buf + indx, NRMK_SOCKET_END_TOKEN, NRMK_SOCKET_TOKEN_SIZE); // 2 byte, END token
+//    indx += NRMK_SOCKET_TOKEN_SIZE;
+
+    WriteComm(reinterpret_cast<unsigned char*>(txData.data()), static_cast<unsigned long>(txData.size()), INFINITE);
+
+    dataControl->ServerToClient.erase(dataControl->ServerToClient.begin(), dataControl->ServerToClient.begin() + static_cast<int>(data_size));
 }

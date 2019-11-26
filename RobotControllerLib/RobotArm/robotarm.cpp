@@ -222,7 +222,7 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     body[0].ri_dot[0] = 0; body[0].ri_dot[1] = 0; body[0].ri_dot[2] = 0;
     body[0].wi[0] = 0; body[0].wi[1] = 0; body[0].wi[2] = 0;
 
-    body[0].u_vec[0] = 0; body[0].u_vec[1] = 0; body[0].u_vec[2] = 0;
+    body[0].u_vec[0] = 0; body[0].u_vec[1] = 0; body[0].u_vec[2] = 1;
 
     // body 1 variables
     Body::ang2mat(DH[0*4+3], DH[0*4+0], 0, body[1].Cij);
@@ -448,7 +448,7 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
 
     double pos_d[3], ori_d[3];
 
-    for(uint i = 0; i < 5; i++){
+//    for(uint i = 0; i < 5; i++){
         pos_d[0] = des_pose[0];
         pos_d[1] = des_pose[1];
         pos_d[2] = des_pose[2];
@@ -464,7 +464,7 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
             cur_joint[i - 1] = body[i].qi;
         }
 
-        kinematics();
+//        kinematics();
 
         cur_pose[0] = body[num_body].re[0];
         cur_pose[1] = body[num_body].re[1];
@@ -473,23 +473,23 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
         cur_pose[4] = body[num_body].ori[1];
         cur_pose[5] = body[num_body].ori[2];
 
-        double pos = sqrt(pow(des_pose[0] - cur_pose[0], 2) + pow(des_pose[1] - cur_pose[1], 2) + pow(des_pose[2] - cur_pose[2], 2));
-        double ang_r = abs(des_pose[3] - cur_pose[3]);
-        double ang_p = abs(des_pose[4] - cur_pose[4]);
-        double ang_y = abs(des_pose[5] - cur_pose[5]);
+//        double pos = sqrt(pow(des_pose[0] - cur_pose[0], 2) + pow(des_pose[1] - cur_pose[1], 2) + pow(des_pose[2] - cur_pose[2], 2));
+//        double ang_r = abs(des_pose[3] - cur_pose[3]);
+//        double ang_p = abs(des_pose[4] - cur_pose[4]);
+//        double ang_y = abs(des_pose[5] - cur_pose[5]);
 
 //        printf("[IK]pos : %f\n", pos);
 //        printf("[IK]ang_r : %f\t ang_p : %f\t ang_y : %f\n", ang_r, ang_p, ang_y);
 
-        if (pos < epsilon_pos && ang_r < epsilon_ang && ang_p < epsilon_ang && ang_y < epsilon_ang){
-            goal_reach = true;
-//            printf("[IK]iteration : %d\n", i);
-            break;
-        }
-        else{
-            goal_reach = false;
-        }
-    }
+//        if (pos < epsilon_pos && ang_r < epsilon_ang && ang_p < epsilon_ang && ang_y < epsilon_ang){
+//            goal_reach = true;
+////            printf("[IK]iteration : %d\n", i);
+//            break;
+//        }
+//        else{
+//            goal_reach = false;
+//        }
+//    }
 }
 
 #ifdef FILEIO_H_
@@ -662,7 +662,7 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         }
 
         NRcount++;
-    }while(errmax > 1e-3 && NRcount < 5);
+    }while(errmax > 1e-3 && NRcount < 10);
 
 //    printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
 
@@ -680,7 +680,16 @@ void RobotArm::jacobian()
     Body *body_end = &body[num_body];
 
 #if 0
-    double A[9] = {cos(M_PI), -sin(M_PI), 0, sin(M_PI), cos(M_PI), 0, 0, 0, 1};
+//    A[9] = {cos(M_PI), -sin(M_PI), 0, sin(M_PI), cos(M_PI), 0, 0, 0, 1};
+    A[0] = cos(M_PI);
+    A[1] = -sin(M_PI);
+    A[2] = 0;
+    A[3] = sin(M_PI);
+    A[4] = cos(M_PI);
+    A[5] = 0;
+    A[6] = 0;
+    A[7] = 0;
+    A[8] = 1;
 
     for (uint indx = 1; indx <= num_body; indx++){
         body0 = &body[indx - 1];
@@ -698,6 +707,101 @@ void RobotArm::jacobian()
             Jw[i*num_body + (indx - 1)] = body1->Jwi[i];
         }
     }
+#elif 1
+    for(uint indx = 1; indx <= num_body; indx++){
+        body1 = &body[indx];
+        body1->Aijpp_qi[0] = -sin(body1->qi); body1->Aijpp_qi[1] = -cos(body1->qi); body1->Aijpp_qi[2] = 0;
+        body1->Aijpp_qi[3] =  cos(body1->qi); body1->Aijpp_qi[4] = -sin(body1->qi); body1->Aijpp_qi[5] = 0;
+        body1->Aijpp_qi[6] = 0; body1->Aijpp_qi[7] = 0; body1->Aijpp_qi[8] = 0;
+    }
+
+    for(uint indx = 1; indx <= num_body; indx++){
+        memset(body[indx].Ae_qi, 0, sizeof(double)*9);
+        memset(body[indx].re_qi, 0, sizeof(double)*3);
+        for(uint indx2 = indx; indx2 <= num_body; indx2++){
+            if (indx == indx2){
+                mat(body[indx2].Ai_Cij, body[indx2].Aijpp_qi, 3, 3, 3, 3, body[indx2].Ai_Cij_Aijpp_qi);
+                for(uint i = 0; i < 9; i++){
+                    body[indx].Ae_qi[i] += body[indx2].Ai_Cij_Aijpp_qi[i];
+                }
+            }
+            else{
+                mat(body[indx].Ae_qi, body[indx2 - 1].Cij, 3, 3, 3, 3, body[indx2].Ae_qi_Cij);
+                mat(body[indx2].Ae_qi_Cij, body[indx2].Aijpp, 3, 3, 3, 3, body[indx].Ae_qi_Cij_Aijpp);
+                memcpy(body[indx].Ae_qi, body[indx].Ae_qi_Cij_Aijpp, sizeof(double)*9);
+            }
+            if (indx2 < num_body){
+                mat(body[indx].Ae_qi, body[indx2].sijp, 3, 3, 3, body[indx2].Ae_qi_sijp);
+                for(uint i = 0; i < 3; i++){
+                    body[indx].re_qi[i] += body[indx2].Ae_qi_sijp[i];
+                }
+            }
+        }
+    }
+
+    for(uint indx = 1; indx <= num_body; indx++){
+        body1 = &body[indx];
+        mat(body1->Ae_qi, body_end->sijp, 3, 3, 3, body1->Ae_qi_end);
+        if (indx < num_body){
+            for(uint i = 0; i < 3; i++){
+                body1->Jvi[i] = body1->re_qi[i] + body1->Ae_qi_end[i];
+            }
+        }
+        else{
+            for(uint i = 0; i < 3; i++){
+                body1->Jvi[i] = body1->Ae_qi_end[i];
+            }
+        }
+        for (uint i = 0; i < 3; i++){
+            Jv[i*num_body + indx - 1] = body1->Jvi[i];
+        }
+    }
+
+    Ae_31 = body_end->Ae[6];
+    Ae_32 = body_end->Ae[7];
+    Ae_33 = body_end->Ae[8];
+    Ae_21 = body_end->Ae[3];
+    Ae_11 = body_end->Ae[0];
+
+    Ae_32_33 = Ae_32/Ae_33;
+    body[1].roll_qi_1 = (1/(1 + pow(Ae_32_33, 2))); body[1].roll_qi_2 = ((body[1].Ae_qi[7]*Ae_33 - Ae_32*body[1].Ae_qi[8])/(pow(Ae_33, 2))); body[1].roll_qi = body[1].roll_qi_1*body[1].roll_qi_2;
+    body[2].roll_qi_1 = (1/(1 + pow(Ae_32_33, 2))); body[2].roll_qi_2 = ((body[2].Ae_qi[7]*Ae_33 - Ae_32*body[2].Ae_qi[8])/(pow(Ae_33, 2))); body[2].roll_qi = body[2].roll_qi_1*body[2].roll_qi_2;
+    body[3].roll_qi_1 = (1/(1 + pow(Ae_32_33, 2))); body[3].roll_qi_2 = ((body[3].Ae_qi[7]*Ae_33 - Ae_32*body[3].Ae_qi[8])/(pow(Ae_33, 2))); body[3].roll_qi = body[3].roll_qi_1*body[3].roll_qi_2;
+    body[4].roll_qi_1 = (1/(1 + pow(Ae_32_33, 2))); body[4].roll_qi_2 = ((body[4].Ae_qi[7]*Ae_33 - Ae_32*body[4].Ae_qi[8])/(pow(Ae_33, 2))); body[4].roll_qi = body[4].roll_qi_1*body[4].roll_qi_2;
+    body[5].roll_qi_1 = (1/(1 + pow(Ae_32_33, 2))); body[5].roll_qi_2 = ((body[5].Ae_qi[7]*Ae_33 - Ae_32*body[5].Ae_qi[8])/(pow(Ae_33, 2))); body[5].roll_qi = body[5].roll_qi_1*body[5].roll_qi_2;
+    body[6].roll_qi_1 = (1/(1 + pow(Ae_32_33, 2))); body[6].roll_qi_2 = ((body[6].Ae_qi[7]*Ae_33 - Ae_32*body[6].Ae_qi[8])/(pow(Ae_33, 2))); body[6].roll_qi = body[6].roll_qi_1*body[6].roll_qi_2;
+
+    Ae_32_33_2 = pow(Ae_32, 2) + pow(Ae_33, 2);
+    body[1].pitch_qi_1 = (1/(1 + pow((-Ae_31/sqrt(Ae_32_33_2)), 2))); body[1].pitch_qi_2 = (-body[1].Ae_qi[6]*sqrt(Ae_32_33_2) + Ae_31*(Ae_32*body[1].Ae_qi[8] + Ae_33*body[1].Ae_qi[7])/sqrt(Ae_32_33_2))/(Ae_32_33_2); body[1].pitch_qi = body[1].pitch_qi_1*body[1].pitch_qi_2;
+    body[2].pitch_qi_1 = (1/(1 + pow((-Ae_31/sqrt(Ae_32_33_2)), 2))); body[2].pitch_qi_2 = (-body[2].Ae_qi[6]*sqrt(Ae_32_33_2) + Ae_31*(Ae_32*body[2].Ae_qi[8] + Ae_33*body[2].Ae_qi[7])/sqrt(Ae_32_33_2))/(Ae_32_33_2); body[2].pitch_qi = body[2].pitch_qi_1*body[2].pitch_qi_2;
+    body[3].pitch_qi_1 = (1/(1 + pow((-Ae_31/sqrt(Ae_32_33_2)), 2))); body[3].pitch_qi_2 = (-body[3].Ae_qi[6]*sqrt(Ae_32_33_2) + Ae_31*(Ae_32*body[3].Ae_qi[8] + Ae_33*body[3].Ae_qi[7])/sqrt(Ae_32_33_2))/(Ae_32_33_2); body[3].pitch_qi = body[3].pitch_qi_1*body[3].pitch_qi_2;
+    body[4].pitch_qi_1 = (1/(1 + pow((-Ae_31/sqrt(Ae_32_33_2)), 2))); body[4].pitch_qi_2 = (-body[4].Ae_qi[6]*sqrt(Ae_32_33_2) + Ae_31*(Ae_32*body[4].Ae_qi[8] + Ae_33*body[4].Ae_qi[7])/sqrt(Ae_32_33_2))/(Ae_32_33_2); body[4].pitch_qi = body[4].pitch_qi_1*body[4].pitch_qi_2;
+    body[5].pitch_qi_1 = (1/(1 + pow((-Ae_31/sqrt(Ae_32_33_2)), 2))); body[5].pitch_qi_2 = (-body[5].Ae_qi[6]*sqrt(Ae_32_33_2) + Ae_31*(Ae_32*body[5].Ae_qi[8] + Ae_33*body[5].Ae_qi[7])/sqrt(Ae_32_33_2))/(Ae_32_33_2); body[5].pitch_qi = body[5].pitch_qi_1*body[5].pitch_qi_2;
+    body[6].pitch_qi_1 = (1/(1 + pow((-Ae_31/sqrt(Ae_32_33_2)), 2))); body[6].pitch_qi_2 = (-body[6].Ae_qi[6]*sqrt(Ae_32_33_2) + Ae_31*(Ae_32*body[6].Ae_qi[8] + Ae_33*body[6].Ae_qi[7])/sqrt(Ae_32_33_2))/(Ae_32_33_2); body[6].pitch_qi = body[6].pitch_qi_1*body[6].pitch_qi_2;
+
+    Ae_21_11 = Ae_21/Ae_11;
+    body[1].yaw_qi_1 = (1/(1 + pow(Ae_21_11, 2))); body[1].yaw_qi_2 = ((body[1].Ae_qi[3]*Ae_11 - Ae_21*body[1].Ae_qi[0])/(pow(Ae_11, 2))); body[1].yaw_qi = body[1].yaw_qi_1*body[1].yaw_qi_2;
+    body[2].yaw_qi_1 = (1/(1 + pow(Ae_21_11, 2))); body[2].yaw_qi_2 = ((body[2].Ae_qi[3]*Ae_11 - Ae_21*body[2].Ae_qi[0])/(pow(Ae_11, 2))); body[2].yaw_qi = body[2].yaw_qi_1*body[2].yaw_qi_2;
+    body[3].yaw_qi_1 = (1/(1 + pow(Ae_21_11, 2))); body[3].yaw_qi_2 = ((body[3].Ae_qi[3]*Ae_11 - Ae_21*body[3].Ae_qi[0])/(pow(Ae_11, 2))); body[3].yaw_qi = body[3].yaw_qi_1*body[3].yaw_qi_2;
+    body[4].yaw_qi_1 = (1/(1 + pow(Ae_21_11, 2))); body[4].yaw_qi_2 = ((body[4].Ae_qi[3]*Ae_11 - Ae_21*body[4].Ae_qi[0])/(pow(Ae_11, 2))); body[4].yaw_qi = body[4].yaw_qi_1*body[4].yaw_qi_2;
+    body[5].yaw_qi_1 = (1/(1 + pow(Ae_21_11, 2))); body[5].yaw_qi_2 = ((body[5].Ae_qi[3]*Ae_11 - Ae_21*body[5].Ae_qi[0])/(pow(Ae_11, 2))); body[5].yaw_qi = body[5].yaw_qi_1*body[5].yaw_qi_2;
+    body[6].yaw_qi_1 = (1/(1 + pow(Ae_21_11, 2))); body[6].yaw_qi_2 = ((body[6].Ae_qi[3]*Ae_11 - Ae_21*body[6].Ae_qi[0])/(pow(Ae_11, 2))); body[6].yaw_qi = body[6].yaw_qi_1*body[6].yaw_qi_2;
+
+    body[1].Jwi[0] = body[1].roll_qi; body[1].Jwi[1] = body[1].pitch_qi; body[1].Jwi[2] = body[1].yaw_qi;
+    body[2].Jwi[0] = body[2].roll_qi; body[2].Jwi[1] = body[2].pitch_qi; body[2].Jwi[2] = body[2].yaw_qi;
+    body[3].Jwi[0] = body[3].roll_qi; body[3].Jwi[1] = body[3].pitch_qi; body[3].Jwi[2] = body[3].yaw_qi;
+    body[4].Jwi[0] = body[4].roll_qi; body[4].Jwi[1] = body[4].pitch_qi; body[4].Jwi[2] = body[4].yaw_qi;
+    body[5].Jwi[0] = body[5].roll_qi; body[5].Jwi[1] = body[5].pitch_qi; body[5].Jwi[2] = body[5].yaw_qi;
+    body[6].Jwi[0] = body[6].roll_qi; body[6].Jwi[1] = body[6].pitch_qi; body[6].Jwi[2] = body[6].yaw_qi;
+
+    for(uint indx = 1; indx <= num_body; indx++){
+        body1 = &body[indx];
+        for (uint i = 0; i < 3; i++){
+            Jw[i*num_body + indx - 1] = body1->Jwi[i];
+        }
+    }
+
+
 #else
     for (uint indx = 1; indx <= num_body; indx++) {
         body0 = &body[indx - 1];
@@ -707,7 +811,7 @@ void RobotArm::jacobian()
         double *Aijpp_qi_ptr = body1->Aijpp_qi;
         *(Aijpp_qi_ptr++) = -sin(body1->qi);	*(Aijpp_qi_ptr++) = -cos(body1->qi);	*(Aijpp_qi_ptr++) = 0;
         *(Aijpp_qi_ptr++) =  cos(body1->qi);	*(Aijpp_qi_ptr++) = -sin(body1->qi);	*(Aijpp_qi_ptr++) = 0;
-        *(Aijpp_qi_ptr++) = 0;						*(Aijpp_qi_ptr++) = 0;						*(Aijpp_qi_ptr) = 0;
+        *(Aijpp_qi_ptr++) = 0;                  *(Aijpp_qi_ptr++) = 0;                  *(Aijpp_qi_ptr) = 0;
 
         mat(body1->Ai_Cij, body1->Aijpp_qi, 3, 3, 3, 3, body1->Ai_Cij_Aijpp_qi);
     }
@@ -747,47 +851,47 @@ void RobotArm::jacobian()
         }
     }
 
-    Ae_31 = body_end->Ae[6];
-    Ae_32 = body_end->Ae[7];
-    Ae_33 = body_end->Ae[8];
-    Ae_21 = body_end->Ae[3];
-    Ae_11 = body_end->Ae[0];
+     Ae_31 = body_end->Ae[6];
+     Ae_32 = body_end->Ae[7];
+     Ae_33 = body_end->Ae[8];
+     Ae_21 = body_end->Ae[3];
+     Ae_11 = body_end->Ae[0];
 
-    roll_q_temp1 = Ae_32 * Ae_32 + Ae_33 * Ae_33;
-    roll_q_temp2 = sqrt(roll_q_temp1);
-    roll_q_temp3 = Ae_33 + roll_q_temp2;
-    roll_q_temp4 = roll_q_temp2 * (roll_q_temp1 + Ae_33*roll_q_temp2);
+     roll_q_temp1 = Ae_32 * Ae_32 + Ae_33 * Ae_33;
+     roll_q_temp2 = sqrt(roll_q_temp1);
+     roll_q_temp3 = Ae_33 + roll_q_temp2;
+     roll_q_temp4 = roll_q_temp2 * (roll_q_temp1 + Ae_33*roll_q_temp2);
 
-    pitch_q_temp1 = sqrt(Ae_32*Ae_32 + Ae_33*Ae_33);
-    pitch_q_temp2 = Ae_31 * Ae_31 + pitch_q_temp1 * pitch_q_temp1;
-    pitch_q_temp3 = sqrt(pitch_q_temp2);
-    pitch_q_temp4 = pitch_q_temp3 * (pitch_q_temp2 + pitch_q_temp1 * pitch_q_temp3);
+     pitch_q_temp1 = sqrt(Ae_32*Ae_32 + Ae_33*Ae_33);
+     pitch_q_temp2 = Ae_31 * Ae_31 + pitch_q_temp1 * pitch_q_temp1;
+     pitch_q_temp3 = sqrt(pitch_q_temp2);
+     pitch_q_temp4 = pitch_q_temp3 * (pitch_q_temp2 + pitch_q_temp1 * pitch_q_temp3);
 
-    yaw_q_temp1 = Ae_21 * Ae_21 + Ae_11 * Ae_11;
-    yaw_q_temp2 = sqrt(yaw_q_temp1);
-    yaw_q_temp3 = Ae_11 + yaw_q_temp2;
-    yaw_q_temp4 = yaw_q_temp2 * (yaw_q_temp1 + Ae_11*yaw_q_temp2);
+     yaw_q_temp1 = Ae_21 * Ae_21 + Ae_11 * Ae_11;
+     yaw_q_temp2 = sqrt(yaw_q_temp1);
+     yaw_q_temp3 = Ae_11 + yaw_q_temp2;
+     yaw_q_temp4 = yaw_q_temp2 * (yaw_q_temp1 + Ae_11*yaw_q_temp2);
 
-    for (uint indx = 1; indx <= num_body; indx++) {
-        body1 = &body[indx];
-        body1->Ae_qi_31 = body1->Ae_qi[6];
-        body1->Ae_qi_32 = body1->Ae_qi[7];
-        body1->Ae_qi_33 = body1->Ae_qi[8];
-        body1->Ae_qi_21 = body1->Ae_qi[3];
-        body1->Ae_qi_11 = body1->Ae_qi[0];
+     for (uint indx = 1; indx <= num_body; indx++) {
+         body1 = &body[indx];
+         body1->Ae_qi_31 = body1->Ae_qi[6];
+         body1->Ae_qi_32 = body1->Ae_qi[7];
+         body1->Ae_qi_33 = body1->Ae_qi[8];
+         body1->Ae_qi_21 = body1->Ae_qi[3];
+         body1->Ae_qi_11 = body1->Ae_qi[0];
 
-        body1->roll_qi = (roll_q_temp3*(body1->Ae_qi_32*Ae_33 - Ae_32*body1->Ae_qi_33)) / roll_q_temp4;
-        body1->pitch_qi = -((pitch_q_temp3 + pitch_q_temp1)*(body1->Ae_qi_31*pitch_q_temp1 - Ae_31 * (Ae_32*body1->Ae_qi_32 + Ae_33 * body1->Ae_qi_33)/pitch_q_temp1))/ pitch_q_temp4;
-        body1->yaw_qi = (yaw_q_temp3*(body1->Ae_qi_21*Ae_11 - Ae_21*body1->Ae_qi_11)) / yaw_q_temp4;
+         body1->roll_qi = (roll_q_temp3*(body1->Ae_qi_32*Ae_33 - Ae_32*body1->Ae_qi_33)) / roll_q_temp4;
+         body1->pitch_qi = -((pitch_q_temp3 + pitch_q_temp1)*(body1->Ae_qi_31*pitch_q_temp1 - Ae_31 * (Ae_32*body1->Ae_qi_32 + Ae_33 * body1->Ae_qi_33)/pitch_q_temp1))/ pitch_q_temp4;
+         body1->yaw_qi = (yaw_q_temp3*(body1->Ae_qi_21*Ae_11 - Ae_21*body1->Ae_qi_11)) / yaw_q_temp4;
 
-        Jw[0 * num_body + indx - 1] = body1->roll_qi;
-        Jw[1 * num_body + indx - 1] = body1->pitch_qi;
-        Jw[2 * num_body + indx - 1] = body1->yaw_qi;
-    }
+         Jw[0 * num_body + indx - 1] = body1->roll_qi;
+         Jw[1 * num_body + indx - 1] = body1->pitch_qi;
+         Jw[2 * num_body + indx - 1] = body1->yaw_qi;
+     }
 #endif
 
-    memcpy(J, Jv, sizeof(double) * 3 * num_body);
-    memcpy(J + 3 * num_body, Jw, sizeof(double) * 3 * num_body);
+     memcpy(J, Jv, sizeof(double) * 3 * num_body);
+     memcpy(J + 3 * num_body, Jw, sizeof(double) * 3 * num_body);
 
     delete[] Jv;
     delete[] Jw;

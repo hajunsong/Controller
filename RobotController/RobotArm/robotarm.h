@@ -34,8 +34,8 @@ public:
     // position
     double sij[3], sijp[3], ri[3], re[3], Ae[9], re_dot[3], we[3], ori[3];
     // jacobian
-    double Jvi[3], Jwi[3], re_qi[3], Ae_qi[9], r6_qi[3], A6_qi[9], Aijpp_qi[9], Cij_Aijpp[9], Ai_Cij_Aijpp_qi[9];
-    double Ae_qi_31, Ae_qi_32, Ae_qi_33, Ae_qi_21, Ae_qi_11, roll_qi, pitch_qi, yaw_qi;
+    double Jvi[3], Jwi[3], re_qi[3], Ae_qi[9], r6_qi[3], A6_qi[9], Ae_qi_Cij[9], Ae_qi_Cij_Aijpp[9], Aijpp_qi[9], Cij_Aijpp[9], Ai_Cij_Aijpp_qi[9], Ae_qi_sijp[3], Ae_qi_end[3];
+    double Ae_qi_31, Ae_qi_32, Ae_qi_33, Ae_qi_21, Ae_qi_11, roll_qi_1, roll_qi_2, roll_qi, pitch_qi_1, pitch_qi_2, pitch_qi, yaw_qi_1, yaw_qi_2, yaw_qi;
     double oi[3], zi[3], zit[9];
     // velocity state
     double Hi[3], rit[9], Bi[6], Yih[6];
@@ -79,7 +79,6 @@ public:
 
     double *J;
     void jacobian();
-    double A[9];
 
 private:
     inline void tilde(double *a, double *b) {
@@ -89,6 +88,8 @@ private:
     }
 
     double DH[6*4];
+
+    double Ae_31, Ae_32, Ae_33, Ae_21, Ae_11, Ae_32_33, Ae_32_33_2, Ae_21_11;
 
     double *PH, *PH_pos, *PH_ori, *delta_q, *JD;
     double *M, *Q, *Q_c, *Q_g;
@@ -110,7 +111,6 @@ private:
     void dynamics();
     void save_data();
 
-    double Ae_31, Ae_32, Ae_33, Ae_21, Ae_11;
     double roll_q_temp1, roll_q_temp2, roll_q_temp3, roll_q_temp4;
     double pitch_q_temp1, pitch_q_temp2, pitch_q_temp3, pitch_q_temp4;
     double yaw_q_temp1, yaw_q_temp2, yaw_q_temp3, yaw_q_temp4;

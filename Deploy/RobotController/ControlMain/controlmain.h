@@ -49,7 +49,7 @@ public:
     void robotReady();
 
     DxlControl *module;
-    unsigned char data_indx;
+    char data_indx;
 
     NRMKHelper::TcpServer *tcpServer;
 private:

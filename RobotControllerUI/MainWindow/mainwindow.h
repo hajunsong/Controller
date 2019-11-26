@@ -56,6 +56,7 @@ private:
     bool cmdJointRel, cmdJointAbs, cmdCartRel, cmdCartAbs;
 
     Logger *logger;
+    bool logging_start;
 
 public slots:
     // button event

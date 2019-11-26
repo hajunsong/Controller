@@ -19,6 +19,8 @@
 
 #include "FileIO/fileio.h"
 
+#define DATA_MAX_INDX           30
+
 #define NUM_JOINT               6
 #define NUM_DOF                 6
 #define MODULE_TYPE             1 // 1:FAR V1, 2:SEA
@@ -30,11 +32,12 @@
 #define CARTESIAN_CALCULATE_LEN 8
 #define JOINT_VELOCITY_LEN      8
 #define JOINT_CURRENT_LEN       8
+#define CARTESIAN_VELOCITY_LEN  8
 #define TIME_LEN                8
-#define SERVER_TO_CLIENT_LEN    NRMK_SOCKET_TOKEN_SIZE + DATA_INDEX_LEN + \
+#define SERVER_TO_CLIENT_LEN    (NRMK_SOCKET_TOKEN_SIZE + DATA_INDEX_LEN + DATA_INDEX_LEN + \
     JOINT_POSITION_LEN*NUM_JOINT + CARTESIAN_POSE_LEN*NUM_DOF + JOINT_COMMAND_LEN*NUM_JOINT + \
     CARTESIAN_COMMAND_LEN*NUM_DOF + CARTESIAN_CALCULATE_LEN*NUM_DOF + JOINT_VELOCITY_LEN*NUM_JOINT + JOINT_CURRENT_LEN*NUM_JOINT + \
-    TIME_LEN + TIME_LEN + TIME_LEN + NRMK_SOCKET_TOKEN_SIZE
+    TIME_LEN + TIME_LEN + TIME_LEN + NRMK_SOCKET_TOKEN_SIZE + CARTESIAN_VELOCITY_LEN*NUM_DOF)*DATA_MAX_INDX
 
 #define OP_MODE_LEN             1
 #define SUB_MODE_LEN            1
@@ -60,16 +63,17 @@ public:
     }StructClientToServer;
 
     typedef struct _StructServerToClient{
-        double data_index;
-        double presentJointPosition[200][NUM_JOINT], presentCartesianPose[200][NUM_DOF];
-        double desiredJointPosition[200][NUM_JOINT], desiredCartesianPose[200][NUM_DOF];
-        double calculateCartesianPose[200][NUM_DOF];
-        double presentJointVelocity[200][NUM_JOINT], presentJointCurrent[200][NUM_JOINT];
+        int8_t data_index;
+        double presentJointPosition[NUM_JOINT], presentCartesianPose[NUM_DOF];
+        double desiredJointPosition[NUM_JOINT], desiredCartesianPose[NUM_DOF];
+        double calculateCartesianPose[NUM_DOF];
+        double presentJointVelocity[NUM_JOINT], presentJointCurrent[NUM_JOINT];
+        double presentCartesianVelocity[NUM_DOF];
         double time, dxl_time, ik_time;
-        double presentCartesianVelocity[200][NUM_DOF];
     }StructServerToClient;
 
     typedef struct _StructRobotData{
+        double t;
         int32_t present_joint_position[NUM_JOINT];
         int32_t present_joint_velocity[NUM_JOINT];
         int16_t present_joint_current[NUM_JOINT];
@@ -85,6 +89,8 @@ public:
         int32_t offset[6];
         uint8_t joint_op_mode;
         uint8_t run_mode;
+        double present_end_vel[NUM_DOF];
+        double present_cal_end_pose[NUM_DOF];
     }StructRobotData;
 
     typedef struct _StructPathGenerateData{
@@ -130,7 +136,7 @@ public:
     void DataReset();
 
     StructClientToServer ClientToServer;
-    StructServerToClient ServerToClient;
+    std::vector<StructServerToClient> ServerToClient;
     StructRobotData RobotData;
     StructPathData PathData;
     StructTorqueIDEData torqueIdeData;

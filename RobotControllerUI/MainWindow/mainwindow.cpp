@@ -115,10 +115,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 //    ui->gbRobotConfig->setEnabled(true);
 //    ui->btnSetInit->setEnabled(true);
 
-    connect(ui->btnCustomRun, SIGNAL(clicked()), this, SLOT(btnCustomRunClicked()));
+//    connect(ui->btnCustomRun, SIGNAL(clicked()), this, SLOT(btnCustomRunClicked()));
+    ui->btnCustomRun->hide();
 
     connect(ui->btnLoggingStart, SIGNAL(clicked()), this, SLOT(btnLoggingStartClicked()));
     connect(ui->btnLoggingStop, SIGNAL(clicked()), this, SLOT(btnLoggingStopClicked()));
+    logging_start = false;
 }
 
 MainWindow::~MainWindow()
@@ -166,7 +168,7 @@ void MainWindow::btnSetInitClicked()
 
     tcpClient->socket->write(txData);
 
-    int row = 6;
+    int row = 5;
     model = new QStandardItemModel(row, NUM_JOINT, this);
     ui->tvRobotInfor->setModel(model);
 
@@ -178,13 +180,14 @@ void MainWindow::btnSetInitClicked()
     }
 
     QStringList vHeader;
-    vHeader.append("Actual Pos [deg]");
-    vHeader.append("Actual Pose [mm, deg]");
-    vHeader.append("Command Pos [deg]");
-    vHeader.append("Desired Pose [mm, deg]");
-    vHeader.append("Calculate Pose [mm, deg]");
-    vHeader.append("Present Vel [RPM]");
-    vHeader.append("Present Cur [mA]");
+    vHeader.append("Present Joint Pos [deg]");
+    vHeader.append("Present End Pose [mm, deg]");
+//    vHeader.append("Command Pos [deg]");
+//    vHeader.append("Desired Pose [mm, deg]");
+//    vHeader.append("Calculate Pose [mm, deg]");
+    vHeader.append("Present Joint Vel [RPM]");
+    vHeader.append("Present Joint Cur [mA]");
+    vHeader.append("Present End Vel [deg/s]");
     model->setVerticalHeaderLabels(vHeader);
 
     pathModel = new QStandardItemModel(1, 5, this);
@@ -404,40 +407,110 @@ void MainWindow::readMessage(){
             componentEnable(true);
         }
     }
-    else if (size == SERVER_TO_CLIENT_LEN)
+    else
     {
-        char *pData = rxData.data();
-        int indx = NRMK_SOCKET_TOKEN_SIZE;
-        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
-        indx += DATA_INDEX_LEN;
+        if (rxData.at(0) == 'N' && rxData.at(1) == 'S'){
+            QByteArrayList rxDataSplit = rxData.split('=');
+            for(int i = 1; i < rxDataSplit.size() - 1; i++){
+                QByteArrayList csvString = rxDataSplit[i].split(',');
+//                qDebug() << (int)csvString.size();
+                if (csvString.size() == 52){
+                    int indx = 0;
+                    dataControl->ServerToClient.t = csvString[indx++].toDouble();
+                    for(int j = 0; j < NUM_JOINT; j++){
+                        dataControl->ServerToClient.presentJointPosition[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_DOF; j++){
+                        dataControl->ServerToClient.presentCartesianPose[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_JOINT; j++){
+                        dataControl->ServerToClient.desiredJointPosition[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_DOF; j++){
+                        dataControl->ServerToClient.desiredCartesianPose[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_DOF; j++){
+                        dataControl->ServerToClient.calculateCartesianPose[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_JOINT; j++){
+                        dataControl->ServerToClient.presentJointVelocity[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_JOINT; j++){
+                        dataControl->ServerToClient.presentJointCurrent[j] = csvString[indx++].toDouble();
+                    }
+                    for(int j = 0; j < NUM_DOF; j++){
+                        dataControl->ServerToClient.presentCartesianVelocity[j] = csvString[indx++].toDouble();
+                    }
+                    dataControl->ServerToClient.time = csvString[indx++].toDouble();
+                    dataControl->ServerToClient.dxl_time = csvString[indx++].toDouble();
+                    dataControl->ServerToClient.ik_time = csvString[indx++].toDouble();
 
-//        qDebug() << dataControl->ServerToClient.data_index;
+                    if (logging_start){
+                        QString logStr;
+                        logStr.push_back(QString::number(dataControl->ServerToClient.t, 'f', 6));
+                        logStr.push_back(",");
+                        for(int i = 0; i < NUM_JOINT; i++){
+                            logStr.push_back(QString::number(dataControl->ServerToClient.presentJointPosition[i], 'f', 6));
+                            logStr.push_back(",");
+                        }
+                        for(int i = 0; i < NUM_DOF; i++){
+                            logStr.push_back(QString::number(dataControl->ServerToClient.presentCartesianPose[i], 'f', 6));
+                            logStr.push_back(",");
+                        }
+                        for(int i = 0; i < NUM_JOINT; i++){
+                            logStr.push_back(QString::number(dataControl->ServerToClient.presentJointVelocity[i], 'f', 6));
+                            logStr.push_back(",");
+                        }
+                        for(int i = 0; i < NUM_DOF; i++){
+                            logStr.push_back(QString::number(dataControl->ServerToClient.presentCartesianVelocity[i], 'f', 6));
+                            logStr.push_back(",");
+                        }
+                        for(int i = 0; i < NUM_JOINT; i++){
+                            logStr.push_back(QString::number(dataControl->ServerToClient.presentJointCurrent[i], 'f', 6));
+                            logStr.push_back(",");
+                        }
+                        for(int i = 0; i < NUM_DOF; i++){
+                            logStr.push_back(QString::number(dataControl->ServerToClient.desiredCartesianPose[i], 'f', 6));
+                            logStr.push_back(",");
+                        }
+                        logStr.push_back("\n");
+                        logger->write(logStr);
+                    }
+                }
+            }
+        }
+//        char *pData = rxData.data();
+//        int indx = NRMK_SOCKET_TOKEN_SIZE;
+//        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
+//        indx += DATA_INDEX_LEN;
 
-        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
-        indx += DATA_INDEX_LEN;
-        memcpy(dataControl->ServerToClient.presentJointPosition, pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
-        indx += JOINT_POSITION_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.presentCartesianPose, pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
-        indx += CARTESIAN_POSE_LEN*NUM_DOF;
-        memcpy(dataControl->ServerToClient.desiredJointPosition, pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
-        indx += JOINT_COMMAND_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.desiredCartesianPose, pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
-        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
-        memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
-        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
-        memcpy(dataControl->ServerToClient.presentJointVelocity, pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
-        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.presentJointCurrent, pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
-        indx += JOINT_CURRENT_LEN*NUM_JOINT;
-        memcpy(dataControl->ServerToClient.presentCartesianVelocity, pData + indx, CARTESIAN_VELOCITY_LEN*NUM_DOF);
-        indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
+////        qDebug() << dataControl->ServerToClient.data_index;
 
-        memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
-        indx += TIME_LEN;
-        memcpy(&dataControl->ServerToClient.dxl_time, pData + indx, TIME_LEN);
-        indx += TIME_LEN;
-        memcpy(&dataControl->ServerToClient.ik_time, pData + indx, TIME_LEN);
-        indx += TIME_LEN;
+//        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
+//        indx += DATA_INDEX_LEN;
+//        memcpy(dataControl->ServerToClient.presentJointPosition, pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
+//        indx += JOINT_POSITION_LEN*NUM_JOINT;
+//        memcpy(dataControl->ServerToClient.presentCartesianPose, pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
+//        indx += CARTESIAN_POSE_LEN*NUM_DOF;
+//        memcpy(dataControl->ServerToClient.desiredJointPosition, pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
+//        indx += JOINT_COMMAND_LEN*NUM_JOINT;
+//        memcpy(dataControl->ServerToClient.desiredCartesianPose, pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
+//        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
+//        memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
+//        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+//        memcpy(dataControl->ServerToClient.presentJointVelocity, pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
+//        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+//        memcpy(dataControl->ServerToClient.presentJointCurrent, pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
+//        indx += JOINT_CURRENT_LEN*NUM_JOINT;
+//        memcpy(dataControl->ServerToClient.presentCartesianVelocity, pData + indx, CARTESIAN_VELOCITY_LEN*NUM_DOF);
+//        indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
+
+//        memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
+//        indx += TIME_LEN;
+//        memcpy(&dataControl->ServerToClient.dxl_time, pData + indx, TIME_LEN);
+//        indx += TIME_LEN;
+//        memcpy(&dataControl->ServerToClient.ik_time, pData + indx, TIME_LEN);
+//        indx += TIME_LEN;
 
         for(int i = 0; i < NUM_JOINT; i++){
             QModelIndex index = model->index(0, i);
@@ -451,33 +524,39 @@ void MainWindow::readMessage(){
             ui->tvRobotInfor->update(index);
         }
 
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            QModelIndex index = model->index(2, i);
+//            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
+
+//        for(int i = 0; i < NUM_DOF; i++){
+//            QModelIndex index = model->index(3, i);
+//            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
+
+//        for(int i = 0; i < NUM_DOF; i++){
+//            QModelIndex index = model->index(4, i);
+//            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
+//            ui->tvRobotInfor->update(index);
+//        }
+
         for(int i = 0; i < NUM_JOINT; i++){
             QModelIndex index = model->index(2, i);
-            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(3, i);
-            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(4, i);
-            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(5, i);
             model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
             ui->tvRobotInfor->update(index);
         }
 
         for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(6, i);
+            QModelIndex index = model->index(3, i);
             model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(4, i);
+            model->setData(index, dataControl->ServerToClient.presentCartesianVelocity[i]*dataControl->RAD2DEG);
             ui->tvRobotInfor->update(index);
         }
 
@@ -870,11 +949,22 @@ void MainWindow::btnLoggingStartClicked()
         data += "Joint Current" + QString::number(i+1) + " [mA]";
         data += ",";
     }
+    data += "End X Cmd [mm],";
+    data += "End Y Cmd [mm],";
+    data += "End Z Cmd [mm],";
+    data += "End Roll Cmd [deg],";
+    data += "End Pitch Cmd [deg],";
+    data += "End Yaw Cmd [deg],";
+    data += "\n";
     logger->write(data);
+    logging_start = true;
+    ui->txtLoggingState->setText("Logging...");
 }
 
 void MainWindow::btnLoggingStopClicked()
 {
     qDebug() << "Logging Stop";
     delete logger;
+    logging_start = false;
+    ui->txtLoggingState->setText("Wait...");
 }
