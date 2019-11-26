@@ -49,6 +49,7 @@ public:
     double Ki[36], Li[6], Li_g[6], Li_c[6], Ki_Di[6], Ki_Di_sum[6];
 
     static void ang2mat(double ang_z1, double ang_x, double ang_z2, double* mat, bool deg_flag = true);
+
 };
 
 class ROBOTARMLIB_EXPORT RobotArm
@@ -78,6 +79,7 @@ public:
 
     double *J;
     void jacobian();
+    double A[9];
 
 private:
     inline void tilde(double *a, double *b) {

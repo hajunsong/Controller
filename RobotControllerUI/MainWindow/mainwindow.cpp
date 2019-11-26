@@ -411,28 +411,26 @@ void MainWindow::readMessage(){
         memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
         indx += DATA_INDEX_LEN;
 
-        qDebug() << dataControl->ServerToClient.data_index;
+//        qDebug() << dataControl->ServerToClient.data_index;
 
-        for (int i = 0; i < dataControl->ServerToClient.data_index; i++){
-            memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
-            indx += DATA_INDEX_LEN;
-            memcpy(dataControl->ServerToClient.presentJointPosition[i], pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
-            indx += JOINT_POSITION_LEN*NUM_JOINT;
-            memcpy(dataControl->ServerToClient.presentCartesianPose[i], pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
-            indx += CARTESIAN_POSE_LEN*NUM_DOF;
-            memcpy(dataControl->ServerToClient.desiredJointPosition[i], pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
-            indx += JOINT_COMMAND_LEN*NUM_JOINT;
-            memcpy(dataControl->ServerToClient.desiredCartesianPose[i], pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
-            indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
-            memcpy(dataControl->ServerToClient.calculateCartesianPose[i], pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
-            indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
-            memcpy(dataControl->ServerToClient.presentJointVelocity[i], pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
-            indx += JOINT_VELOCITY_LEN*NUM_JOINT;
-            memcpy(dataControl->ServerToClient.presentJointCurrent[i], pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
-            indx += JOINT_CURRENT_LEN*NUM_JOINT;
-            memcpy(dataControl->ServerToClient.presentCartesianVelocity[i], pData + indx, CARTESIAN_VELOCITY_LEN*NUM_DOF);
-            indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
-        }
+        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
+        indx += DATA_INDEX_LEN;
+        memcpy(dataControl->ServerToClient.presentJointPosition, pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
+        indx += JOINT_POSITION_LEN*NUM_JOINT;
+        memcpy(dataControl->ServerToClient.presentCartesianPose, pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
+        indx += CARTESIAN_POSE_LEN*NUM_DOF;
+        memcpy(dataControl->ServerToClient.desiredJointPosition, pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
+        indx += JOINT_COMMAND_LEN*NUM_JOINT;
+        memcpy(dataControl->ServerToClient.desiredCartesianPose, pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
+        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
+        memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
+        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
+        memcpy(dataControl->ServerToClient.presentJointVelocity, pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
+        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
+        memcpy(dataControl->ServerToClient.presentJointCurrent, pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
+        indx += JOINT_CURRENT_LEN*NUM_JOINT;
+        memcpy(dataControl->ServerToClient.presentCartesianVelocity, pData + indx, CARTESIAN_VELOCITY_LEN*NUM_DOF);
+        indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
 
         memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
         indx += TIME_LEN;
@@ -441,47 +439,47 @@ void MainWindow::readMessage(){
         memcpy(&dataControl->ServerToClient.ik_time, pData + indx, TIME_LEN);
         indx += TIME_LEN;
 
-//        for(int i = 0; i < NUM_JOINT; i++){
-//            QModelIndex index = model->index(0, i);
-//            model->setData(index, dataControl->ServerToClient.presentJointPosition[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(0, i);
+            model->setData(index, dataControl->ServerToClient.presentJointPosition[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
-//        for(int i = 0; i < NUM_DOF; i++){
-//            QModelIndex index = model->index(1, i);
-//            model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(1, i);
+            model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
-//        for(int i = 0; i < NUM_JOINT; i++){
-//            QModelIndex index = model->index(2, i);
-//            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(2, i);
+            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
-//        for(int i = 0; i < NUM_DOF; i++){
-//            QModelIndex index = model->index(3, i);
-//            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(3, i);
+            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
-//        for(int i = 0; i < NUM_DOF; i++){
-//            QModelIndex index = model->index(4, i);
-//            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(4, i);
+            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
-//        for(int i = 0; i < NUM_JOINT; i++){
-//            QModelIndex index = model->index(5, i);
-//            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(5, i);
+            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
-//        for(int i = 0; i < NUM_JOINT; i++){
-//            QModelIndex index = model->index(6, i);
-//            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(6, i);
+            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
+            ui->tvRobotInfor->update(index);
+        }
 
         ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
         ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));

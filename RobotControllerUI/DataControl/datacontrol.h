@@ -54,11 +54,11 @@ public:
 
     typedef struct _StructServerToClient{
         uint8_t data_index;
-        double presentJointPosition[DATA_MAX_INDX][NUM_JOINT], presentCartesianPose[DATA_MAX_INDX][NUM_DOF];
-        double desiredJointPosition[DATA_MAX_INDX][NUM_JOINT], desiredCartesianPose[DATA_MAX_INDX][NUM_DOF];
-        double calculateCartesianPose[DATA_MAX_INDX][NUM_DOF];
-        double presentJointVelocity[DATA_MAX_INDX][NUM_JOINT], presentJointCurrent[DATA_MAX_INDX][NUM_JOINT];
-        double presentCartesianVelocity[DATA_MAX_INDX][NUM_DOF];
+        double presentJointPosition[NUM_JOINT], presentCartesianPose[NUM_DOF];
+        double desiredJointPosition[NUM_JOINT], desiredCartesianPose[NUM_DOF];
+        double calculateCartesianPose[NUM_DOF];
+        double presentJointVelocity[NUM_JOINT], presentJointCurrent[NUM_JOINT];
+        double presentCartesianVelocity[NUM_DOF];
         double time, dxl_time, ik_time;
     }StructServerToClient;
 

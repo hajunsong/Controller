@@ -233,6 +233,10 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                             dataControl->PathData.point_pitch.push_back(data[i + 5].toDouble());
                             dataControl->PathData.point_yaw.push_back(data[i + 6].toDouble());
                             dataControl->PathData.acc_time.push_back(data[i + 7].toDouble());
+//                            printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
+//                                   data[i].toDouble(), data[i + 1].toDouble(), data[i + 2].toDouble(),
+//                                    data[i + 3].toDouble(), data[i + 4].toDouble(), data[i + 5].toDouble(),
+//                                    data[i + 6].toDouble(), data[i + 7].toDouble());
                         }
                         break;
                     case DataControl::CmdType::ReadyCmd:
