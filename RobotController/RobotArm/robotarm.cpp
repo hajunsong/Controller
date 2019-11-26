@@ -679,7 +679,7 @@ void RobotArm::jacobian()
     Body *body0, *body1;
     Body *body_end = &body[num_body];
 
-#if 0
+#if 1
     double A[9] = {cos(M_PI), -sin(M_PI), 0, sin(M_PI), cos(M_PI), 0, 0, 0, 1};
 
     for (uint indx = 1; indx <= num_body; indx++){
@@ -747,47 +747,53 @@ void RobotArm::jacobian()
         }
     }
 
-    Ae_31 = body_end->Ae[6];
-    Ae_32 = body_end->Ae[7];
-    Ae_33 = body_end->Ae[8];
-    Ae_21 = body_end->Ae[3];
-    Ae_11 = body_end->Ae[0];
+    // Ae_31 = body_end->Ae[6];
+    // Ae_32 = body_end->Ae[7];
+    // Ae_33 = body_end->Ae[8];
+    // Ae_21 = body_end->Ae[3];
+    // Ae_11 = body_end->Ae[0];
 
-    roll_q_temp1 = Ae_32 * Ae_32 + Ae_33 * Ae_33;
-    roll_q_temp2 = sqrt(roll_q_temp1);
-    roll_q_temp3 = Ae_33 + roll_q_temp2;
-    roll_q_temp4 = roll_q_temp2 * (roll_q_temp1 + Ae_33*roll_q_temp2);
+    // roll_q_temp1 = Ae_32 * Ae_32 + Ae_33 * Ae_33;
+    // roll_q_temp2 = sqrt(roll_q_temp1);
+    // roll_q_temp3 = Ae_33 + roll_q_temp2;
+    // roll_q_temp4 = roll_q_temp2 * (roll_q_temp1 + Ae_33*roll_q_temp2);
 
-    pitch_q_temp1 = sqrt(Ae_32*Ae_32 + Ae_33*Ae_33);
-    pitch_q_temp2 = Ae_31 * Ae_31 + pitch_q_temp1 * pitch_q_temp1;
-    pitch_q_temp3 = sqrt(pitch_q_temp2);
-    pitch_q_temp4 = pitch_q_temp3 * (pitch_q_temp2 + pitch_q_temp1 * pitch_q_temp3);
+    // pitch_q_temp1 = sqrt(Ae_32*Ae_32 + Ae_33*Ae_33);
+    // pitch_q_temp2 = Ae_31 * Ae_31 + pitch_q_temp1 * pitch_q_temp1;
+    // pitch_q_temp3 = sqrt(pitch_q_temp2);
+    // pitch_q_temp4 = pitch_q_temp3 * (pitch_q_temp2 + pitch_q_temp1 * pitch_q_temp3);
 
-    yaw_q_temp1 = Ae_21 * Ae_21 + Ae_11 * Ae_11;
-    yaw_q_temp2 = sqrt(yaw_q_temp1);
-    yaw_q_temp3 = Ae_11 + yaw_q_temp2;
-    yaw_q_temp4 = yaw_q_temp2 * (yaw_q_temp1 + Ae_11*yaw_q_temp2);
+    // yaw_q_temp1 = Ae_21 * Ae_21 + Ae_11 * Ae_11;
+    // yaw_q_temp2 = sqrt(yaw_q_temp1);
+    // yaw_q_temp3 = Ae_11 + yaw_q_temp2;
+    // yaw_q_temp4 = yaw_q_temp2 * (yaw_q_temp1 + Ae_11*yaw_q_temp2);
 
-    for (uint indx = 1; indx <= num_body; indx++) {
-        body1 = &body[indx];
-        body1->Ae_qi_31 = body1->Ae_qi[6];
-        body1->Ae_qi_32 = body1->Ae_qi[7];
-        body1->Ae_qi_33 = body1->Ae_qi[8];
-        body1->Ae_qi_21 = body1->Ae_qi[3];
-        body1->Ae_qi_11 = body1->Ae_qi[0];
+    // for (uint indx = 1; indx <= num_body; indx++) {
+    //     body1 = &body[indx];
+    //     body1->Ae_qi_31 = body1->Ae_qi[6];
+    //     body1->Ae_qi_32 = body1->Ae_qi[7];
+    //     body1->Ae_qi_33 = body1->Ae_qi[8];
+    //     body1->Ae_qi_21 = body1->Ae_qi[3];
+    //     body1->Ae_qi_11 = body1->Ae_qi[0];
 
-        body1->roll_qi = (roll_q_temp3*(body1->Ae_qi_32*Ae_33 - Ae_32*body1->Ae_qi_33)) / roll_q_temp4;
-        body1->pitch_qi = -((pitch_q_temp3 + pitch_q_temp1)*(body1->Ae_qi_31*pitch_q_temp1 - Ae_31 * (Ae_32*body1->Ae_qi_32 + Ae_33 * body1->Ae_qi_33)/pitch_q_temp1))/ pitch_q_temp4;
-        body1->yaw_qi = (yaw_q_temp3*(body1->Ae_qi_21*Ae_11 - Ae_21*body1->Ae_qi_11)) / yaw_q_temp4;
+    //     body1->roll_qi = (roll_q_temp3*(body1->Ae_qi_32*Ae_33 - Ae_32*body1->Ae_qi_33)) / roll_q_temp4;
+    //     body1->pitch_qi = -((pitch_q_temp3 + pitch_q_temp1)*(body1->Ae_qi_31*pitch_q_temp1 - Ae_31 * (Ae_32*body1->Ae_qi_32 + Ae_33 * body1->Ae_qi_33)/pitch_q_temp1))/ pitch_q_temp4;
+    //     body1->yaw_qi = (yaw_q_temp3*(body1->Ae_qi_21*Ae_11 - Ae_21*body1->Ae_qi_11)) / yaw_q_temp4;
 
-        Jw[0 * num_body + indx - 1] = body1->roll_qi;
-        Jw[1 * num_body + indx - 1] = body1->pitch_qi;
-        Jw[2 * num_body + indx - 1] = body1->yaw_qi;
-    }
+    //     Jw[0 * num_body + indx - 1] = body1->roll_qi;
+    //     Jw[1 * num_body + indx - 1] = body1->pitch_qi;
+    //     Jw[2 * num_body + indx - 1] = body1->yaw_qi;
+    // }
 #endif
 
-    memcpy(J, Jv, sizeof(double) * 3 * num_body);
-    memcpy(J + 3 * num_body, Jw, sizeof(double) * 3 * num_body);
+    // memcpy(J, Jv, sizeof(double) * 3 * num_body);
+    // memcpy(J + 3 * num_body, Jw, sizeof(double) * 3 * num_body);
+    for(uint i = 0; i < 6; i++){
+        for(uint j = 0; j < 3; i++){
+            J[i*6 + j] = Jv[i*6 + j];
+            J[(i+3)*6 + j] = Jw[i*6 + j];
+        }
+    }
 
     delete[] Jv;
     delete[] Jw;
