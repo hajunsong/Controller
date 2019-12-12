@@ -23,7 +23,7 @@
 
 #define NUM_JOINT               6
 #define NUM_DOF                 6
-#define MODULE_TYPE             1 // 1:FAR V1, 2:SEA
+#define MODULE_TYPE             2 // 1:FAR V1, 2:VAR V2
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
 #define CARTESIAN_POSE_LEN      8
@@ -123,7 +123,7 @@ public:
 
     enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, PathGenerateMode, ReadyMode, RunMode, TorqueIDE};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
-    enum Module{FAR_V1=1, FAR_V2, SEA};
+	enum Module{FAR_V1=1, FAR_V2};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
 

@@ -204,7 +204,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F9:
         {
             QString path = qApp->applicationDirPath();
-            if (path.contains("keti")){
+			if (path.contains("keti") || path.contains("hajun")){
                 static_cast<Ui::MainWindow*>(ui)->cbCartAbs->setChecked(true);
                 double path[6] = {-0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399};
                 static_cast<Ui::MainWindow*>(ui)->txtCCmd1->setText(QString::number(path[0]*1000));
@@ -223,7 +223,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F10:
         {
             QString path = qApp->applicationDirPath();
-            if (path.contains("keti")){
+			if (path.contains("keti") || path.contains("hajun")){
                 if (static_cast<Ui::MainWindow*>(ui)->gbTrajectory->isEnabled()){
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,3);
@@ -248,7 +248,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F11:
         {
             QString path = qApp->applicationDirPath();
-            if (path.contains("keti")){
+			if (path.contains("keti") || path.contains("hajun")){
                 if (static_cast<Ui::MainWindow*>(ui)->gbTrajectory->isEnabled()){
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,6);
@@ -276,7 +276,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F12:
         {
             QString path = qApp->applicationDirPath();
-            if (path.contains("keti")){
+			if (path.contains("keti") || path.contains("hajun")){
 //                if (static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->isHidden()){
 //                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setEnabled(true);
 //                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(false);

@@ -12,7 +12,7 @@
 
 #define NRMK_SOCKET_TOKEN_SIZE  2
 
-#define MODULE_TYPE             1 // 1:FAR, 2:SEA
+//#define MODULE_TYPE             2 // 1:FAR, 2:SEA
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
 #define CARTESIAN_POSE_LEN      8

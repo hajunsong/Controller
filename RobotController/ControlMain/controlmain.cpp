@@ -22,7 +22,7 @@ ControlMain::ControlMain(QObject *parent) : QObject(parent)
     ready_pose = false;
     cartesian_move_flag = false;
 
-    delay_cnt_max = 1000;
+	delay_cnt_max = 0;
     delay_cnt = 0;
 
     connect(this, SIGNAL(disconnectClientSignal()), this, SLOT(disconnectClient()));
@@ -93,15 +93,15 @@ void ControlMain::dxlTimeout(){
                     tcpServer->sendKey('S');
                 }
                 break;
-            case DataControl::Module::SEA:
-                if (!module_init){
-                    module->init();
-                    moduleInitSEA();
-                }
-                else{
-                    tcpServer->sendKey('S');
-                }
-                break;
+			case DataControl::Module::FAR_V2:
+				if (!module_init){
+					printf("Start FAR Module Initilization\n");
+					moduleInitFAR();
+				}
+				else{
+					tcpServer->sendKey('S');
+				}
+				break;
             default:
                 break;
         }

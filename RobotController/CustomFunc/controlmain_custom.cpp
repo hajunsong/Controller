@@ -55,6 +55,10 @@ void ControlMainCustom::robot_run(void *arg)
             pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
                                                            pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
         }
+		else if(MODULE_TYPE == DataControl::Module::FAR_V2){
+			pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
+														   pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
+		}
         pThis->dataControl->RobotData.dxl_time2 = static_cast<unsigned long>(rt_timer_read());
 
         pThis->robotKinematics();
