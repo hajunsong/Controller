@@ -131,5 +131,12 @@ void DataControl::jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
         cur_raw[i] = static_cast<int16_t>(cur_mA[i]*mA2RAW);
-    }
+	}
+}
+
+void DataControl::jointPositionRAD2DEG(double pos_rad[], double pos_deg[])
+{
+	for(int i = 0; i < NUM_JOINT; i++){
+		pos_deg[i] = pos_rad[i]*RAD2DEG;
+	}
 }

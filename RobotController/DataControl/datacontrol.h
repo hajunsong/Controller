@@ -21,8 +21,8 @@
 
 #define DATA_MAX_INDX           30
 
-#define NUM_JOINT               6
-#define NUM_DOF                 6
+#define NUM_JOINT               1
+#define NUM_DOF                 1
 #define MODULE_TYPE             2 // 1:FAR V1, 2:VAR V2
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8
@@ -154,6 +154,7 @@ public:
     void jointVelocityENC2RAD(int32_t vel_enc[], double vel_rad[]);
     void jointCurrentRAW2mA(int16_t cur_raw[], double cur_mA[]);
     void jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[]);
+	void jointPositionRAD2DEG(double pos_rad[], double pos_deg[]);
 
     const double ENC2DEG = 0.088;
     const double DEG2ENC = 11.363636364;

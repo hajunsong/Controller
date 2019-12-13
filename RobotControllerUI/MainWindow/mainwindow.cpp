@@ -473,6 +473,10 @@ void MainWindow::readMessage(){
                             logStr.push_back(QString::number(dataControl->ServerToClient.desiredCartesianPose[i], 'f', 6));
                             logStr.push_back(",");
                         }
+						for(int i = 0; i < NUM_JOINT; i++){
+							logStr.push_back(QString::number(dataControl->ServerToClient.desiredJointPosition[i], 'f', 6));
+							logStr.push_back(",");
+						}
                         logStr.push_back("\n");
                         logger->write(logStr);
                     }
@@ -955,6 +959,10 @@ void MainWindow::btnLoggingStartClicked()
     data += "End Roll Cmd [deg],";
     data += "End Pitch Cmd [deg],";
     data += "End Yaw Cmd [deg],";
+	for (uint i = 0; i < NUM_JOINT; i++){
+		data += "Joint Cmd" + QString::number(i+1) + " [deg]";
+		data += ",";
+	}
     data += "\n";
     logger->write(data);
     logging_start = true;

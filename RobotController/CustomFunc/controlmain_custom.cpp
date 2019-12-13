@@ -72,6 +72,8 @@ void ControlMainCustom::robot_run(void *arg)
         pThis->dataControl->cartesianPoseScaleUp(pThis->dataControl->RobotData.present_end_pose, ServerToClientTemp.presentCartesianPose);
         pThis->dataControl->jointVelocityENC2RPM(pThis->dataControl->RobotData.present_joint_velocity, ServerToClientTemp.presentJointVelocity);
         pThis->dataControl->jointCurrentRAW2mA(pThis->dataControl->RobotData.present_joint_current, ServerToClientTemp.presentJointCurrent);
+		pThis->dataControl->cartesianPoseScaleUp(pThis->dataControl->RobotData.desired_end_pose, ServerToClientTemp.desiredCartesianPose);
+		pThis->dataControl->jointPositionRAD2DEG(pThis->dataControl->RobotData.desired_q, ServerToClientTemp.desiredJointPosition);
         memcpy(ServerToClientTemp.calculateCartesianPose, pThis->dataControl->RobotData.present_cal_end_pose, sizeof(double)*NUM_DOF);
         memcpy(ServerToClientTemp.presentCartesianVelocity, pThis->dataControl->RobotData.present_end_vel, sizeof(double)*NUM_DOF);
 
