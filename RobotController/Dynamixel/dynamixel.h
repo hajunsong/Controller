@@ -109,8 +109,9 @@ public:
     void getPresentVelocity(uint8_t ID, int32_t *present_velocity_ptr);
     void getPresentCurrent(uint8_t ID, int16_t *present_current_ptr);
 
-    void initGroupSyncReadIndirectAddress(uint8_t ID);
-    void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint);
+	void initGroupSyncReadIndirectAddress(uint8_t ID);
+	void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint);
+	void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint, uint8_t ID);
 
     void initGroupSyncWriteIndirectAddress(uint8_t ID);
     void setGroupSyncWriteIndirectAddress(uint8_t *torque_enable, int32_t *goal_position, int16_t *goal_current, uint8_t num_joint);
@@ -135,6 +136,8 @@ enum JointOpMode{ current_mode = 0, velocity_mode, position_mode = 3, extended_p
 
 const double TORQUE_CONSTANT_W270 = 2.8;
 const double TORQUE_CONSTANT_W150 = 1.65;
+const double TORQUE_CONSTANT_V270 = 8.0;
+const double TORQUE_CONSTANT_V350 = 4.7;
 
 }
 

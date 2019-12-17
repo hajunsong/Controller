@@ -1,14 +1,16 @@
 #include "Input/keyinputclass.h"
 #include "MainWindow/mainwindow.h"
 #include "ui_mainwindow.h"
+#include "TcpSocket/tcpclient.h"
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
 
-KeyInputClass::KeyInputClass(void* _ui)
+KeyInputClass::KeyInputClass(void* _ui, void* _tcp)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
+	tcp = static_cast<TcpClient*>(_tcp);
 
-    keynone = new KeyinputNoModifiedClass(ui);
+	keynone = new KeyinputNoModifiedClass(ui, tcp);
 //    keyalt = new KeyinputAltClass(ui);
 //    keyctrl = new KeyinputControlClass(ui);
 //    keyshift = new KeyinputShiftClass(ui);

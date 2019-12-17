@@ -21,8 +21,8 @@
 
 #define DATA_MAX_INDX           30
 
-#define NUM_JOINT               1
-#define NUM_DOF                 1
+#define NUM_JOINT               6
+#define NUM_DOF                 6
 #define MODULE_TYPE             2 // 1:FAR V1, 2:VAR V2
 #define DATA_INDEX_LEN          1
 #define JOINT_POSITION_LEN      8

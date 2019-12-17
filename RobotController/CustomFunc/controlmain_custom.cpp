@@ -46,23 +46,40 @@ void ControlMainCustom::robot_run(void *arg)
                 break;
             case DataControl::OpMode::RunMode:
                 pThis->robotRun();
+				break;
+			case DataControl::OpMode::TorqueIDE:
+				pThis->robotSPGC();
                 break;
             default : break;
         }
 
         pThis->dataControl->RobotData.dxl_time1 = static_cast<unsigned long>(rt_timer_read());
-        if (MODULE_TYPE == DataControl::Module::FAR_V1){
-            pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
-                                                           pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
-        }
-		else if(MODULE_TYPE == DataControl::Module::FAR_V2){
-			pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
-														   pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
+		if (NUM_JOINT == 6){
+			if (MODULE_TYPE == DataControl::Module::FAR_V1){
+				pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
+															   pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
+			}
+			else if(MODULE_TYPE == DataControl::Module::FAR_V2){
+				pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
+															   pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
+			}
+
+		}
+		else if(NUM_JOINT == 1){
+			pThis->module->getGroupSyncReadIndirectAddress(&pThis->dataControl->RobotData.present_joint_position[0],
+														   &pThis->dataControl->RobotData.present_joint_velocity[0],
+														   &pThis->dataControl->RobotData.present_joint_current[0], NUM_JOINT, pThis->module->single_id);
+//			rt_printf("[ID:%03d] Pos=%d, Vel=%d, Cur=%d\n", pThis->module->single_id,
+//								  pThis->dataControl->RobotData.present_joint_position[0],
+//								  pThis->dataControl->RobotData.present_joint_velocity[0],
+//								  pThis->dataControl->RobotData.present_joint_current[0]);
 		}
         pThis->dataControl->RobotData.dxl_time2 = static_cast<unsigned long>(rt_timer_read());
 
-        pThis->robotKinematics();
-        pThis->robotDynamics();
+		if (NUM_JOINT == 6){
+			pThis->robotKinematics();
+			pThis->robotDynamics();
+		}
 
         ServerToClientTemp.data_index = pThis->data_indx;
 

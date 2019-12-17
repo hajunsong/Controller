@@ -105,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->btnRun->setEnabled(false);
     ui->btnReady->setEnabled(false);
 
-    keyInputClass = new KeyInputClass(ui);
+	keyInputClass = new KeyInputClass(ui, tcpClient);
 
     ui->tabWidget->setCurrentIndex(0);
 

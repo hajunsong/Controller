@@ -12,26 +12,28 @@ TEMPLATE = app
 CONFIG += c++11
 
 SOURCES += \
-        DataControl/datacontrol.cpp \
-        FileIO/fileio.cpp \
-        Logger/logger.cpp \
-        Settings/customsettings.cpp \
-        TcpSocket/tcpclient.cpp \
-        Input/keyinputclass.cpp \
-        Input/keyinputnomodifiedclass.cpp \
-        MainWindow/mainwindow.cpp \
-        main.cpp \
+    DataControl/datacontrol.cpp \
+    FileIO/fileio.cpp \
+    Logger/logger.cpp \
+    Settings/customsettings.cpp \
+    TcpSocket/tcpclient.cpp \
+    Input/keyinputclass.cpp \
+    Input/keyinputnomodifiedclass.cpp \
+    MainWindow/mainwindow.cpp \
+    TorqueID/torqueid.cpp \
+    main.cpp \
 
 HEADERS += \
-        DataControl/datacontrol.h \
-        FileIO/fileio.h \
-        Logger/logger.h \
-        Settings/customsettings.h \
-        TcpSocket/tcpclient.h \
-        Input/keyinputclass.h \
-        Input/keyinputnomodifiedclass.h \
-        MainWindow/mainwindow.h \
+    DataControl/datacontrol.h \
+    FileIO/fileio.h \
+    Logger/logger.h \
+    Settings/customsettings.h \
+    TcpSocket/tcpclient.h \
+    Input/keyinputclass.h \
+    Input/keyinputnomodifiedclass.h \
+    MainWindow/mainwindow.h \
+    TorqueID/torqueid.h \
 
 FORMS += \
-        MainWindow/mainwindow.ui \
-        TorqueIde/torqueide.ui \
+    MainWindow/mainwindow.ui \
+    TorqueID/torqueid.ui \

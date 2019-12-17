@@ -86,7 +86,7 @@ void ControlMain::dxlTimeout(){
         switch(MODULE_TYPE){
             case DataControl::Module::FAR_V1:
                 if (!module_init){
-                    printf("Start FAR Module Initilization\n");
+					printf("Start FAR V1 Module Initilization\n");
                     moduleInitFAR();
                 }
                 else{
@@ -95,7 +95,7 @@ void ControlMain::dxlTimeout(){
                 break;
 			case DataControl::Module::FAR_V2:
 				if (!module_init){
-					printf("Start FAR Module Initilization\n");
+					printf("Start FAR V2 Module Initilization\n");
 					moduleInitFAR();
 				}
 				else{
@@ -367,13 +367,22 @@ void ControlMain::robotDynamics(){
     double goal_current[NUM_JOINT] = {0,};
     double alpha = 1.0;
     for(uint i = 0; i < NUM_JOINT; i++){
+#if MODULE_TYPE == 1
         if (i < 3){
             goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W270)*alpha;
         }
         else{
             goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W150)*alpha;
         }
-    }
+#elif MODULE_TYPE == 2
+		if (i < 3){
+			goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V270)*alpha;
+		}
+		else{
+			goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V350)*alpha;
+		}
+#endif
+	}
 
 //    rt_printf("Desired Torque : %f, %f, %f, %f, %f, %f\n", goal_torque[0], goal_torque[1], goal_torque[2], goal_torque[3], goal_torque[4], goal_torque[5]);
 
@@ -1025,26 +1034,26 @@ void ControlMain::robotRun()
     }
 }
 
-void ControlMain::robotPositionControl()
+void ControlMain::robotSPGC()
 {
-    dataControl->PIDControl.Kp = 2700;
-    dataControl->PIDControl.Kd = 50;
-    dataControl->PIDControl.Ki = 200;
+//	dataControl->PIDControl.Kp = 10;
+//	dataControl->PIDControl.Kd = 0;
+//	dataControl->PIDControl.Ki = 0;
 
-    dataControl->PIDControl.h = 0.005;
-    dataControl->PIDControl.des = 90*M_PI/180.0;
+//    dataControl->PIDControl.h = 0.005;
+//    dataControl->PIDControl.des = 90*M_PI/180.0;
 
-    double present_position = 0;
-    dataControl->jointPositionENC2RAD(&dataControl->RobotData.present_joint_position[0], &present_position);
-    dataControl->PIDControl.err = dataControl->PIDControl.des - present_position;
+	double present_position = 0;
+	dataControl->jointPositionENC2RAD(&dataControl->RobotData.present_joint_position[0], &present_position);
+//    dataControl->PIDControl.err = dataControl->PIDControl.des - present_position;
 
-    dataControl->PIDControl.err_accum += dataControl->PIDControl.err*dataControl->PIDControl.h;
+//    dataControl->PIDControl.err_accum += dataControl->PIDControl.err*dataControl->PIDControl.h;
 
-    double T = dataControl->PIDControl.err*dataControl->PIDControl.Kp
-            + (dataControl->PIDControl.err - dataControl->PIDControl.err_prev)/dataControl->PIDControl.h*dataControl->PIDControl.Kd
-            + dataControl->PIDControl.err_accum*dataControl->PIDControl.Ki;
+//    double T = dataControl->PIDControl.err*dataControl->PIDControl.Kp
+//            + (dataControl->PIDControl.err - dataControl->PIDControl.err_prev)/dataControl->PIDControl.h*dataControl->PIDControl.Kd
+//            + dataControl->PIDControl.err_accum*dataControl->PIDControl.Ki;
 
-    T = dataControl->torqueIdeData.mass*(9.80665)*0.2*sin(present_position);
+	double T = dataControl->torqueIdeData.mass*(9.80665)*0.2*sin(present_position);
 
     double current = 0;
 //    double Kt = 1.65;
@@ -1056,9 +1065,9 @@ void ControlMain::robotPositionControl()
 
     module->setGroupSyncWriteGoalCurrent(&goal_current, NUM_JOINT);
 
-    printf("Present Pos : %f, Goal Toruqe : %f, Dxl Current : %d\n", present_position*180/M_PI, T, goal_current);
+	printf("Present Pos : %f, Goal Toruqe : %f, Dxl Current : %d\n", present_position*180/M_PI,T, goal_current);
 
-    dataControl->PIDControl.err_prev = dataControl->PIDControl.err;
+//    dataControl->PIDControl.err_prev = dataControl->PIDControl.err;
 }
 
 void ControlMain::goalReach(double desired_pose[], double present_pose[], bool *goal_reach)

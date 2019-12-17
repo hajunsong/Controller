@@ -47,6 +47,7 @@ public:
     void robotPathGenerate();
     void robotRun();
     void robotReady();
+	void robotSPGC();
 
     DxlControl *module;
     char data_indx;
@@ -61,8 +62,7 @@ private:
     void moduleInitSEA();
     void moduleInitFAR();
     bool module_init;
-    bool old_end_pose_update;
-    void robotPositionControl();
+	bool old_end_pose_update;
 
     void goalReach(double desired_pose[NUM_DOF], double present_pose[NUM_DOF], bool *goal_reach);
     void path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path);

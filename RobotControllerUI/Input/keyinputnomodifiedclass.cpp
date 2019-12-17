@@ -2,10 +2,12 @@
 #include "MainWindow/mainwindow.h"
 #include "ui_mainwindow.h"
 #include "MainWindow/mainwindow.h"
+#include "TorqueID/torqueid.h"
 
-KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui)
+KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui, void* _tcp)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
+	tcp = static_cast<TcpClient*>(_tcp);
 }
 
 void KeyinputNoModifiedClass::FuncKeyInput(QKeyEvent* keys)
@@ -277,14 +279,8 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         {
             QString path = qApp->applicationDirPath();
 			if (path.contains("keti") || path.contains("hajun")){
-//                if (static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->isHidden()){
-//                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setEnabled(true);
-//                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(false);
-//                }
-//                else{
-//                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setEnabled(false);
-//                    static_cast<Ui::MainWindow*>(ui)->gbTorqueIDE->setHidden(true);
-//                }
+				TorqueID *torqueID = new TorqueID(tcp);
+				torqueID->show();
             }
             break;
         }

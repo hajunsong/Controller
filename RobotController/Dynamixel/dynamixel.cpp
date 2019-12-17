@@ -637,3 +637,59 @@ void DxlControl::getGroupSyncReadIndirectAddress(int32_t *present_position, int3
 
     groupSyncRead.clearParam();
 }
+
+void DxlControl::getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint, uint8_t ID){
+	// Syncread present data from indirectdata
+	dynamixel::GroupSyncRead groupSyncRead(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_READ, LEN_INDIRECTADDRESS_FOR_READ);
+
+	bool dxl_addparam_result = false;	// addParam result
+
+//	for(uint8_t ID = 0; ID < num_joint; ID++){
+		// Add parameter storage
+		dxl_addparam_result = groupSyncRead.addParam(ID);
+		if (dxl_addparam_result != true)
+		{
+			printf("[ID:%03d] groupSyncRead add param failed", ID);
+		}
+//	}
+
+	// Syncread present data from indirectdata
+	dxl_comm_result = groupSyncRead.txRxPacket();
+	if (dxl_comm_result != COMM_SUCCESS) {
+		printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+		return;
+	}
+
+	// Check if groupsyncread data of Dyanamixel is available
+	int dxl_getdata_result = 0;
+	dxl_getdata_result = groupSyncRead.isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION);
+	if (dxl_getdata_result != true)
+	{
+		fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+	}
+
+	// Check if groupsyncread data of Dyanamixel is available
+	dxl_getdata_result = groupSyncRead.isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY);
+	if (dxl_getdata_result != true)
+	{
+		fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+	}
+
+	// Check if groupsyncread data of Dyanamixel is available
+	dxl_getdata_result = groupSyncRead.isAvailable(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT);
+	if (dxl_getdata_result != true)
+	{
+		fprintf(stderr, "[ID:%03d] groupSyncRead getdata failed", ID);
+	}
+
+	// Get Dynamixel present position value
+	*present_position = static_cast<int32_t>(groupSyncRead.getData(ID, ADDR_INDIRECTDATA_FOR_READ, LEN_PRESENT_POSITION));
+
+	// Get Dynamixel present velocity value
+	*present_velocity = static_cast<int32_t>(groupSyncRead.getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION, LEN_PRESENT_VELOCITY));
+
+	// Get Dynamixel present current value
+	*present_current = static_cast<int16_t>(groupSyncRead.getData(ID, ADDR_INDIRECTDATA_FOR_READ + LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY, LEN_PRESENT_CURRENT));
+
+	groupSyncRead.clearParam();
+}
