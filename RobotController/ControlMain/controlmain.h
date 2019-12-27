@@ -48,11 +48,15 @@ public:
     void robotRun();
     void robotReady();
 	void robotSPGC();
+    void robotOperate();
 
     DxlControl *module;
     char data_indx;
 
     NRMKHelper::TcpServer *tcpServer;
+
+    void getPresentEnc(int32_t enc[NUM_JOINT]);
+    void setOffsetEnc(int32_t enc[NUM_JOINT]);
 private:
     QTimer *dxlTimer;
     void robot_RT();

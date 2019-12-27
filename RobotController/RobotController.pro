@@ -1,5 +1,6 @@
 QT -= gui
-QT += core network
+QT += core network \
+    widgets
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -18,6 +19,7 @@ SOURCES += main.cpp \
     RobotArm/numerical.cpp \
     Input/keyinput.cpp \
     FileIO/fileio.cpp \
+    Settings/customsettings.cpp \
     CustomFunc/tcpserver_custom.cpp \
     CustomFunc/controlmain_custom.cpp \
 
@@ -30,6 +32,7 @@ HEADERS += \
     RobotArm/numerical.h \
     Input/keyinput.h \
     FileIO/fileio.h \
+    Settings/customsettings.h \
     CustomFunc/tcpserver_custom.h \
     CustomFunc/controlmain_custom.h \
 

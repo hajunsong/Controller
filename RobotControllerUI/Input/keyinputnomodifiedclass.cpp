@@ -3,11 +3,12 @@
 #include "ui_mainwindow.h"
 #include "MainWindow/mainwindow.h"
 #include "TorqueID/torqueid.h"
+#include "OperateUI/operateui.h"
 
 KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui, void* _tcp)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
-	tcp = static_cast<TcpClient*>(_tcp);
+    tcp = static_cast<TcpClient*>(_tcp);
 }
 
 void KeyinputNoModifiedClass::FuncKeyInput(QKeyEvent* keys)
@@ -199,14 +200,17 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
             break;
 
         case Qt::Key_F8:
-
+        {
+            OperateUI *operateUI = new OperateUI(tcp);
+            operateUI->show();
+        }
 
             break;
 
         case Qt::Key_F9:
         {
             QString path = qApp->applicationDirPath();
-			if (path.contains("keti") || path.contains("hajun")){
+            if (path.contains("keti") || path.contains("hajun")){
                 static_cast<Ui::MainWindow*>(ui)->cbCartAbs->setChecked(true);
                 double path[6] = {-0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399};
                 static_cast<Ui::MainWindow*>(ui)->txtCCmd1->setText(QString::number(path[0]*1000));
@@ -225,7 +229,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F10:
         {
             QString path = qApp->applicationDirPath();
-			if (path.contains("keti") || path.contains("hajun")){
+            if (path.contains("keti") || path.contains("hajun")){
                 if (static_cast<Ui::MainWindow*>(ui)->gbTrajectory->isEnabled()){
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,3);
@@ -250,7 +254,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F11:
         {
             QString path = qApp->applicationDirPath();
-			if (path.contains("keti") || path.contains("hajun")){
+            if (path.contains("keti") || path.contains("hajun")){
                 if (static_cast<Ui::MainWindow*>(ui)->gbTrajectory->isEnabled()){
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->removeRows(0, static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->rowCount());
                     static_cast<Ui::MainWindow*>(ui)->tvPathData->model()->insertRows(0,6);
@@ -278,9 +282,9 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         case Qt::Key_F12:
         {
             QString path = qApp->applicationDirPath();
-			if (path.contains("keti") || path.contains("hajun")){
-				TorqueID *torqueID = new TorqueID(tcp);
-				torqueID->show();
+            if (path.contains("keti") || path.contains("hajun")){
+                TorqueID *torqueID = new TorqueID(tcp);
+                torqueID->show();
             }
             break;
         }

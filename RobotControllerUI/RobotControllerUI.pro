@@ -21,6 +21,7 @@ SOURCES += \
     Input/keyinputnomodifiedclass.cpp \
     MainWindow/mainwindow.cpp \
     TorqueID/torqueid.cpp \
+    OperateUI/operateui.cpp \
     main.cpp \
 
 HEADERS += \
@@ -33,7 +34,9 @@ HEADERS += \
     Input/keyinputnomodifiedclass.h \
     MainWindow/mainwindow.h \
     TorqueID/torqueid.h \
+    OperateUI/operateui.h \
 
 FORMS += \
     MainWindow/mainwindow.ui \
+    OperateUI/operateui.ui \
     TorqueID/torqueid.ui \

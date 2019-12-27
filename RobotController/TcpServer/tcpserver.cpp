@@ -295,11 +295,21 @@ void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
                 dataControl->torqueIdeData.mass = atof(buf);
                 indx += MASS_LEN;
                 memcpy(buf, lpBuffer + indx, TORQUE_CONST_LEN);
-                dataControl->torqueIdeData.torque_constant =atof(buf);
+                dataControl->torqueIdeData.torque_constant = atof(buf);
                 indx += TORQUE_CONST_LEN;
 
                 printf("Mode : %d, Mass : %f, Torque Const : %f\n",
                        dataControl->ClientToServer.opMode, dataControl->torqueIdeData.mass, dataControl->torqueIdeData.torque_constant);
+            }
+            else if(lpBuffer[0] == 'N' && lpBuffer[1] == 'O'){
+                int indx = NRMK_SOCKET_TOKEN_SIZE;
+                dataControl->ClientToServer.opMode = static_cast<char>(lpBuffer[indx]);
+                indx += OP_MODE_LEN;
+                dataControl->operateMode.mode = static_cast<char>(lpBuffer[indx]);
+                indx += SUB_MODE_LEN;
+                dataControl->operateMode.section = static_cast<char>(lpBuffer[indx]);
+
+                printf("Mode : %d, Sub Mode : %d, Section : %d\n", dataControl->ClientToServer.opMode, dataControl->operateMode.mode, dataControl->operateMode.section);
             }
             else {
                 data_corrected = false;

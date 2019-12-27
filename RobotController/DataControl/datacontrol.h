@@ -87,6 +87,7 @@ public:
         int16_t command_joint_current[NUM_JOINT];
         unsigned long time1, time2, dxl_time1, dxl_time2, ik_time1, ik_time2;
         int32_t offset[6];
+        bool offset_setting;
         uint8_t joint_op_mode;
         uint8_t run_mode;
         double present_end_vel[NUM_DOF];
@@ -107,6 +108,7 @@ public:
         uint path_data_indx;
         uint8_t path_struct_indx;
         std::vector<double> file_data;
+        double teaching_pose[NUM_JOINT];
     }StructPathData;
 
     typedef struct _StructTorqueIDEData{
@@ -121,11 +123,18 @@ public:
         double h;
     }StructControllerPID;
 
-    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, PathGenerateMode, ReadyMode, RunMode, TorqueIDE};
+    typedef struct _StructOperateMode{
+        int mode;
+        int section;
+    }StructOperateMode;
+
+    enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, PathGenerateMode, ReadyMode, RunMode, TorqueID, OperateMode};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
 	enum Module{FAR_V1=1, FAR_V2};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
+    enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding};
+    enum Section{Side1=1, Side2, Side3, Rise, Soup, Mouse};
 
     bool config_check;
     bool cartesian_goal_reach;
@@ -138,9 +147,10 @@ public:
     StructClientToServer ClientToServer;
     std::vector<StructServerToClient> ServerToClient;
     StructRobotData RobotData;
-    StructPathData PathData;
+    StructPathData PathData, side1_motion, side2_motion, side3_motion, rise_motion, soup_motion;
     StructTorqueIDEData torqueIdeData;
     StructControllerPID PIDControl;
+    StructOperateMode operateMode;
 
     void jointPositionENC2DEG(int32_t pos_enc[], double pos_deg[]);
     void jointPositionENC2RAD(int32_t pos_enc[], double pos_rad[]);
@@ -164,6 +174,10 @@ public:
     const double RPM2DEG = 6;
     const double RAW2mA = 2.69;
     const double mA2RAW = 0.371747212;
+
+    const double operateReadyJoint[6] = {0.74944438, 0.40421825, -2.0655972, -1.6613789, 0.82135195, 4.9567636E-17};
+    const double operateReadyPose[6] = {-0.21011225, 0.13552308, 0.12537458, 1.5707963, -2.3671582E-15, -1.5707963};
+    const double operateFeedingReadyPose[6] = {-0.21011225, 0.13552308, 0.12537459, 1.5642233, -0.78231204, -1.5661557};
 
 //    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};
 };

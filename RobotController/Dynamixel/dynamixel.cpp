@@ -146,12 +146,12 @@ int DxlControl::dxl_init(uint8_t ID, uint8_t operating_mode)
             break;
     }
 
-	packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 280, &dxl_error); // df : 0
-	packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 80, &dxl_error); // df : 0
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, 80, &dxl_error); // df : 0
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, 30, &dxl_error); // df : 0
 
-	packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 300, &dxl_error); // df : 300
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_VELOCITY_LIMIT, 100, &dxl_error); // df : 300
 
-    //         packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 1500, &dxl_error); // df : 800
+    packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_P_GAIN, 300, &dxl_error); // df : 800
     // packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_D_GAIN, 0, &dxl_error); // df : 0
     //     packetHandler->write2ByteTxRx(portHandler, ID, ADDR_POSITION_I_GAIN, 50, &dxl_error); // df : 0
 
@@ -334,6 +334,30 @@ void DxlControl::setGroupSyncWriteTorqueEnable(uint8_t enable, uint8_t num_joint
     for (uint8_t i = 0; i < num_joint; i++) {
         // Add Dynamixel#n goal position value to the Syncwrite storage
         dxl_addparam_result = groupSyncWrite.addParam(num_joint == 1 ? single_id : i, &enable);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", num_joint == 1 ? single_id : i);
+            return;
+        }
+    }
+
+    // Syncwrite goal position
+    dxl_comm_result = groupSyncWrite.txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+    // Clear syncwrite parameter storage
+    groupSyncWrite.clearParam();
+}
+
+void DxlControl::setGroupSyncWriteOperatingMode(uint8_t mode, uint8_t num_joint)
+{
+    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_OPERATING_MODE, LEN_OPERATING_MODE);
+    bool dxl_addparam_result = false;	// addParam result
+
+    for (uint8_t i = 0; i < num_joint; i++) {
+        // Add Dynamixel#n goal position value to the Syncwrite storage
+        dxl_addparam_result = groupSyncWrite.addParam(num_joint == 1 ? single_id : i, &mode);
         if (dxl_addparam_result != true)
         {
             fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", num_joint == 1 ? single_id : i);

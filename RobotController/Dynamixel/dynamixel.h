@@ -59,6 +59,7 @@ const uint8_t LEN_PRESENT_VELOCITY = 4;
 const uint8_t LEN_PRESENT_CURRENT = 2;
 const uint8_t LEN_INDIRECTADDRESS_FOR_READ = LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY + LEN_PRESENT_CURRENT;
 const uint8_t LEN_TORQUE_ENABLE = 1;
+const uint8_t LEN_OPERATING_MODE = 1;
 const uint8_t LEN_GOAL_POSITION = 4;
 const uint8_t LEN_GOAL_CURRENT = 2;
 const uint8_t LEN_INDIRECTADDRESS_FOR_WRITE = LEN_TORQUE_ENABLE + LEN_GOAL_POSITION + LEN_GOAL_CURRENT;
@@ -117,6 +118,7 @@ public:
     void setGroupSyncWriteIndirectAddress(uint8_t *torque_enable, int32_t *goal_position, int16_t *goal_current, uint8_t num_joint);
 
     void setGroupSyncWriteTorqueEnable(uint8_t enable, uint8_t num_joint);
+    void setGroupSyncWriteOperatingMode(uint8_t enable, uint8_t num_joint);
     void setGroupSyncWriteGoalPosition(int32_t *goalPosition, uint8_t num_joint);
     void setGroupSyncWriteGoalCurrent(int16_t *goalCurrent, uint8_t num_joint);
 

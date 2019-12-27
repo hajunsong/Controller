@@ -19,7 +19,7 @@ void TorqueID::sbTorqueConstEditingFinished()
 	txData.append(Qt::Key_N);
 	txData.append(Qt::Key_T);
 
-	txData.append(DataControl::OpMode::TorqueIDE);
+    txData.append(DataControl::OpMode::TorqueID);
 	txData.append(QByteArray::number(ui->sbMass->value(), 'f', 6));
 	txData.append(QByteArray::number(ui->sbTorqueConst->value(), 'f', 6));
 
