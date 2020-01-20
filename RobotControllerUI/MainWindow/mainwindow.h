@@ -20,6 +20,8 @@
 #include "FileIO/fileio.h"
 #include "Input/keyinputclass.h"
 #include "Logger/logger.h"
+#include "OperateUI/operateui.h"
+#include "TorqueID/torqueid.h"
 
 namespace Ui {
 class MainWindow;
@@ -57,6 +59,9 @@ private:
 
     Logger *logger;
     bool logging_start;
+
+    OperateUI *operateUI;
+    TorqueID *torqueID;
 
 public slots:
     // button event

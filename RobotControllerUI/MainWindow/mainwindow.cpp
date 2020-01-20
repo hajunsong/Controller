@@ -99,13 +99,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     cmdCartRel = false;
     cmdCartAbs = false;
 
-    customSettings = new CustomSettings(ui);
-    customSettings->loadConfigFile();
-
     ui->btnRun->setEnabled(false);
     ui->btnReady->setEnabled(false);
 
-	keyInputClass = new KeyInputClass(ui, tcpClient);
+    operateUI = new OperateUI(tcpClient);
+    torqueID = new TorqueID(tcpClient);
+
+    keyInputClass = new KeyInputClass(ui, operateUI, torqueID);
 
     ui->tabWidget->setCurrentIndex(0);
 
@@ -121,6 +121,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnLoggingStart, SIGNAL(clicked()), this, SLOT(btnLoggingStartClicked()));
     connect(ui->btnLoggingStop, SIGNAL(clicked()), this, SLOT(btnLoggingStopClicked()));
     logging_start = false;
+
+    customSettings = new CustomSettings(ui, operateUI->ui);
+    customSettings->loadConfigFile();
 }
 
 MainWindow::~MainWindow()
@@ -133,6 +136,7 @@ MainWindow::~MainWindow()
     delete dataControl;
     delete customSettings;
     delete keyInputClass;
+    delete operateUI;
 }
 
 void MainWindow::btnConnectClicked(){

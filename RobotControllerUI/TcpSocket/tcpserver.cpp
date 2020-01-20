@@ -33,7 +33,7 @@ void TcpServer::incomingConnection(qintptr socketDescriptor) {
 		return;
 	}
 
-	emit connectedClient();
+    emit connectedClient();
 	// connect socket and signal
 	// note - Qt::DirectConnection is used because it's multithreaded
 	//        This makes the slot to be invoked immediately, when the signal is emitted.

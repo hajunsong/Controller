@@ -1,16 +1,17 @@
 #include "Input/keyinputclass.h"
 #include "MainWindow/mainwindow.h"
 #include "ui_mainwindow.h"
-#include "TcpSocket/tcpclient.h"
+#include "OperateUI/operateui.h"
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
 
-KeyInputClass::KeyInputClass(void* _ui, void* _tcp)
+KeyInputClass::KeyInputClass(void* _ui, void* _ui_op, void* _torque_id)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
-	tcp = static_cast<TcpClient*>(_tcp);
+    ui_op = static_cast<OperateUI*>(_ui_op);
+    torque_id = static_cast<TorqueID*>(_torque_id);
 
-	keynone = new KeyinputNoModifiedClass(ui, tcp);
+    keynone = new KeyinputNoModifiedClass(ui, ui_op, torque_id);
 //    keyalt = new KeyinputAltClass(ui);
 //    keyctrl = new KeyinputControlClass(ui);
 //    keyshift = new KeyinputShiftClass(ui);
@@ -18,7 +19,6 @@ KeyInputClass::KeyInputClass(void* _ui, void* _tcp)
 //    keyshiftalt = new KeyinputShiftAltClass(ui);
 //    keyctrlalt = new KeyinputCtrlAltClass(ui);
 //    keypad = new KeyinputKeypadClass(ui);
-
 }
 
 void KeyInputClass::InputKeyboard(QKeyEvent* keyevt)

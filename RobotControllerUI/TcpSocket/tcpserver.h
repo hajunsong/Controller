@@ -17,7 +17,7 @@ public:
 
 signals:
 	void error(QTcpSocket::SocketError socketerror);
-	void connectedClient();
+    void connectedClient();
 
 protected:
 	void incomingConnection(qintptr socketDescriptor);

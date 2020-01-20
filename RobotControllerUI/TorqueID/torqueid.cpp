@@ -10,7 +10,6 @@ TorqueID::TorqueID(void* _tcp, QWidget *parent) : QMainWindow(parent), ui(new Ui
 }
 
 TorqueID::~TorqueID(){
-
 }
 
 void TorqueID::sbTorqueConstEditingFinished()

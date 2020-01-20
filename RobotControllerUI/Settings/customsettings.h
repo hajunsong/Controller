@@ -9,11 +9,12 @@
 
 class CustomSettings : public QSettings{
 public:
-    CustomSettings(void* _ui);
+    CustomSettings(void* _ui, void* _ui_op);
     void saveConfigFile();
     void loadConfigFile();
     QString configFile();
 
 private:
     void *ui;
+    void *ui_op;
 };

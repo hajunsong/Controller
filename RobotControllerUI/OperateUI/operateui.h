@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QWidget>
+#include <QDateTime>
 
 #include "TcpSocket/tcpclient.h"
 #include "TcpSocket/tcpserver.h"
@@ -17,6 +18,8 @@ class OperateUI : public QWidget
     Q_OBJECT
 public:
     explicit OperateUI(void *_tcpClient, QWidget *parent = nullptr);
+    ~OperateUI();
+    Ui::OperateUI *ui;
 
 public slots:
     // button event
@@ -28,11 +31,17 @@ public slots:
     void btnSide3Clicked();
     void btnRiseClicked();
     void btnSoupClicked();
+    void btnListenClicked();
+
+    // TcpSocket event
+    void readMessage();
+    void connected();
+    void disconnected();
 
 private:
-    Ui::OperateUI *ui;
     void *tcpClient;
     QByteArray txData;
+    TcpServer *tcpServer;
 
     void componentEnable(bool enable);
     void sendDataToServer(char *data);

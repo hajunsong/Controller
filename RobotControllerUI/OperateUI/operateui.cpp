@@ -4,17 +4,25 @@
 OperateUI::OperateUI(void* _tcpClient, QWidget *parent) : QWidget(parent), ui(new Ui::OperateUI)
 {
     ui->setupUi(this);
-//    this->setWindowTitle("Operate UI");
     tcpClient = static_cast<TcpClient*>(_tcpClient);
 
-//    connect(ui->btnTeaching, SIGNAL(clicked()), this, SLOT(btnTeachingClicked()));
-//    connect(ui->btnFeeding, SIGNAL(clicked()), this, SLOT(btnFeedingClicked()));
-//    connect(ui->btnSide1, SIGNAL(clicked()), this, SLOT(btnSide1Clicked()));
-//    connect(ui->btnSide2, SIGNAL(clicked()), this, SLOT(btnSide2Clicked()));
-//    connect(ui->btnSide3, SIGNAL(clicked()), this, SLOT(btnSide3Clicked()));
-//    connect(ui->btnRise, SIGNAL(clicked()), this, SLOT(btnRiseClicked()));
-//    connect(ui->btnSoup, SIGNAL(clicked()), this, SLOT(btnSoupClicked()));
-//    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClciked()));
+    connect(ui->btnTeaching, SIGNAL(clicked()), this, SLOT(btnTeachingClicked()));
+    connect(ui->btnFeeding, SIGNAL(clicked()), this, SLOT(btnFeedingClicked()));
+    connect(ui->btnSide1, SIGNAL(clicked()), this, SLOT(btnSide1Clicked()));
+    connect(ui->btnSide2, SIGNAL(clicked()), this, SLOT(btnSide2Clicked()));
+    connect(ui->btnSide3, SIGNAL(clicked()), this, SLOT(btnSide3Clicked()));
+    connect(ui->btnRise, SIGNAL(clicked()), this, SLOT(btnRiseClicked()));
+    connect(ui->btnSoup, SIGNAL(clicked()), this, SLOT(btnSoupClicked()));
+    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClciked()));
+
+    connect(ui->btnListen, SIGNAL(clicked()), this, SLOT(btnListenClicked()));
+
+    tcpServer = new TcpServer();
+}
+
+OperateUI::~OperateUI(){
+    tcpServer->deleteLater();
+    delete tcpServer;
 }
 
 void OperateUI::btnStartClciked()
@@ -101,6 +109,43 @@ void OperateUI::btnSoupClicked(){
     char data[2] = {DataControl::Operate::Feeding, DataControl::Section::Soup};
 
     sendDataToServer(data);
+}
+
+void OperateUI::btnListenClicked()
+{
+    if (!tcpServer->isListening()){
+        tcpServer->setIpAddress(ui->txtIP->text());
+        tcpServer->setPort(ui->txtPORT->text().toUShort());
+        tcpServer->startServer();
+
+        connect(tcpServer, SIGNAL(connectedClient()), this, SLOT(connected()));
+
+        ui->txtLogMessage->append("Listening...");
+    }
+}
+
+void OperateUI::readMessage()
+{
+    QString date = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss ");
+    QByteArray rxData = tcpServer->socket->readAll();
+    QString logMessage = date + " Msg : " + rxData;
+    ui->txtLogMessage->append(logMessage);
+}
+
+void OperateUI::connected()
+{
+    ui->rbConnectState->setChecked(true);
+    connect(tcpServer->socket, SIGNAL(readyRead()), this, SLOT(readMessage()), Qt::DirectConnection);
+    connect(tcpServer->socket, SIGNAL(disconnected()), this, SLOT(disconnected()), Qt::DirectConnection);
+    ui->txtLogMessage->append("Connected tablet");
+}
+
+void OperateUI::disconnected()
+{
+    ui->rbConnectState->setChecked(false);
+    disconnect(tcpServer->socket, SIGNAL(readyRead()), this, SLOT(readMessage()));
+    disconnect(tcpServer->socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    ui->txtLogMessage->append("Disconnected tablet");
 }
 
 void OperateUI::componentEnable(bool enable)

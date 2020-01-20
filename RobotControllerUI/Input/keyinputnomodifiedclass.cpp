@@ -5,10 +5,11 @@
 #include "TorqueID/torqueid.h"
 #include "OperateUI/operateui.h"
 
-KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui, void* _tcp)
+KeyinputNoModifiedClass::KeyinputNoModifiedClass(void *_ui, void* _ui_op, void* _torque_id)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
-    tcp = static_cast<TcpClient*>(_tcp);
+    ui_op = static_cast<OperateUI*>(_ui_op);
+    torque_id = static_cast<TorqueID*>(_torque_id);
 }
 
 void KeyinputNoModifiedClass::FuncKeyInput(QKeyEvent* keys)
@@ -203,12 +204,11 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         {
             QString path = qApp->applicationDirPath();
             if (path.contains("keti") || path.contains("hajun")){
-                OperateUI *operateUI = new OperateUI(tcp);
                 if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 2){
-                    static_cast<Ui::MainWindow*>(ui)->tabWidget->addTab(operateUI, "Operation");
+                    static_cast<Ui::MainWindow*>(ui)->tabWidget->addTab(static_cast<OperateUI*>(ui_op), "Operate");
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(2);
                 }
-                else if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
+                else if(static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->removeTab(2);
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(0);
                 }
@@ -293,8 +293,9 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         {
             QString path = qApp->applicationDirPath();
             if (path.contains("keti") || path.contains("hajun")){
-                TorqueID *torqueID = new TorqueID(tcp);
-                torqueID->show();
+                if (static_cast<TorqueID*>(torque_id)->isHidden()){
+                    static_cast<TorqueID*>(torque_id)->show();
+                }
             }
             break;
         }
