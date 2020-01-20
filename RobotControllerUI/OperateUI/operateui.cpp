@@ -1,20 +1,20 @@
 #include "operateui.h"
 #include "ui_operateui.h"
 
-OperateUI::OperateUI(void* _tcp, QWidget *parent) : QMainWindow(parent), ui(new Ui::OperateUI)
+OperateUI::OperateUI(void* _tcpClient, QWidget *parent) : QWidget(parent), ui(new Ui::OperateUI)
 {
     ui->setupUi(this);
-    this->setWindowTitle("Operate UI");
-    tcp = static_cast<TcpClient*>(_tcp);
+//    this->setWindowTitle("Operate UI");
+    tcpClient = static_cast<TcpClient*>(_tcpClient);
 
-    connect(ui->btnTeaching, SIGNAL(clicked()), this, SLOT(btnTeachingClicked()));
-    connect(ui->btnFeeding, SIGNAL(clicked()), this, SLOT(btnFeedingClicked()));
-    connect(ui->btnSide1, SIGNAL(clicked()), this, SLOT(btnSide1Clicked()));
-    connect(ui->btnSide2, SIGNAL(clicked()), this, SLOT(btnSide2Clicked()));
-    connect(ui->btnSide3, SIGNAL(clicked()), this, SLOT(btnSide3Clicked()));
-    connect(ui->btnRise, SIGNAL(clicked()), this, SLOT(btnRiseClicked()));
-    connect(ui->btnSoup, SIGNAL(clicked()), this, SLOT(btnSoupClicked()));
-    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClciked()));
+//    connect(ui->btnTeaching, SIGNAL(clicked()), this, SLOT(btnTeachingClicked()));
+//    connect(ui->btnFeeding, SIGNAL(clicked()), this, SLOT(btnFeedingClicked()));
+//    connect(ui->btnSide1, SIGNAL(clicked()), this, SLOT(btnSide1Clicked()));
+//    connect(ui->btnSide2, SIGNAL(clicked()), this, SLOT(btnSide2Clicked()));
+//    connect(ui->btnSide3, SIGNAL(clicked()), this, SLOT(btnSide3Clicked()));
+//    connect(ui->btnRise, SIGNAL(clicked()), this, SLOT(btnRiseClicked()));
+//    connect(ui->btnSoup, SIGNAL(clicked()), this, SLOT(btnSoupClicked()));
+//    connect(ui->btnStart, SIGNAL(clicked()), this, SLOT(btnStartClciked()));
 }
 
 void OperateUI::btnStartClciked()
@@ -127,5 +127,5 @@ void OperateUI::sendDataToServer(char *data)
 
     qDebug() << "txData : " << txData;
 
-    static_cast<TcpClient*>(tcp)->socket->write(txData);
+    static_cast<TcpClient*>(tcpClient)->socket->write(txData);
 }

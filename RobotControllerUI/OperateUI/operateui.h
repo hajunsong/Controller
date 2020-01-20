@@ -1,22 +1,22 @@
 #ifndef OPERATEUI_H
 #define OPERATEUI_H
 
-#include <QMainWindow>
 #include <QDebug>
 #include <QWidget>
 
 #include "TcpSocket/tcpclient.h"
+#include "TcpSocket/tcpserver.h"
 #include "DataControl/datacontrol.h"
 
 namespace Ui{
 class OperateUI;
 }
 
-class OperateUI : public QMainWindow
+class OperateUI : public QWidget
 {
     Q_OBJECT
 public:
-    explicit OperateUI(void *_tcp, QWidget *parent = nullptr);
+    explicit OperateUI(void *_tcpClient, QWidget *parent = nullptr);
 
 public slots:
     // button event
@@ -31,7 +31,7 @@ public slots:
 
 private:
     Ui::OperateUI *ui;
-    void *tcp;
+    void *tcpClient;
     QByteArray txData;
 
     void componentEnable(bool enable);

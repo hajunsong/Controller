@@ -201,8 +201,18 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
 
         case Qt::Key_F8:
         {
-            OperateUI *operateUI = new OperateUI(tcp);
-            operateUI->show();
+            QString path = qApp->applicationDirPath();
+            if (path.contains("keti") || path.contains("hajun")){
+                OperateUI *operateUI = new OperateUI(tcp);
+                if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 2){
+                    static_cast<Ui::MainWindow*>(ui)->tabWidget->addTab(operateUI, "Operation");
+                    static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(2);
+                }
+                else if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
+                    static_cast<Ui::MainWindow*>(ui)->tabWidget->removeTab(2);
+                    static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(0);
+                }
+            }
         }
 
             break;
