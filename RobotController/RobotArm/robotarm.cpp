@@ -811,7 +811,7 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         NRcount++;
     }while(errmax > 1e-3 && NRcount < 10);
 
-//    printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+//    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
 
     delete[] indx;
     delete[] fac;

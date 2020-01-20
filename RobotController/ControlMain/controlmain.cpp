@@ -796,6 +796,11 @@ void ControlMain::robotRun()
 
                 dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
+                for(int i = 0; i < 6; i++){
+                    rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
+                }
+                rt_printf("\n");
+
                 if (delay_cnt == 0){
                     module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
                 }
@@ -1036,9 +1041,7 @@ void ControlMain::robotOperate()
     switch(dataControl->operateMode.mode){
         case DataControl::Operate::Start:
         {
-            for(uint i = 0; i < NUM_JOINT; i++){
-                dataControl->RobotData.desired_q[i] = dataControl->operateReadyJoint[i];
-            }
+            memcpy(dataControl->RobotData.desired_q, dataControl->operateReadyJoint, sizeof(double)*NUM_JOINT);
             dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
@@ -1095,12 +1098,12 @@ void ControlMain::robotOperate()
             dataControl->PathData.acc_time.push_back(0.5);
 
             dataControl->PathData.total_time.push_back(6);
-            dataControl->PathData.point_x.push_back(dataControl->operateFeedingReadyPose[0]);
-            dataControl->PathData.point_y.push_back(dataControl->operateFeedingReadyPose[1]);
-            dataControl->PathData.point_z.push_back(dataControl->operateFeedingReadyPose[2]);
-            dataControl->PathData.point_roll.push_back(dataControl->operateFeedingReadyPose[3]);
-            dataControl->PathData.point_pitch.push_back(dataControl->operateFeedingReadyPose[4]);
-            dataControl->PathData.point_yaw.push_back(dataControl->operateFeedingReadyPose[5]);
+            dataControl->PathData.point_x.push_back(dataControl->operateReadyPose[0]);
+            dataControl->PathData.point_y.push_back(dataControl->operateReadyPose[1]);
+            dataControl->PathData.point_z.push_back(dataControl->operateReadyPose[2]);
+            dataControl->PathData.point_roll.push_back(dataControl->operateReadyPose[3]);
+            dataControl->PathData.point_pitch.push_back(dataControl->operateReadyPose[4]);
+            dataControl->PathData.point_yaw.push_back(dataControl->operateReadyPose[5]);
             dataControl->PathData.acc_time.push_back(0.5);
 
             module->setGroupSyncWriteTorqueEnable(0, NUM_JOINT);
@@ -1118,9 +1121,7 @@ void ControlMain::robotOperate()
         }
         case DataControl::Operate::StartFeeding:
         {
-            for(uint i = 0; i < NUM_JOINT; i++){
-                dataControl->RobotData.desired_q[i] = dataControl->operateReadyJoint[i];
-            }
+            memcpy(dataControl->RobotData.desired_q, dataControl->operateReadyJoint, sizeof(double)*NUM_JOINT);
             dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
@@ -1193,6 +1194,7 @@ void ControlMain::robotOperate()
                     if (dataControl->rise_motion.path_data_indx >= 2000){
                         dataControl->rise_motion.path_data_indx = 0;
 
+//                        dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
                         dataControl->operateMode.section = DataControl::Section::Mouse;
                     }
 
@@ -1210,6 +1212,7 @@ void ControlMain::robotOperate()
                     if (dataControl->soup_motion.path_data_indx >= 2000){
                         dataControl->soup_motion.path_data_indx = 0;
 
+//                        dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
                         dataControl->operateMode.section = DataControl::Section::Mouse;
                     }
 
@@ -1217,7 +1220,7 @@ void ControlMain::robotOperate()
                 }
                 case DataControl::Section::Mouse:
                 {
-                    memcpy(dataControl->PathData.movePath[0].R_init, robotArm->body[robotArm->num_body].Ae, sizeof(double)*9);
+                    RobotArm::rpy2mat(dataControl->operateFeedingReadyPose[5], dataControl->operateFeedingReadyPose[4], dataControl->operateFeedingReadyPose[3], dataControl->PathData.movePath[0].R_init);
 
                     dataControl->ClientToServer.opMode = DataControl::OpMode::RunMode;
 
@@ -1225,8 +1228,15 @@ void ControlMain::robotOperate()
                     dataControl->PathData.path_data_indx = 0;
                     dataControl->PathData.path_struct_indx = 0;
                     dataControl->PathData.cycle_count_max = 1;
+                    delay_cnt = 0;
+
+                    break;
                 }
             }
+            for(int i = 0; i < 6; i++){
+                rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
+            }
+            rt_printf("\n");
             dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);

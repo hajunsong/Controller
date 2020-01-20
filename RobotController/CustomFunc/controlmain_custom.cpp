@@ -79,6 +79,11 @@ void ControlMainCustom::robot_run(void *arg)
 			pThis->robotDynamics();
 		}
 
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            rt_printf("%d\t", pThis->dataControl->RobotData.present_joint_position[i]);
+//        }
+//        rt_printf("\n");
+
         ServerToClientTemp.data_index = pThis->data_indx;
 
         pThis->dataControl->jointPositionENC2DEG(pThis->dataControl->RobotData.present_joint_position, ServerToClientTemp.presentJointPosition);

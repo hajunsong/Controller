@@ -106,12 +106,12 @@ void KeyinputNoModifiedClass::NumberKeyInput(QKeyEvent* keys)
     {
 
         case Qt::Key_1:
-
+            qDebug() << "Pressed 1";
 
             break;
 
         case Qt::Key_2:
-
+            qDebug() << "Pressed 2";
 
             break;
 
@@ -300,12 +300,12 @@ void KeyinputNoModifiedClass::AlphabetKeyInput(QKeyEvent* keys)
     {
 
         case Qt::Key_A:
-
+            qDebug() << "Pressed A";
 
             break;
 
         case Qt::Key_B:
-
+            qDebug() << "Pressed B";
 
             break;
 

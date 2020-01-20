@@ -15,6 +15,10 @@
 #include <string.h>
 #include <memory.h>
 
+#include <native/task.h>
+#include <native/timer.h>
+#include <rtdk.h>
+
 #include "numerical.h"
 
 using namespace std;

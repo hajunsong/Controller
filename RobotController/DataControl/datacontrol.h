@@ -175,8 +175,8 @@ public:
     const double RAW2mA = 2.69;
     const double mA2RAW = 0.371747212;
 
-    const double operateReadyJoint[6] = {0.74944438, 0.40421825, -2.0655972, -1.6613789, 0.82135195, 4.9567636E-17};
-    const double operateReadyPose[6] = {-0.21011225, 0.13552308, 0.12537458, 1.5707963, -2.3671582E-15, -1.5707963};
+    const double operateReadyJoint[6] = {0.74944438, 0.40421825, -2.0655972, -1.6613789, 0.82135195, 0};
+    const double operateReadyPose[6] = {-0.21011225, 0.13552308, 0.12537458, 1.5707963, 0, -1.5707963};
     const double operateFeedingReadyPose[6] = {-0.21011225, 0.13552308, 0.12537459, 1.5642233, -0.78231204, -1.5661557};
 
 //    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};

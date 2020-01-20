@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network
+QT += core gui widgets network
 
 TARGET = RobotControllerUI
 TEMPLATE = app
@@ -17,6 +17,7 @@ SOURCES += \
     Logger/logger.cpp \
     Settings/customsettings.cpp \
     TcpSocket/tcpclient.cpp \
+    TcpSocket/tcpserver.cpp \
     Input/keyinputclass.cpp \
     Input/keyinputnomodifiedclass.cpp \
     MainWindow/mainwindow.cpp \
@@ -30,6 +31,7 @@ HEADERS += \
     Logger/logger.h \
     Settings/customsettings.h \
     TcpSocket/tcpclient.h \
+    TcpSocket/tcpserver.h \
     Input/keyinputclass.h \
     Input/keyinputnomodifiedclass.h \
     MainWindow/mainwindow.h \
