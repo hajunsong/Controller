@@ -1,6 +1,7 @@
 #ifndef KEYINPUTNOMODIFIEDCLASS_H
 #define KEYINPUTNOMODIFIEDCLASS_H
 #include <QKeyEvent>
+#include <QThread>
 
 class KeyinputNoModifiedClass
 {

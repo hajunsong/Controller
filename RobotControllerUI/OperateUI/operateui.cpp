@@ -25,6 +25,17 @@ OperateUI::~OperateUI(){
     delete tcpServer;
 }
 
+void OperateUI::init()
+{
+    if (ui->btnStart->text().compare("Stop") == 0){
+        ui->btnStart->animateClick();
+    }
+    if (ui->btnFeeding->text().contains("Stop")){
+        ui->btnFeeding->animateClick();
+    }
+    componentEnable(false);
+}
+
 void OperateUI::btnStartClciked()
 {
     char data[2] = {0,0};

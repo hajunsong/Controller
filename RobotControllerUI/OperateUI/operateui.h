@@ -20,6 +20,7 @@ public:
     explicit OperateUI(void *_tcpClient, QWidget *parent = nullptr);
     ~OperateUI();
     Ui::OperateUI *ui;
+    void init();
 
 public slots:
     // button event

@@ -209,6 +209,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(2);
                 }
                 else if(static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
+                    static_cast<OperateUI*>(ui_op)->init();
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->removeTab(2);
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(0);
                 }
