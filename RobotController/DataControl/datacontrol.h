@@ -134,7 +134,7 @@ public:
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
     enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding};
-    enum Section{Side1=1, Side2, Side3, Rise, Soup, Mouse};
+    enum Section{Side1=1, Side2, Side3, Soup, Rise, Mouse};
 
     bool config_check;
     bool cartesian_goal_reach;
