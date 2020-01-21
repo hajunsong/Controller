@@ -124,20 +124,50 @@ void OperateUI::btnListenClicked()
     }
 }
 
+void OperateUI::connected()
+{
+//    ui->rbConnectState->setChecked(true);
+    connect(tcpServer->socket, SIGNAL(readyRead()), this, SLOT(readMessage()), Qt::DirectConnection);
+    connect(tcpServer->socket, SIGNAL(disconnected()), this, SLOT(disconnected()), Qt::DirectConnection);
+    ui->txtLogMessage->append("Connected tablet");
+}
+
 void OperateUI::readMessage()
 {
     QString date = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss ");
     QByteArray rxData = tcpServer->socket->readAll();
     QString logMessage = date + " Msg : " + rxData;
     ui->txtLogMessage->append(logMessage);
-}
 
-void OperateUI::connected()
-{
-    ui->rbConnectState->setChecked(true);
-    connect(tcpServer->socket, SIGNAL(readyRead()), this, SLOT(readMessage()), Qt::DirectConnection);
-    connect(tcpServer->socket, SIGNAL(disconnected()), this, SLOT(disconnected()), Qt::DirectConnection);
-    ui->txtLogMessage->append("Connected tablet");
+    if (rxData.toInt() == 0){
+        ui->rbConnectState->setChecked(true);
+        ui->txtLogMessage->append("Ready tablet");
+    }
+
+    if (rxData.length() == 1 && ui->rbConnectState->isChecked()){
+        switch(rxData.toInt()){
+            case DataControl::Section::Side1:
+                ui->btnSide1->animateClick(1000);
+                qDebug() << "Selected Side 1";
+                break;
+            case DataControl::Section::Side2:
+                ui->btnSide2->animateClick(1000);
+                qDebug() << "Selected Side 2";
+                break;
+            case DataControl::Section::Side3:
+                ui->btnSide3->animateClick(1000);
+                qDebug() << "Selected Side 3";
+                break;
+            case DataControl::Section::Soup:
+                ui->btnSoup->animateClick(1000);
+                qDebug() << "Selected Soup";
+                break;
+            case DataControl::Section::Rise:
+                ui->btnRise->animateClick(1000);
+                qDebug() << "Selected Rise";
+                break;
+        }
+    }
 }
 
 void OperateUI::disconnected()

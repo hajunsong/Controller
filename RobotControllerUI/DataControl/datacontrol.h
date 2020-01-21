@@ -68,7 +68,7 @@ public:
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
     enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding};
-    enum Section{Side1=1, Side2, Side3, Soup, Rise};
+    enum Section{Ready=0, Side1=1, Side2, Side3, Soup, Rise};
 
     DataControl();
     ~DataControl();
