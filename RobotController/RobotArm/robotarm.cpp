@@ -120,40 +120,123 @@ void RobotArm::mat_to_axis_angle(double R_init[], double R_final[], double r[], 
     m10 = R[1*3 + 0]; m11 = R[1*3 + 1]; m12 = R[1*3 + 2];
     m20 = R[2*3 + 0]; m21 = R[2*3 + 1]; m22 = R[2*3 + 2];
 
-    *theta = acos((m00 + m11 + m22 - 1)/2);
+    double angle, x, y, z; // variables for result
+    double epsilon = 0.01; // margin to allow for rounding errors
+    double epsilon2 = 0.1; // margin to distinguish between 0 and 180 degrees
 
-    r[0] = (m21 - m12)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
-    r[1] = (m02 - m20)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
-    r[2] = (m10 - m01)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
-
-    if (abs(m00 - m11) < 1e-10 && abs(m11 - m22) < 1e-10 && abs(m22 - m00) < 1e-10){
-        r[0] = 0;
-        r[1] = 0;
-        r[2] = 1;
+    if (abs(m01 - m10) < epsilon && abs(m02 - m20) < epsilon && abs(m12 - m21) < epsilon){
+        // singularity found
+        // first check for identity matrix which must have +1 for all terms
+        // in leading diagonal and zero in other terms
+        if (abs(m01 + m10) < epsilon2 && abs(m02 + m20) < epsilon2 && abs(m12 + m21) < epsilon2 && abs(m00 + m11 + m22 - 3) < epsilon2){
+            angle = 0;
+            x = 1;
+            y = 0;
+            z = 0;
+        }
+        else{
+            angle = M_PI;
+            double xx = (m00 + 1)/2;
+            double yy = (m11 + 1)/2;
+            double zz = (m22 + 1)/2;
+            double xy = (m01 + m10)/4;
+            double xz = (m02 + m20)/4;
+            double yz = (m12 + m21)/4;
+            if (xx > yy && xx > zz){ // m00 is the largest diagonal term
+                if (xx < epsilon){
+                    x = 0;
+                    y = 0.7071;
+                    z = 0.7071;
+                }
+                else{
+                    x = sqrt(xx);
+                    y = xy/x;
+                    z = xz/x;
+                }
+            }
+            else if(yy > zz){ // m11 is the largest diagonal term
+                if (yy < epsilon){
+                    x = 0.7071;
+                    y = 0;
+                    z = 0.7071;
+                }
+                else{
+                    y = sqrt(yy);
+                    x = xy/y;
+                    z = yz/y;
+                }
+            }
+            else{ // m22 is the largest diagonal term so base result on this
+                if (zz < epsilon){
+                    x = 0.7071;
+                    y = 0.7071;
+                    z = 0;
+                }
+                else{
+                    z = sqrt(zz);
+                    x = xz/z;
+                    y = yz/z;
+                }
+            }
+        }
     }
+    else {
+        // as we have reached here there are no signularites so we can handle normally
+        double s = sqrt((m21 - m12)*(m21 - m12) + (m02 - m20)*(m02 - m20) + (m10 - m01)*(m10 - m01));
+        if (abs(s) < 0.001){
+            s = 1;
+        }
+        // prevent divide by zero, should not happen if matrix is orthogonal and should be
+        // caought by singularity test above, but I've left it in just in case
+        angle = acos((m00 + m11 + m22 - 1)/2);
+        x = (m21 - m12)/s;
+        y = (m02 - m20)/s;
+        z = (m10 - m01)/s;
+    }
+
+    *theta = angle;
+    r[0] = x;
+    r[1] = y;
+    r[2] = z;
 }
 
-void RobotArm::axis_angle_to_mat(double r[], double theta, double mat[])
+void RobotArm::axis_angle_to_mat(double r[], double angle, double mat[])
 {
-    double c = cos(theta);
-    double s = sin(theta);
-    double t = 1 - c;
-    double mag = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
-    double x = r[0]/mag;
-    double y = r[1]/mag;
-    double z = r[2]/mag;
+    double c = cos(angle);
+    double s = sin(angle);
+    double t = 1.0 - c;
+    double x = r[0], y = r[1], z = r[2];
+//      if axis is not already normalised then uncomment this
+    double magnitude = sqrt(x*x + y*y + z*z);
+    if (magnitude==0) {
+        return;
+    }
+    x /= magnitude;
+    y /= magnitude;
+    z /= magnitude;
 
-    mat[0] = t*x*x + c;
-    mat[1] = t*x*y - z*s;
-    mat[2] = t*x*z + y*s;
+    double m00, m01, m02, m10, m11, m12, m20, m21, m22;
 
-    mat[3] = t*x*y + z*s;
-    mat[4] = t*y*y + c;
-    mat[5] = t*y*z - x*s;
+    m00 = c + x*x*t;
+    m11 = c + y*y*t;
+    m22 = c + z*z*t;
 
-    mat[6] = t*x*z - y*s;
-    mat[7] = t*y*z + x*s;
-    mat[8] = t*z*z + c;
+    double tmp1 = x*y*t;
+    double tmp2 = z*s;
+    m10 = tmp1 + tmp2;
+    m01 = tmp1 - tmp2;
+    tmp1 = x*z*t;
+    tmp2 = y*s;
+    m20 = tmp1 - tmp2;
+    m02 = tmp1 + tmp2;
+    tmp1 = y*z*t;
+    tmp2 = x*s;
+    m21 = tmp1 + tmp2;
+    m12 = tmp1 - tmp2;
+
+    mat[0*3 + 0] = m00; mat[0*3 + 1] = m01; mat[0*3 + 2] = m02;
+    mat[1*3 + 0] = m10; mat[1*3 + 1] = m11; mat[1*3 + 2] = m12;
+    mat[2*3 + 0] = m20; mat[2*3 + 1] = m21; mat[2*3 + 2] = m22;
 }
 
 void RobotArm::mat2rpy(double mat[], double ori[])
@@ -345,7 +428,7 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
 	// |  6   |     0      |  0      |   84     |     0      |
 
 	DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = -90;
-	DH[4] = 0;      DH[5] = 0.16425;    DH[6] = 0.0165;     DH[7] = -90;
+    DH[4] = 0;      DH[5] = 0.16425;    DH[6] = -0.0165;     DH[7] = -90;
 	DH[8] = 180;    DH[9] = 0.170;      DH[10] = 0;         DH[11] = 0;
 	DH[12] = 90;    DH[13] = 0.06525;   DH[14] = 0;         DH[15] = 90;
 	DH[16] = 90;    DH[17] = 0;         DH[18] = -0.01675;  DH[19] = 90;

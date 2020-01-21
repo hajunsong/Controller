@@ -147,23 +147,23 @@ void OperateUI::readMessage()
     if (rxData.length() == 1 && ui->rbConnectState->isChecked()){
         switch(rxData.toInt()){
             case DataControl::Section::Side1:
-                ui->btnSide1->animateClick(1000);
+                ui->btnSide1->animateClick();
                 qDebug() << "Selected Side 1";
                 break;
             case DataControl::Section::Side2:
-                ui->btnSide2->animateClick(1000);
+                ui->btnSide2->animateClick();
                 qDebug() << "Selected Side 2";
                 break;
             case DataControl::Section::Side3:
-                ui->btnSide3->animateClick(1000);
+                ui->btnSide3->animateClick();
                 qDebug() << "Selected Side 3";
                 break;
             case DataControl::Section::Soup:
-                ui->btnSoup->animateClick(1000);
+                ui->btnSoup->animateClick();
                 qDebug() << "Selected Soup";
                 break;
             case DataControl::Section::Rise:
-                ui->btnRise->animateClick(1000);
+                ui->btnRise->animateClick();
                 qDebug() << "Selected Rise";
                 break;
         }

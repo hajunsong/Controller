@@ -485,7 +485,7 @@ void ControlMain::robotPathGenerate()
     }
 
     for(uint8_t i = 0; i < dataControl->PathData.row - 1; i++){
-        path_generator(dataControl->PathData.point_theta[i], dataControl->PathData.point_theta[i + 1],
+        path_generator(0, dataControl->PathData.point_theta[i + 1],
                 dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], 0.005, &dataControl->PathData.movePath[i].path_theta);
 
         dataControl->PathData.movePath[i].data_size = dataControl->PathData.movePath[i].path_x.size();
@@ -693,10 +693,10 @@ void ControlMain::robotRun()
 //                    dataControl->RobotData.present_joint_position[2], dataControl->RobotData.present_joint_position[3],
 //                    dataControl->RobotData.present_joint_position[4], dataControl->RobotData.present_joint_position[5]);
 
-//            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
-//                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
-//                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
-//                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
+            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
+                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
+                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
+                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
 
 //            rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
 //                      dataControl->RobotData.present_end_pose[0], dataControl->RobotData.present_end_pose[1],
@@ -796,6 +796,7 @@ void ControlMain::robotRun()
 
                 dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
+                rt_printf("Desired Joint : ");
                 for(int i = 0; i < 6; i++){
                     rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
                 }
