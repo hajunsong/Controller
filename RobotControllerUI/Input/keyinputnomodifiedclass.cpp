@@ -107,12 +107,18 @@ void KeyinputNoModifiedClass::NumberKeyInput(QKeyEvent* keys)
     {
 
         case Qt::Key_1:
-            qDebug() << "Pressed 1";
+//            qDebug() << "Pressed 1";
+            if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
+                static_cast<OperateUI*>(ui_op)->btnTeachingClicked();
+            }
 
             break;
 
         case Qt::Key_2:
-            qDebug() << "Pressed 2";
+//            qDebug() << "Pressed 2";
+            if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
+                static_cast<OperateUI*>(ui_op)->btnFeedingClicked();
+            }
 
             break;
 
@@ -207,6 +213,7 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
                 if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 2){
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->addTab(static_cast<OperateUI*>(ui_op), "Operate");
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(2);
+                    static_cast<OperateUI*>(ui_op)->btnStartClciked();
                 }
                 else if(static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
                     static_cast<OperateUI*>(ui_op)->init();

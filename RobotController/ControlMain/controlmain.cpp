@@ -24,6 +24,9 @@ ControlMain::ControlMain(QObject *parent) : QObject(parent)
 
     delay_cnt_max = 1000;
     delay_cnt = 0;
+    fork_cnt_max = 0;
+    fork_cnt = 0;
+    dataControl->feeding = false;
 
     connect(this, SIGNAL(disconnectClientSignal()), this, SLOT(disconnectClient()));
 
@@ -285,6 +288,7 @@ void ControlMain::moduleInitFAR()
                 if (pos != 0)
                 {
                     module->initGroupSyncReadIndirectAddress(module_indx);
+                    module->initGroupSyncWriteIndirectAddress(module_indx);
                     module_indx++;
                 }
             }
@@ -693,10 +697,10 @@ void ControlMain::robotRun()
 //                    dataControl->RobotData.present_joint_position[2], dataControl->RobotData.present_joint_position[3],
 //                    dataControl->RobotData.present_joint_position[4], dataControl->RobotData.present_joint_position[5]);
 
-            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
-                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
-                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
-                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
+//            rt_printf("Desired Pose : %f, %f, %f, %f, %f, %f\n",
+//                      dataControl->RobotData.desired_end_pose[0], dataControl->RobotData.desired_end_pose[1],
+//                    dataControl->RobotData.desired_end_pose[2], dataControl->RobotData.desired_end_pose[3],
+//                    dataControl->RobotData.desired_end_pose[4], dataControl->RobotData.desired_end_pose[5]);
 
 //            rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
 //                      dataControl->RobotData.present_end_pose[0], dataControl->RobotData.present_end_pose[1],
@@ -796,11 +800,11 @@ void ControlMain::robotRun()
 
                 dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
-                rt_printf("Desired Joint : ");
-                for(int i = 0; i < 6; i++){
-                    rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
-                }
-                rt_printf("\n");
+//                rt_printf("Desired Joint : ");
+//                for(int i = 0; i < 6; i++){
+//                    rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
+//                }
+//                rt_printf("\n");
 
                 if (delay_cnt == 0){
                     module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
@@ -820,10 +824,19 @@ void ControlMain::robotRun()
 
             if (dataControl->PathData.path_data_indx >= dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].data_size - 1){
                 if (delay_cnt >= delay_cnt_max){
-                    dataControl->PathData.path_data_indx = 0;
-                    dataControl->PathData.path_struct_indx++;
-                    memcpy(dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].R_init, Rd, sizeof(double)*9);
-                    delay_cnt = 0;
+                    fork_cnt++;
+                    if (fork_cnt <= 1000){
+                        module->setGoalPosition(5, dataControl->RobotData.present_joint_position[5] - 26);
+                    }
+                    else if (fork_cnt >= 2000 && fork_cnt <= 3000){
+                        module->setGoalPosition(5, dataControl->RobotData.present_joint_position[5] + 26);
+                    }
+                    if (fork_cnt >= fork_cnt_max){
+                        dataControl->PathData.path_data_indx = 0;
+                        dataControl->PathData.path_struct_indx++;
+                        memcpy(dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].R_init, Rd, sizeof(double)*9);
+                        delay_cnt = 0;
+                    }
                 }
                 else{
                     delay_cnt++;
@@ -838,6 +851,8 @@ void ControlMain::robotRun()
                     }
                     else
                     {
+                        dataControl->feeding = false;
+                        rt_printf("%d\n", dataControl->feeding);
                         dataControl->PathData.path_data_indx = 0;
                         dataControl->PathData.path_struct_indx = 0;
                         dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
@@ -1109,6 +1124,7 @@ void ControlMain::robotOperate()
 
             module->setGroupSyncWriteTorqueEnable(0, NUM_JOINT);
             module->setGroupSyncWriteOperatingMode(JointOpMode::extended_position_mode, NUM_JOINT);
+            module->setGroupSyncWriteIndirectAddress(init_profile_acc, init_profile_vel, init_vel_limit, init_pos_p_gain, NUM_JOINT);
             module->setGroupSyncWriteTorqueEnable(1, NUM_JOINT);
             dataControl->RobotData.joint_op_mode = JointOpMode::extended_position_mode;
 
@@ -1126,6 +1142,8 @@ void ControlMain::robotOperate()
             dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+
+//            module->setGroupSyncWriteIndirectAddress(default_profile_acc, default_profile_vel, default_vel_limit, default_pos_p_gain, NUM_JOINT);
             break;
         }
         case DataControl::Operate::StopFeeding:
@@ -1134,6 +1152,9 @@ void ControlMain::robotOperate()
         }
         case DataControl::Operate::Feeding:
         {
+            module->setGroupSyncWriteIndirectAddress(default_profile_acc, default_profile_vel, default_vel_limit, default_pos_p_gain, NUM_JOINT);
+            int interval = 2;
+            dataControl->feeding = true;
             switch(dataControl->operateMode.section){
                 case DataControl::Section::Side1:
                 {
@@ -1143,11 +1164,14 @@ void ControlMain::robotOperate()
                         dataControl->RobotData.desired_q[i] = dataControl->side1_motion.file_data[dataControl->side1_motion.path_data_indx*32 + i + 2];
                     }
 
-                    dataControl->side1_motion.path_data_indx += 1;
+                    dataControl->side1_motion.path_data_indx += interval;
                     if (dataControl->side1_motion.path_data_indx >= 2000){
                         dataControl->side1_motion.path_data_indx = 0;
                         dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+                        dataControl->feeding = false;
                     }
+                    fork_cnt_max = 3000;
+                    fork_cnt = 0;
 
                     break;
                 }
@@ -1159,11 +1183,14 @@ void ControlMain::robotOperate()
                         dataControl->RobotData.desired_q[i] = dataControl->side2_motion.file_data[dataControl->side2_motion.path_data_indx*32 + i + 2];
                     }
 
-                    dataControl->side2_motion.path_data_indx += 1;
+                    dataControl->side2_motion.path_data_indx += interval;
                     if (dataControl->side2_motion.path_data_indx >= 2000){
                         dataControl->side2_motion.path_data_indx = 0;
                         dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+                        dataControl->feeding = false;
                     }
+                    fork_cnt_max = 3000;
+                    fork_cnt = 0;
 
                     break;
                 }
@@ -1175,11 +1202,14 @@ void ControlMain::robotOperate()
                         dataControl->RobotData.desired_q[i] = dataControl->side3_motion.file_data[dataControl->side3_motion.path_data_indx*32 + i + 2];
                     }
 
-                    dataControl->side3_motion.path_data_indx += 1;
+                    dataControl->side3_motion.path_data_indx += interval;
                     if (dataControl->side3_motion.path_data_indx >= 2000){
                         dataControl->side3_motion.path_data_indx = 0;
                         dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+                        dataControl->feeding = false;
                     }
+                    fork_cnt_max = 3000;
+                    fork_cnt = 0;
 
                     break;
                 }
@@ -1191,7 +1221,7 @@ void ControlMain::robotOperate()
                         dataControl->RobotData.desired_q[i] = dataControl->rise_motion.file_data[dataControl->rise_motion.path_data_indx*32 + i + 2];
                     }
 
-                    dataControl->rise_motion.path_data_indx += 1;
+                    dataControl->rise_motion.path_data_indx += interval;
                     if (dataControl->rise_motion.path_data_indx >= 2000){
                         dataControl->rise_motion.path_data_indx = 0;
 
@@ -1209,7 +1239,7 @@ void ControlMain::robotOperate()
                         dataControl->RobotData.desired_q[i] = dataControl->soup_motion.file_data[dataControl->soup_motion.path_data_indx*32 + i + 2];
                     }
 
-                    dataControl->soup_motion.path_data_indx += 1;
+                    dataControl->soup_motion.path_data_indx += interval;
                     if (dataControl->soup_motion.path_data_indx >= 2000){
                         dataControl->soup_motion.path_data_indx = 0;
 
@@ -1234,10 +1264,10 @@ void ControlMain::robotOperate()
                     break;
                 }
             }
-            for(int i = 0; i < 6; i++){
-                rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
-            }
-            rt_printf("\n");
+//            for(int i = 0; i < 6; i++){
+//                rt_printf("%f\t", dataControl->RobotData.desired_q[i]);
+//            }
+//            rt_printf("\n");
             dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);

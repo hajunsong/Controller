@@ -76,6 +76,8 @@ private:
     bool ready_pose;
     bool cartesian_move_flag;
     int delay_cnt, delay_cnt_max;
+    int fork_cnt, fork_cnt_max;
+    int32_t origin_pos;
 
 signals:
     void disconnectClientSignal();

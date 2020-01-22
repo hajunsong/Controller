@@ -34,6 +34,7 @@ void OperateUI::init()
         ui->btnFeeding->animateClick();
     }
     componentEnable(false);
+    tcpServer->socket->disconnectFromHost();
 }
 
 void OperateUI::btnStartClciked()
@@ -57,13 +58,15 @@ void OperateUI::btnTeachingClicked(){
 
     if (ui->btnTeaching->text().contains("Stop")){
         qDebug() << "Stop teaching mode";
+        ui->txtLogMessage->append("Stop teaching mode");
         ui->btnTeaching->setText("Teaching\nMode");
 
         data[0] = DataControl::Operate::StopTeaching;
     }
     else {
-        qDebug() << "Start feeding mode";
+        qDebug() << "Start teaching mode";
         ui->btnTeaching->setText("Stop\nTeaching");
+        ui->txtLogMessage->append("Start teaching mode");
 
         data[0] = DataControl::Operate::StartTeaching;
     }
@@ -77,6 +80,7 @@ void OperateUI::btnFeedingClicked(){
     if (ui->btnFeeding->text().contains("Stop")){
         qDebug() << "Stop feeding mode";
         ui->btnFeeding->setText("Feeding\nMode");
+        ui->txtLogMessage->append("Start feeding mode");
         componentEnable(false);
 
         data[0] = DataControl::Operate::StopFeeding;
@@ -84,6 +88,7 @@ void OperateUI::btnFeedingClicked(){
     else {
         qDebug() << "Start feeding mode";
         ui->btnFeeding->setText("Stop\nFeeding");
+        ui->txtLogMessage->append("Start feeding mode");
         componentEnable(true);
 
         data[0] = DataControl::Operate::StartFeeding;
@@ -125,13 +130,19 @@ void OperateUI::btnSoupClicked(){
 void OperateUI::btnListenClicked()
 {
     if (!tcpServer->isListening()){
-        tcpServer->setIpAddress(ui->txtIP->text());
-        tcpServer->setPort(ui->txtPORT->text().toUShort());
+        QString ipAddress = ui->txtIP->text();
+        unsigned short portNum = ui->txtPORT->text().toUShort();
+        tcpServer->setIpAddress(ipAddress);
+        tcpServer->setPort(portNum);
         tcpServer->startServer();
 
         connect(tcpServer, SIGNAL(connectedClient()), this, SLOT(connected()));
-
-        ui->txtLogMessage->append("Listening...");
+        if (tcpServer->isListening()){
+            ui->txtLogMessage->append("Listening...");
+        }
+        else{
+            ui->txtLogMessage->append("Could not start server");
+        }
     }
 }
 
