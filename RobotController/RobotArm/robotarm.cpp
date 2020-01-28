@@ -807,135 +807,135 @@ void RobotArm::kinematics()
 }
 
 void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
-    int *indx = new int[6];
-    double *fac = new double[36];
-
-    double desired[6] = {0,};
-    for(int i = 0; i < 3; i++){
-        desired[i] = des_pos[i];
-        desired[i + 3] = des_ang[i];
-    }
-
-    double alpha = 1/4.0;
-    double err[6], qdot[6];
-    for(int i = 0; i < 1/alpha; i++){
-        for(int j = 0; j < 3; j++){
-            err[j] = des_pos[j] - body[num_body].re[j];
-            err[j + 3] = des_ang[j] - body[num_body].ori[j];
-        }
-
-        jacobian();
-
-        numeric->ludcmp(J, 6, indx, 0.0, fac);
-        numeric->lubksb(fac, 6, indx, err, qdot);
-
-        for (uint j = 0; j < 6; j++){
-            delta_q[j] = qdot[j]*alpha;
-        }
-
-        for (uint j = 0; j < num_body; j++) {
-            body[j + 1].qi += delta_q[j];
-        }
-
-        kinematics();
-    }
-
-    delete[] indx;
-    delete[] fac;
-
-
-//    Body *body_end = &body[num_body];
-//    for (uint i = 0; i < 3; i++) {
-//        PH_pos[i] = des_pos[i] - body_end->re[i];
-//        PH_ori[i] = des_ang[i] - body_end->ori[i];
-//    }
-
-//    for (uint i = 0; i < 3; i++) {
-//        PH[i] = PH_pos[i];
-//        PH[i + 3] = PH_ori[i];
-//    }
-
-//#if 0
-//    jacobian();
-
-//    double *U, *s, *V;
-//    U = new double[dof * dof];
-//    s = new double[MIN(dof, num_body)];
-//    V = new double[num_body*num_body];
-
-//    numeric->svdcmp(J, dof, num_body, U, s, V);
-
-//    memset(JD, 0, sizeof(double) * num_body*dof);
-//    double *temp = new double[num_body*dof];
-//    double lamda = 1e-5;
-//    for (uint i = 0; i < dof; i++) {
-//        for (uint j = 0; j < num_body; j++) {
-//            for (uint k = 0; k < dof; k++) {
-//                temp[j * dof + k] = V[j * num_body + i] * U[k * num_body + i];
-//            }
-//        }
-//        for (uint j = 0; j < num_body; j++) {
-//            for (uint k = 0; k < dof; k++) {
-//                JD[j * dof + k] += (s[i] / (s[i]*s[i] +lamda*lamda))*(temp[j * dof + k]);
-//            }
-//        }
-//    }
-
-//    delete[] s;
-//    delete[] U;
-//    delete[] V;
-//    delete[] temp;
-
-
-//    memset(delta_q, 0, sizeof(double) * 6);
-//    for (uint i = 0; i < num_body; i++) {
-//        for (uint j = 0; j < num_body; j++) {
-//            delta_q[i] += JD[i * num_body + j] * PH[j];
-//        }
-//    }
-//#else
-
 //    int *indx = new int[6];
-//    double *fac = new double[6*6];
-//    double errmax = 0;
-//    int NRcount = 0;
+//    double *fac = new double[36];
 
-//    do{
+//    double desired[6] = {0,};
+//    for(int i = 0; i < 3; i++){
+//        desired[i] = des_pos[i];
+//        desired[i + 3] = des_ang[i];
+//    }
+
+//    double alpha = 1/4.0;
+//    double err[6], qdot[6];
+//    for(int i = 0; i < 1/alpha; i++){
+//        for(int j = 0; j < 3; j++){
+//            err[j] = des_pos[j] - body[num_body].re[j];
+//            err[j + 3] = des_ang[j] - body[num_body].ori[j];
+//        }
+
 //        jacobian();
 
 //        numeric->ludcmp(J, 6, indx, 0.0, fac);
-//        memset(delta_q, 0, sizeof(double) * 6);
-//        numeric->lubksb(fac, 6, indx, PH, delta_q);
+//        numeric->lubksb(fac, 6, indx, err, qdot);
 
-//        for (uint i = 0; i < num_body; i++) {
-//            body[i + 1].qi += delta_q[i];
+//        for (uint j = 0; j < 6; j++){
+//            delta_q[j] = qdot[j]*alpha;
+//        }
+
+//        for (uint j = 0; j < num_body; j++) {
+//            body[j + 1].qi += delta_q[j];
 //        }
 
 //        kinematics();
-
-//        for (uint i = 0; i < 3; i++) {
-//            PH_pos[i] = des_pos[i] - body_end->re[i];
-//            PH_ori[i] = des_ang[i] - body_end->ori[i];
-//        }
-
-//        for (uint i = 0; i < 3; i++) {
-//            PH[i] = PH_pos[i];
-//            PH[i + 3] = PH_ori[i];
-//        }
-
-//        errmax = PH[0];
-//        for(uint i = 1; i < num_body;i++){
-//            errmax = errmax > abs(PH[i]) ? errmax : abs(PH[i]);
-//        }
-
-//        NRcount++;
-//    }while(errmax > 1e-3 && NRcount < 10);
-
-////    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+//    }
 
 //    delete[] indx;
 //    delete[] fac;
-//#endif
+
+
+    Body *body_end = &body[num_body];
+    for (uint i = 0; i < 3; i++) {
+        PH_pos[i] = des_pos[i] - body_end->re[i];
+        PH_ori[i] = des_ang[i] - body_end->ori[i];
+    }
+
+    for (uint i = 0; i < 3; i++) {
+        PH[i] = PH_pos[i];
+        PH[i + 3] = PH_ori[i];
+    }
+
+#if 0
+    jacobian();
+
+    double *U, *s, *V;
+    U = new double[dof * dof];
+    s = new double[MIN(dof, num_body)];
+    V = new double[num_body*num_body];
+
+    numeric->svdcmp(J, dof, num_body, U, s, V);
+
+    memset(JD, 0, sizeof(double) * num_body*dof);
+    double *temp = new double[num_body*dof];
+    double lamda = 1e-5;
+    for (uint i = 0; i < dof; i++) {
+        for (uint j = 0; j < num_body; j++) {
+            for (uint k = 0; k < dof; k++) {
+                temp[j * dof + k] = V[j * num_body + i] * U[k * num_body + i];
+            }
+        }
+        for (uint j = 0; j < num_body; j++) {
+            for (uint k = 0; k < dof; k++) {
+                JD[j * dof + k] += (s[i] / (s[i]*s[i] +lamda*lamda))*(temp[j * dof + k]);
+            }
+        }
+    }
+
+    delete[] s;
+    delete[] U;
+    delete[] V;
+    delete[] temp;
+
+
+    memset(delta_q, 0, sizeof(double) * 6);
+    for (uint i = 0; i < num_body; i++) {
+        for (uint j = 0; j < num_body; j++) {
+            delta_q[i] += JD[i * num_body + j] * PH[j];
+        }
+    }
+#else
+
+    int *indx = new int[6];
+    double *fac = new double[6*6];
+    double errmax = 0;
+    int NRcount = 0;
+
+    do{
+        jacobian();
+
+        numeric->ludcmp(J, 6, indx, 0.0, fac);
+        memset(delta_q, 0, sizeof(double) * 6);
+        numeric->lubksb(fac, 6, indx, PH, delta_q);
+
+        for (uint i = 0; i < num_body; i++) {
+            body[i + 1].qi += delta_q[i];
+        }
+
+        kinematics();
+
+        for (uint i = 0; i < 3; i++) {
+            PH_pos[i] = des_pos[i] - body_end->re[i];
+            PH_ori[i] = des_ang[i] - body_end->ori[i];
+        }
+
+        for (uint i = 0; i < 3; i++) {
+            PH[i] = PH_pos[i];
+            PH[i + 3] = PH_ori[i];
+        }
+
+        errmax = PH[0];
+        for(uint i = 1; i < num_body;i++){
+            errmax = errmax > abs(PH[i]) ? errmax : abs(PH[i]);
+        }
+
+        NRcount++;
+    }while(errmax > 1e-3 && NRcount < 10);
+
+//    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+
+    delete[] indx;
+    delete[] fac;
+#endif
 }
 
 void RobotArm::jacobian()

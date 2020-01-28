@@ -142,10 +142,11 @@ const double VELOCITY_UNIT = 0.229;	// [RPM]
 
 enum JointOpMode{ current_mode = 0, velocity_mode, position_mode = 3, extended_position_mode, current_based_position_mode, pwm_mode = 16 };
 
-const double TORQUE_CONSTANT_W270 = 2.8;
+const double TORQUE_CONSTANT_W270 = 3.5;
 const double TORQUE_CONSTANT_W150 = 1.65;
 const double TORQUE_CONSTANT_V270 = 8.0;
 const double TORQUE_CONSTANT_V350 = 4.7;
+const double TORQUE_CONSTANT_W350 = 4.2;
 
 const uint32_t init_profile_acc[6] = {80, 80, 80, 80, 80, 80};
 const uint32_t init_profile_vel[6] = {30, 30, 30, 30, 30, 30};

@@ -382,10 +382,10 @@ void ControlMain::robotDynamics(){
         }
 #elif MODULE_TYPE == 2
 		if (i < 3){
-			goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V270)*alpha;
+            goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V270)*alpha;
 		}
 		else{
-			goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V350)*alpha;
+            goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V350)*alpha;
 		}
 #endif
 	}
