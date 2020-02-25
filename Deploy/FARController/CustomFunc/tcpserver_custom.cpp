@@ -16,9 +16,9 @@ void TcpServerCustom::comm_run(void *arg){
 
     rt_task_set_periodic(&pTcpServer->tcpServerCustom->comm_task, TM_NOW, 100e6);
 
-    while(1){
+    pTcpServer->comm_thread_run = true;
+    while(pTcpServer->comm_thread_run){
         if (pTcpServer->isConnected()){
-            pTcpServer->comm_thread_run = true;
             rt_task_wait_period(nullptr); //wait for next cycle
 
             if (pTcpServer->dataControl->ClientToServer.opMode >= 2){
@@ -35,5 +35,5 @@ void TcpServerCustom::comm_stop(){
     rt_task_suspend(&comm_task);
     printf("Tcp Comm RT Task Stop\n");
     rt_task_delete(&comm_task);
-    printf("Tcp Comm RT Task Delet\n");
+    printf("Tcp Comm RT Task Delete\n");
 }

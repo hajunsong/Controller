@@ -1,5 +1,5 @@
 QT -= gui
-QT += core network
+QT += core network widgets
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -25,6 +25,7 @@ HEADERS += \
     FileIO/fileio.h \
     CustomFunc/tcpserver_custom.h \
     CustomFunc/controlmain_custom.h \
+    Settings/customsettings.h \
 
 LIBS += \
     -L$$NRMK_LIB_PATH/ -lNRMKHelperi686 \
@@ -51,12 +52,12 @@ DEPENDPATH += \
 PRE_TARGETDEPS += \
     $$NRMK_LIB_PATH/libNRMKHelperi686.a
 
-LIBS += -L$$PWD/lib/ -lRobotControllerLib
+unix:!macx: LIBS += -L$$PWD/lib/ -lRobotControllerLib
 
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
 
-LIBS += -L$$PWD/Dynamixel/ -ldxl_x86_cpp
+unix:!macx: LIBS += -L$$PWD/Dynamixel/ -ldxl_x86_cpp
 
 INCLUDEPATH += $$PWD/Dynamixel
 DEPENDPATH += $$PWD/Dynamixel

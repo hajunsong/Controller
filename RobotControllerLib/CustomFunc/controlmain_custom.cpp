@@ -46,56 +46,54 @@ void ControlMainCustom::robot_run(void *arg)
                 break;
             case DataControl::OpMode::RunMode:
                 pThis->robotRun();
+				break;
+            case DataControl::OpMode::TorqueID:
+				pThis->robotSPGC();
+            case DataControl::OpMode::OperateMode:
+                pThis->robotOperate();
                 break;
             default : break;
         }
 
         pThis->dataControl->RobotData.dxl_time1 = static_cast<unsigned long>(rt_timer_read());
-        if (MODULE_TYPE == DataControl::Module::FAR_V1){
-            pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
-                                                           pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
-        }
+		if (NUM_JOINT == 6){
+			if (MODULE_TYPE == DataControl::Module::FAR_V1){
+				pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
+															   pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
+			}
+			else if(MODULE_TYPE == DataControl::Module::FAR_V2){
+				pThis->module->getGroupSyncReadIndirectAddress(pThis->dataControl->RobotData.present_joint_position, pThis->dataControl->RobotData.present_joint_velocity,
+															   pThis->dataControl->RobotData.present_joint_current, NUM_JOINT);
+			}
+
+		}
+		else if(NUM_JOINT == 1){
+			pThis->module->getGroupSyncReadIndirectAddress(&pThis->dataControl->RobotData.present_joint_position[0],
+														   &pThis->dataControl->RobotData.present_joint_velocity[0],
+														   &pThis->dataControl->RobotData.present_joint_current[0], NUM_JOINT, pThis->module->single_id);
+		}
         pThis->dataControl->RobotData.dxl_time2 = static_cast<unsigned long>(rt_timer_read());
 
-        pThis->robotKinematics();
-        pThis->robotDynamics();
+		if (NUM_JOINT == 6){
+			pThis->robotKinematics();
+			pThis->robotDynamics();
+		}
+
+//        for(int i = 0; i < NUM_JOINT; i++){
+//            rt_printf("%d\t", pThis->dataControl->RobotData.present_joint_position[i]);
+//        }
+//        rt_printf("\n");
 
         ServerToClientTemp.data_index = pThis->data_indx;
-
-//        rt_printf("data index : %d\n", pThis->dataControl->ServerToClient.data_index);
 
         pThis->dataControl->jointPositionENC2DEG(pThis->dataControl->RobotData.present_joint_position, ServerToClientTemp.presentJointPosition);
         pThis->dataControl->cartesianPoseScaleUp(pThis->dataControl->RobotData.present_end_pose, ServerToClientTemp.presentCartesianPose);
         pThis->dataControl->jointVelocityENC2RPM(pThis->dataControl->RobotData.present_joint_velocity, ServerToClientTemp.presentJointVelocity);
         pThis->dataControl->jointCurrentRAW2mA(pThis->dataControl->RobotData.present_joint_current, ServerToClientTemp.presentJointCurrent);
+		pThis->dataControl->cartesianPoseScaleUp(pThis->dataControl->RobotData.desired_end_pose, ServerToClientTemp.desiredCartesianPose);
+		pThis->dataControl->jointPositionRAD2DEG(pThis->dataControl->RobotData.desired_q, ServerToClientTemp.desiredJointPosition);
         memcpy(ServerToClientTemp.calculateCartesianPose, pThis->dataControl->RobotData.present_cal_end_pose, sizeof(double)*NUM_DOF);
         memcpy(ServerToClientTemp.presentCartesianVelocity, pThis->dataControl->RobotData.present_end_vel, sizeof(double)*NUM_DOF);
-
-//        rt_printf("Present Joint Position : %f, %f, %f, %f, %f, %d\n",
-//                  ServerToClientTemp.presentJointPosition[0], ServerToClientTemp.presentJointPosition[1],
-//                ServerToClientTemp.presentJointPosition[2], ServerToClientTemp.presentJointPosition[3],
-//                ServerToClientTemp.presentJointPosition[4], ServerToClientTemp.presentJointPosition[5]);
-//        rt_printf("Cartesian Pose : %f, %f, %f, %f, %f, %f\n",
-//                  ServerToClientTemp.presentCartesianPose[0], ServerToClientTemp.presentCartesianPose[1],
-//                ServerToClientTemp.presentCartesianPose[2], ServerToClientTemp.presentCartesianPose[3],
-//                ServerToClientTemp.presentCartesianPose[4], ServerToClientTemp.presentCartesianPose[5]);
-//        rt_printf("Present Joint Velocity : %f, %f, %f, %f, %f, %f\n",
-//                  ServerToClientTemp.presentJointVelocity[0], ServerToClientTemp.presentJointVelocity[1],
-//                ServerToClientTemp.presentJointVelocity[2], ServerToClientTemp.presentJointVelocity[3],
-//                ServerToClientTemp.presentJointVelocity[4], ServerToClientTemp.presentJointVelocity[5]);
-//        rt_printf("Present Joint Current : %f, %f, %f, %f, %f, %f\n",
-//                  ServerToClientTemp.presentJointCurrent[0], ServerToClientTemp.presentJointCurrent[1],
-//                ServerToClientTemp.presentJointCurrent[2], ServerToClientTemp.presentJointCurrent[3],
-//                ServerToClientTemp.presentJointCurrent[4], ServerToClientTemp.presentJointCurrent[5]);
-//        rt_printf("Calculate Cartesian Pose : %f, %f, %f, %f, %f, %f\n",
-//                  ServerToClientTemp.calculateCartesianPose[0], ServerToClientTemp.calculateCartesianPose[1],
-//                ServerToClientTemp.calculateCartesianPose[2], ServerToClientTemp.calculateCartesianPose[3],
-//                ServerToClientTemp.calculateCartesianPose[4], ServerToClientTemp.calculateCartesianPose[5]);
-//        rt_printf("Present Cartesian Velocity : %f, %f, %f, %f, %f, %f\n",
-//                  ServerToClientTemp.presentCartesianVelocity[0], ServerToClientTemp.presentCartesianVelocity[1],
-//                ServerToClientTemp.presentCartesianVelocity[2], ServerToClientTemp.presentCartesianVelocity[3],
-//                ServerToClientTemp.presentCartesianVelocity[4], ServerToClientTemp.presentCartesianVelocity[5]);
-
 
         ServerToClientTemp.time = static_cast<double>((pThis->dataControl->RobotData.time2 - pThis->dataControl->RobotData.time1)/1000000.0);
         ServerToClientTemp.dxl_time = static_cast<double>((pThis->dataControl->RobotData.dxl_time2 - pThis->dataControl->RobotData.dxl_time1)/1000000.0);
@@ -105,17 +103,11 @@ void ControlMainCustom::robot_run(void *arg)
         pThis->data_indx++;
 
         pThis->dataControl->ServerToClient.push_back(ServerToClientTemp);
-//        pThis->tcpServer->data_size = static_cast<int8_t>(pThis->dataControl->ServerToClient.size());
 
         if (!pThis->tcpServer->isConnected()){
             pThis->robot_thread_run = false;
             emit pThis->disconnectClientSignal();
         }
-
-//        if (pThis->tcpServer->data_size >= DATA_MAX_INDX){
-//            pThis->data_indx = 0;
-//            pThis->dataControl->ServerToClient.clear();
-//        }
     }
 }
 

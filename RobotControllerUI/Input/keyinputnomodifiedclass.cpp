@@ -210,16 +210,16 @@ void KeyinputNoModifiedClass::FxKeyInput(QKeyEvent* keys)
         {
             QString path = qApp->applicationDirPath();
             if (path.contains("keti") || path.contains("hajun")){
-                if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 2){
-                    static_cast<Ui::MainWindow*>(ui)->tabWidget->addTab(static_cast<OperateUI*>(ui_op), "Operate");
+//                if (static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 2){
+//                    static_cast<Ui::MainWindow*>(ui)->tabWidget->addTab(static_cast<OperateUI*>(ui_op), "Operate");
                     static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(2);
-                    static_cast<OperateUI*>(ui_op)->btnStartClciked();
-                }
-                else if(static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
-                    static_cast<OperateUI*>(ui_op)->init();
-                    static_cast<Ui::MainWindow*>(ui)->tabWidget->removeTab(2);
-                    static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(0);
-                }
+//                    static_cast<OperateUI*>(ui_op)->btnStartClciked();
+//                }
+//                else if(static_cast<Ui::MainWindow*>(ui)->tabWidget->count() == 3){
+//                    static_cast<OperateUI*>(ui_op)->init();
+//                    static_cast<Ui::MainWindow*>(ui)->tabWidget->removeTab(2);
+//                    static_cast<Ui::MainWindow*>(ui)->tabWidget->setCurrentIndex(0);
+//                }
             }
         }
 

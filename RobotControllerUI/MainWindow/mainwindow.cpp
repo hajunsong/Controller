@@ -122,6 +122,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnLoggingStop, SIGNAL(clicked()), this, SLOT(btnLoggingStopClicked()));
     logging_start = false;
 
+    ui->tabWidget->addTab(operateUI, "Operate");
+
     customSettings = new CustomSettings(ui, operateUI->ui);
     customSettings->loadConfigFile();
 }

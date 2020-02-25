@@ -1,4 +1,5 @@
 #include "robotarm.h"
+#include "DataControl/datacontrol.h"
 
 Body::Body(){
     u_vec[0] = 0;
@@ -119,40 +120,123 @@ void RobotArm::mat_to_axis_angle(double R_init[], double R_final[], double r[], 
     m10 = R[1*3 + 0]; m11 = R[1*3 + 1]; m12 = R[1*3 + 2];
     m20 = R[2*3 + 0]; m21 = R[2*3 + 1]; m22 = R[2*3 + 2];
 
-    *theta = acos((m00 + m11 + m22 - 1)/2);
+    double angle, x, y, z; // variables for result
+    double epsilon = 0.01; // margin to allow for rounding errors
+    double epsilon2 = 0.1; // margin to distinguish between 0 and 180 degrees
 
-    r[0] = (m21 - m12)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
-    r[1] = (m02 - m20)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
-    r[2] = (m10 - m01)/sqrt(pow((m21 - m12), 2)+pow((m02 - m20), 2)+pow((m10 - m01), 2));
-
-    if (abs(m00 - m11) < 1e-10 && abs(m11 - m22) < 1e-10 && abs(m22 - m00) < 1e-10){
-        r[0] = 0;
-        r[1] = 0;
-        r[2] = 1;
+    if (abs(m01 - m10) < epsilon && abs(m02 - m20) < epsilon && abs(m12 - m21) < epsilon){
+        // singularity found
+        // first check for identity matrix which must have +1 for all terms
+        // in leading diagonal and zero in other terms
+        if (abs(m01 + m10) < epsilon2 && abs(m02 + m20) < epsilon2 && abs(m12 + m21) < epsilon2 && abs(m00 + m11 + m22 - 3) < epsilon2){
+            angle = 0;
+            x = 1;
+            y = 0;
+            z = 0;
+        }
+        else{
+            angle = M_PI;
+            double xx = (m00 + 1)/2;
+            double yy = (m11 + 1)/2;
+            double zz = (m22 + 1)/2;
+            double xy = (m01 + m10)/4;
+            double xz = (m02 + m20)/4;
+            double yz = (m12 + m21)/4;
+            if (xx > yy && xx > zz){ // m00 is the largest diagonal term
+                if (xx < epsilon){
+                    x = 0;
+                    y = 0.7071;
+                    z = 0.7071;
+                }
+                else{
+                    x = sqrt(xx);
+                    y = xy/x;
+                    z = xz/x;
+                }
+            }
+            else if(yy > zz){ // m11 is the largest diagonal term
+                if (yy < epsilon){
+                    x = 0.7071;
+                    y = 0;
+                    z = 0.7071;
+                }
+                else{
+                    y = sqrt(yy);
+                    x = xy/y;
+                    z = yz/y;
+                }
+            }
+            else{ // m22 is the largest diagonal term so base result on this
+                if (zz < epsilon){
+                    x = 0.7071;
+                    y = 0.7071;
+                    z = 0;
+                }
+                else{
+                    z = sqrt(zz);
+                    x = xz/z;
+                    y = yz/z;
+                }
+            }
+        }
     }
+    else {
+        // as we have reached here there are no signularites so we can handle normally
+        double s = sqrt((m21 - m12)*(m21 - m12) + (m02 - m20)*(m02 - m20) + (m10 - m01)*(m10 - m01));
+        if (abs(s) < 0.001){
+            s = 1;
+        }
+        // prevent divide by zero, should not happen if matrix is orthogonal and should be
+        // caought by singularity test above, but I've left it in just in case
+        angle = acos((m00 + m11 + m22 - 1)/2);
+        x = (m21 - m12)/s;
+        y = (m02 - m20)/s;
+        z = (m10 - m01)/s;
+    }
+
+    *theta = angle;
+    r[0] = x;
+    r[1] = y;
+    r[2] = z;
 }
 
-void RobotArm::axis_angle_to_mat(double r[], double theta, double mat[])
+void RobotArm::axis_angle_to_mat(double r[], double angle, double mat[])
 {
-    double c = cos(theta);
-    double s = sin(theta);
-    double t = 1 - c;
-    double mag = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
-    double x = r[0]/mag;
-    double y = r[1]/mag;
-    double z = r[2]/mag;
+    double c = cos(angle);
+    double s = sin(angle);
+    double t = 1.0 - c;
+    double x = r[0], y = r[1], z = r[2];
+//      if axis is not already normalised then uncomment this
+    double magnitude = sqrt(x*x + y*y + z*z);
+    if (magnitude==0) {
+        return;
+    }
+    x /= magnitude;
+    y /= magnitude;
+    z /= magnitude;
 
-    mat[0] = t*x*x + c;
-    mat[1] = t*x*y - z*s;
-    mat[2] = t*x*z + y*s;
+    double m00, m01, m02, m10, m11, m12, m20, m21, m22;
 
-    mat[3] = t*x*y + z*s;
-    mat[4] = t*y*y + c;
-    mat[5] = t*y*z - x*s;
+    m00 = c + x*x*t;
+    m11 = c + y*y*t;
+    m22 = c + z*z*t;
 
-    mat[6] = t*x*z - y*s;
-    mat[7] = t*y*z + x*s;
-    mat[8] = t*z*z + c;
+    double tmp1 = x*y*t;
+    double tmp2 = z*s;
+    m10 = tmp1 + tmp2;
+    m01 = tmp1 - tmp2;
+    tmp1 = x*z*t;
+    tmp2 = y*s;
+    m20 = tmp1 - tmp2;
+    m02 = tmp1 + tmp2;
+    tmp1 = y*z*t;
+    tmp2 = x*s;
+    m21 = tmp1 + tmp2;
+    m12 = tmp1 - tmp2;
+
+    mat[0*3 + 0] = m00; mat[0*3 + 1] = m01; mat[0*3 + 2] = m02;
+    mat[1*3 + 0] = m10; mat[1*3 + 1] = m11; mat[1*3 + 2] = m12;
+    mat[2*3 + 0] = m20; mat[2*3 + 1] = m21; mat[2*3 + 2] = m22;
 }
 
 void RobotArm::mat2rpy(double mat[], double ori[])
@@ -187,15 +271,16 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     h = step_size;
     g = -9.80665;
 
+#if MODULE_TYPE == 1
     // DH paramter
     // | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
     // |=====================================================|
     // |  1   |    -90     |  0      |   0      |     90     |
-    // |  2   |     0      |  151.75 |   0      |    -90     |
-    // |  3   |     0      |  150    |   0      |     0      |
-    // |  4   |     90     |  86.75  |   0      |     90     |
-    // |  5   |     90     |  0      |   -20.25 |     90     |
-    // |  6   |     0      |  0      |   102.5  |     0      |
+	// |  2   |     0      |  151.75 |   0      |    -90     |
+	// |  3   |     0      |  150    |   0      |     0      |
+	// |  4   |     90     |  86.75  |   0      |     90     |
+	// |  5   |     90     |  0      |   -20.25 |     90     |
+	// |  6   |     0      |  0      |   102.5  |     0      |
 
     DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = 90;
     DH[4] = 0;      DH[5] = 0.15175;    DH[6] = 0;          DH[7] = -90;
@@ -241,7 +326,6 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     body[1].Jip[3] = body[1].Ixy; body[1].Jip[4] = body[1].Iyy; body[1].Jip[5] = body[1].Iyz;
     body[1].Jip[6] = body[1].Izx; body[1].Jip[7] = body[1].Iyz; body[1].Jip[8] = body[1].Izz;
     body[1].u_vec[0] = 0; body[1].u_vec[1] = 0; body[1].u_vec[2] = 1;
-
 
     // body 2 variables
     Body::ang2mat(DH[1*4+3], DH[1*4+0], 0, body[2].Cij);
@@ -332,6 +416,152 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     body[6].Jip[3] = body[6].Ixy; body[6].Jip[4] = body[6].Iyy; body[6].Jip[5] = body[6].Iyz;
     body[6].Jip[6] = body[6].Izx; body[6].Jip[7] = body[6].Iyz; body[6].Jip[8] = body[6].Izz;
     body[6].u_vec[0] = 0; body[6].u_vec[1] = 0; body[6].u_vec[2] = 1;
+#elif MODULE_TYPE == 2
+	// DH paramter
+	// | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
+	// |=====================================================|
+	// |  1   |    -90     |  0      |   0      |    -90     |
+	// |  2   |     0      |  164.25 |   16.50  |    -90     |
+	// |  3   |     180    |  170    |   0      |     0      |
+	// |  4   |     90     |  65.25  |   0      |     90     |
+	// |  5   |     90     |  0      |  -16.75  |     90     |
+	// |  6   |     0      |  0      |   84     |     0      |
+
+	DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = -90;
+    DH[4] = 0;      DH[5] = 0.16425;    DH[6] = -0.0165;     DH[7] = -90;
+	DH[8] = 180;    DH[9] = 0.170;      DH[10] = 0;         DH[11] = 0;
+	DH[12] = 90;    DH[13] = 0.06525;   DH[14] = 0;         DH[15] = 90;
+	DH[16] = 90;    DH[17] = 0;         DH[18] = -0.01675;  DH[19] = 90;
+	DH[20] = 0;     DH[21] = 0;         DH[22] = 0.084;     DH[23] = 0;
+
+	// body 0 variable
+	body[0].Ai[0] = 1; body[0].Ai[1] = 0; body[0].Ai[2] = 0;
+	body[0].Ai[3] = 0; body[0].Ai[4] = 1; body[0].Ai[5] = 0;
+	body[0].Ai[6] = 0; body[0].Ai[7] = 0; body[0].Ai[8] = 1;
+
+	body[0].ri[0] = 0; body[0].ri[1] = 0; body[0].ri[2] = 0;
+
+	// preliminary work
+	memset(body[0].Yih, 0, sizeof(double)*6);
+	memset(body[0].wi, 0, sizeof(double)*3);
+	memset(body[0].wit, 0, sizeof(double)*9);
+
+	Body::ang2mat(0, 0, 0, body[0].Cij);
+	body[0].sijp[0] = 0; body[0].sijp[1] = 0; body[0].sijp[2] = 0;
+
+	body[0].ri_dot[0] = 0; body[0].ri_dot[1] = 0; body[0].ri_dot[2] = 0;
+	body[0].wi[0] = 0; body[0].wi[1] = 0; body[0].wi[2] = 0;
+
+	body[0].u_vec[0] = 0; body[0].u_vec[1] = 0; body[0].u_vec[2] = 1;
+
+	// body 1 variables
+	Body::ang2mat(DH[0*4+3], DH[0*4+0], 0, body[1].Cij);
+	body[1].sijp[0] = 0; body[1].sijp[1] = 0; body[1].sijp[2] = 0;
+
+	Body::ang2mat(0, 0, 0, body[1].Cii, false);
+	body[1].rhoip[0] = -0.000135874; body[1].rhoip[1] = -1.068e-12; body[1].rhoip[2] = -0.0246531;
+	body[1].mi = 7.08684533226054e-002;
+	body[1].Ixx = 2.15089916203442e-005;
+	body[1].Iyy = 3.65070109080493e-005;
+	body[1].Izz = 2.83989018839352e-005;
+	body[1].Ixy = -1.24014643551512e-017;
+	body[1].Iyz = -1.12222253664962e-010;
+	body[1].Izx = 3.33296217281281e-008;
+	body[1].Jip[0] = body[1].Ixx; body[1].Jip[1] = body[1].Ixy; body[1].Jip[2] = body[1].Izx;
+	body[1].Jip[3] = body[1].Ixy; body[1].Jip[4] = body[1].Iyy; body[1].Jip[5] = body[1].Iyz;
+	body[1].Jip[6] = body[1].Izx; body[1].Jip[7] = body[1].Iyz; body[1].Jip[8] = body[1].Izz;
+	body[1].u_vec[0] = 0; body[1].u_vec[1] = 0; body[1].u_vec[2] = 1;
+
+	// body 2 variables
+	Body::ang2mat(DH[1*4+3], DH[1*4+0], 0, body[2].Cij);
+	body[2].sijp[0] = DH[1*4+2]; body[2].sijp[1] = -DH[1*4+1]; body[2].sijp[2] = 0;
+
+	Body::ang2mat(0, M_PI_2, M_PI_2, body[2].Cii, false);
+	body[2].rhoip[0] = 0.00264336; body[2].rhoip[1] = -0.0319009; body[2].rhoip[2] = -0.000524792;
+	body[2].mi = 0.233270004294732;
+	body[2].Ixx = 4.08019849963512e-004;
+	body[2].Iyy = 4.36730722674176e-004;
+	body[2].Izz = 8.71040040349363e-005;
+	body[2].Ixy = -3.23596533711006e-007;
+	body[2].Iyz = -4.58645443586337e-005;
+	body[2].Izx = -2.40916440855742e-006;
+	body[2].Jip[0] = body[2].Ixx; body[2].Jip[1] = body[2].Ixy; body[2].Jip[2] = body[2].Izx;
+	body[2].Jip[3] = body[2].Ixy; body[2].Jip[4] = body[2].Iyy; body[2].Jip[5] = body[2].Iyz;
+	body[2].Jip[6] = body[2].Izx; body[2].Jip[7] = body[2].Iyz; body[2].Jip[8] = body[2].Izz;
+	body[2].u_vec[0] = 0; body[2].u_vec[1] = 0; body[2].u_vec[2] = 1;
+
+	// body 3 variables
+	Body::ang2mat(DH[2*4+3], DH[2*4+0], 0, body[3].Cij);
+	body[3].sijp[0] = DH[2*4+1]; body[3].sijp[1] = 0; body[3].sijp[2] = 0;
+
+	Body::ang2mat(M_PI_2,M_PI_2,M_PI_2, body[3].Cii, false);
+	body[3].rhoip[0] = 0.0668431; body[3].rhoip[1] = -4.49044e-11; body[3].rhoip[2] = -0.000574255;
+	body[3].mi = 0.294733648136712;
+	body[3].Ixx = 1.33438729955757e-003;
+	body[3].Iyy = 1.35236609017727e-003;
+	body[3].Izz = 6.10851857303522e-005;
+	body[3].Ixy = -1.65934500194573e-013;
+	body[3].Iyz = 5.8944693629749e-013;
+	body[3].Izx = -1.46477397988517e-006;
+	body[3].Jip[0] = body[3].Ixx; body[3].Jip[1] = body[3].Ixy; body[3].Jip[2] = body[3].Izx;
+	body[3].Jip[3] = body[3].Ixy; body[3].Jip[4] = body[3].Iyy; body[3].Jip[5] = body[3].Iyz;
+	body[3].Jip[6] = body[3].Izx; body[3].Jip[7] = body[3].Iyz; body[3].Jip[8] = body[3].Izz;
+	body[3].u_vec[0] = 0; body[3].u_vec[1] = 0; body[3].u_vec[2] = 1;
+
+	// body 4 variables
+	Body::ang2mat(DH[3*4+3], DH[3*4+0], 0, body[4].Cij);
+	body[4].sijp[0] = 0; body[4].sijp[1] = DH[3*4+1]; body[4].sijp[2] = 0;
+
+	Body::ang2mat(M_PI_2,M_PI_2,-M_PI_2, body[4].Cii, false);
+	body[4].rhoip[0] = 0.000488263; body[4].rhoip[1] = 0.0465912; body[4].rhoip[2] = 3.24848e-5;
+	body[4].mi = 0.108749563323237;
+	body[4].Ixx = 5.19451711277109e-005;
+	body[4].Iyy = 2.17677195227188e-005;
+	body[4].Izz = 5.3423100843467e-005;
+	body[4].Ixy = -5.50565486810879e-008;
+	body[4].Iyz = -4.1508751024039e-007;
+	body[4].Izx = -1.72489029231613e-009;
+	body[4].Jip[0] = body[4].Ixx; body[4].Jip[1] = body[4].Ixy; body[4].Jip[2] = body[4].Izx;
+	body[4].Jip[3] = body[4].Ixy; body[4].Jip[4] = body[4].Iyy; body[4].Jip[5] = body[4].Iyz;
+	body[4].Jip[6] = body[4].Izx; body[4].Jip[7] = body[4].Iyz; body[4].Jip[8] = body[4].Izz;
+	body[4].u_vec[0] = 0; body[4].u_vec[1] = 0; body[4].u_vec[2] = 1;
+
+	// body 5 variables
+	Body::ang2mat(DH[4*4+3], DH[4*4+0], 0, body[5].Cij);
+	body[5].sijp[0] = 0; body[5].sijp[1] = 0; body[5].sijp[2] = DH[4*4+2];
+
+	Body::ang2mat(-M_PI_2, 0, 0, body[5].Cii, false);
+	body[5].rhoip[0] = 0.0449512; body[5].rhoip[1] = -1.30501e-12; body[5].rhoip[2] = -0.00250684;
+	body[5].mi = 0.110204790536652;
+	body[5].Ixx = 5.65872649539517e-005;
+	body[5].Iyy = 3.21370607982722e-005;
+	body[5].Izz = 3.83261110287993e-005;
+	body[5].Ixy = 3.11849020965568e-015;
+	body[5].Iyz = 2.2933899377825e-006;
+	body[5].Izx = 1.98601435820104e-015;
+	body[5].Jip[0] = body[5].Ixx; body[5].Jip[1] = body[5].Ixy; body[5].Jip[2] = body[5].Izx;
+	body[5].Jip[3] = body[5].Ixy; body[5].Jip[4] = body[5].Iyy; body[5].Jip[5] = body[5].Iyz;
+	body[5].Jip[6] = body[5].Izx; body[5].Jip[7] = body[5].Iyz; body[5].Jip[8] = body[5].Izz;
+	body[5].u_vec[0] = 0; body[5].u_vec[1] = 0; body[5].u_vec[2] = 1;
+
+	// body 6 variables
+	Body::ang2mat(DH[5*4+3], DH[5*4+0], 0, body[6].Cij);
+	body[6].sijp[0] = 0; body[6].sijp[1] = 0; body[6].sijp[2] = DH[5*4+2];
+
+	Body::ang2mat(M_PI, M_PI_2, 0, body[6].Cii, false);
+	body[6].rhoip[0] = 4.25231e-8; body[6].rhoip[1] = 0.00049999; body[6].rhoip[2] = 0.0756101;
+	body[6].mi = 1.06900256777816e-002;
+	body[6].Ixx = 5.4230201398644e-007;
+	body[6].Iyy = 8.27349038593228e-007;
+	body[6].Izz = 6.80541319418483e-007;
+	body[6].Ixy = 1.68734917731254e-012;
+	body[6].Iyz = 1.25961065157397e-013;
+	body[6].Izx = 3.11703037783589e-013;
+	body[6].Jip[0] = body[6].Ixx; body[6].Jip[1] = body[6].Ixy; body[6].Jip[2] = body[6].Izx;
+	body[6].Jip[3] = body[6].Ixy; body[6].Jip[4] = body[6].Iyy; body[6].Jip[5] = body[6].Iyz;
+	body[6].Jip[6] = body[6].Izx; body[6].Jip[7] = body[6].Iyz; body[6].Jip[8] = body[6].Izz;
+	body[6].u_vec[0] = 0; body[6].u_vec[1] = 0; body[6].u_vec[2] = 1;
+#endif
 
     numeric = new Numerical();
 }
@@ -577,98 +807,135 @@ void RobotArm::kinematics()
 }
 
 void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
-    Body *body_end = &body[num_body];
-    for (uint i = 0; i < 3; i++) {
-        PH_pos[i] = des_pos[i] - body_end->re[i];
-        PH_ori[i] = des_ang[i] - body_end->ori[i];
-    }
-
-    for (uint i = 0; i < 3; i++) {
-        PH[i] = PH_pos[i];
-        PH[i + 3] = PH_ori[i];
-    }
-
-#if 0
-    jacobian();
-
-    double *U, *s, *V;
-    U = new double[dof * dof];
-    s = new double[MIN(dof, num_body)];
-    V = new double[num_body*num_body];
-
-    numeric->svdcmp(J, dof, num_body, U, s, V);
-
-    memset(JD, 0, sizeof(double) * num_body*dof);
-    double *temp = new double[num_body*dof];
-    double lamda = 1e-5;
-    for (uint i = 0; i < dof; i++) {
-        for (uint j = 0; j < num_body; j++) {
-            for (uint k = 0; k < dof; k++) {
-                temp[j * dof + k] = V[j * num_body + i] * U[k * num_body + i];
-            }
-        }
-        for (uint j = 0; j < num_body; j++) {
-            for (uint k = 0; k < dof; k++) {
-                JD[j * dof + k] += (s[i] / (s[i]*s[i] +lamda*lamda))*(temp[j * dof + k]);
-            }
-        }
-    }
-
-    delete[] s;
-    delete[] U;
-    delete[] V;
-    delete[] temp;
-
-
-    memset(delta_q, 0, sizeof(double) * 6);
-    for (uint i = 0; i < num_body; i++) {
-        for (uint j = 0; j < num_body; j++) {
-            delta_q[i] += JD[i * num_body + j] * PH[j];
-        }
-    }
-#else
-
     int *indx = new int[6];
-    double *fac = new double[6*6];
-    double errmax = 0;
-    int NRcount = 0;
+    double *fac = new double[36];
 
-    do{
+    double desired[6] = {0,};
+    for(int i = 0; i < 3; i++){
+        desired[i] = des_pos[i];
+        desired[i + 3] = des_ang[i];
+    }
+
+    double alpha = 1/4.0;
+    double err[6], qdot[6];
+    for(int i = 0; i < 1/alpha; i++){
+        for(int j = 0; j < 3; j++){
+            err[j] = des_pos[j] - body[num_body].re[j];
+            err[j + 3] = des_ang[j] - body[num_body].ori[j];
+        }
+
         jacobian();
 
         numeric->ludcmp(J, 6, indx, 0.0, fac);
-        memset(delta_q, 0, sizeof(double) * 6);
-        numeric->lubksb(fac, 6, indx, PH, delta_q);
+        numeric->lubksb(fac, 6, indx, err, qdot);
 
-        for (uint i = 0; i < num_body; i++) {
-            body[i + 1].qi += delta_q[i];
+        for (uint j = 0; j < 6; j++){
+            delta_q[j] = qdot[j]*alpha;
+        }
+
+        for (uint j = 0; j < num_body; j++) {
+            body[j + 1].qi += delta_q[j];
         }
 
         kinematics();
-
-        for (uint i = 0; i < 3; i++) {
-            PH_pos[i] = des_pos[i] - body_end->re[i];
-            PH_ori[i] = des_ang[i] - body_end->ori[i];
-        }
-
-        for (uint i = 0; i < 3; i++) {
-            PH[i] = PH_pos[i];
-            PH[i + 3] = PH_ori[i];
-        }
-
-        errmax = PH[0];
-        for(uint i = 1; i < num_body;i++){
-            errmax = errmax > abs(PH[i]) ? errmax : abs(PH[i]);
-        }
-
-        NRcount++;
-    }while(errmax > 1e-3 && NRcount < 10);
-
-//    printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+    }
 
     delete[] indx;
     delete[] fac;
-#endif
+
+
+//    Body *body_end = &body[num_body];
+//    for (uint i = 0; i < 3; i++) {
+//        PH_pos[i] = des_pos[i] - body_end->re[i];
+//        PH_ori[i] = des_ang[i] - body_end->ori[i];
+//    }
+
+//    for (uint i = 0; i < 3; i++) {
+//        PH[i] = PH_pos[i];
+//        PH[i + 3] = PH_ori[i];
+//    }
+
+//#if 0
+//    jacobian();
+
+//    double *U, *s, *V;
+//    U = new double[dof * dof];
+//    s = new double[MIN(dof, num_body)];
+//    V = new double[num_body*num_body];
+
+//    numeric->svdcmp(J, dof, num_body, U, s, V);
+
+//    memset(JD, 0, sizeof(double) * num_body*dof);
+//    double *temp = new double[num_body*dof];
+//    double lamda = 1e-5;
+//    for (uint i = 0; i < dof; i++) {
+//        for (uint j = 0; j < num_body; j++) {
+//            for (uint k = 0; k < dof; k++) {
+//                temp[j * dof + k] = V[j * num_body + i] * U[k * num_body + i];
+//            }
+//        }
+//        for (uint j = 0; j < num_body; j++) {
+//            for (uint k = 0; k < dof; k++) {
+//                JD[j * dof + k] += (s[i] / (s[i]*s[i] +lamda*lamda))*(temp[j * dof + k]);
+//            }
+//        }
+//    }
+
+//    delete[] s;
+//    delete[] U;
+//    delete[] V;
+//    delete[] temp;
+
+
+//    memset(delta_q, 0, sizeof(double) * 6);
+//    for (uint i = 0; i < num_body; i++) {
+//        for (uint j = 0; j < num_body; j++) {
+//            delta_q[i] += JD[i * num_body + j] * PH[j];
+//        }
+//    }
+//#else
+
+//    int *indx = new int[6];
+//    double *fac = new double[6*6];
+//    double errmax = 0;
+//    int NRcount = 0;
+
+//    do{
+//        jacobian();
+
+//        numeric->ludcmp(J, 6, indx, 0.0, fac);
+//        memset(delta_q, 0, sizeof(double) * 6);
+//        numeric->lubksb(fac, 6, indx, PH, delta_q);
+
+//        for (uint i = 0; i < num_body; i++) {
+//            body[i + 1].qi += delta_q[i];
+//        }
+
+//        kinematics();
+
+//        for (uint i = 0; i < 3; i++) {
+//            PH_pos[i] = des_pos[i] - body_end->re[i];
+//            PH_ori[i] = des_ang[i] - body_end->ori[i];
+//        }
+
+//        for (uint i = 0; i < 3; i++) {
+//            PH[i] = PH_pos[i];
+//            PH[i + 3] = PH_ori[i];
+//        }
+
+//        errmax = PH[0];
+//        for(uint i = 1; i < num_body;i++){
+//            errmax = errmax > abs(PH[i]) ? errmax : abs(PH[i]);
+//        }
+
+//        NRcount++;
+//    }while(errmax > 1e-3 && NRcount < 10);
+
+////    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+
+//    delete[] indx;
+//    delete[] fac;
+//#endif
 }
 
 void RobotArm::jacobian()

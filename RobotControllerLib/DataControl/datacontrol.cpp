@@ -12,8 +12,14 @@ DataControl::DataControl()
     memset(&PathData, 0, sizeof(PathData));
     memset(&torqueIdeData, 0, sizeof(torqueIdeData));
     memset(&PIDControl, 0, sizeof(PIDControl));
+    RobotData.offset_setting = false;
 
-    load_data("motion.txt", &PathData.file_data, "\t");
+    load_data("motion_data/motion.txt", &PathData.file_data, "\t");
+    load_data("motion_data/side1_motion.txt", &side1_motion.file_data, "\t");
+    load_data("motion_data/side2_motion.txt", &side2_motion.file_data, "\t");
+    load_data("motion_data/side3_motion.txt", &side3_motion.file_data, "\t");
+    load_data("motion_data/rise_motion.txt", &rise_motion.file_data, "\t");
+    load_data("motion_data/soup_motion.txt", &soup_motion.file_data, "\t");
 }
 
 DataControl::~DataControl()
@@ -28,6 +34,11 @@ DataControl::~DataControl()
         PathData.movePath[i].path_theta.clear();
     }
     PathData.file_data.clear();
+    side1_motion.file_data.clear();
+    side2_motion.file_data.clear();
+    side3_motion.file_data.clear();
+    rise_motion.file_data.clear();
+    soup_motion.file_data.clear();
 }
 
 void DataControl::DataReset()
@@ -131,5 +142,12 @@ void DataControl::jointCurrentmA2RAW(double cur_mA[], int16_t cur_raw[])
 {
     for(int i = 0; i < NUM_JOINT; i++){
         cur_raw[i] = static_cast<int16_t>(cur_mA[i]*mA2RAW);
-    }
+	}
+}
+
+void DataControl::jointPositionRAD2DEG(double pos_rad[], double pos_deg[])
+{
+	for(int i = 0; i < NUM_JOINT; i++){
+		pos_deg[i] = pos_rad[i]*RAD2DEG;
+	}
 }

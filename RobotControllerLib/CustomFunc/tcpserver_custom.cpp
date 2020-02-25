@@ -14,7 +14,7 @@ void TcpServerCustom::comm_run(void *arg){
     NRMKHelper::TcpServer* pTcpServer = static_cast<NRMKHelper::TcpServer*>(arg);
     pTcpServer->comm_thread_run = false;
 
-    rt_task_set_periodic(&pTcpServer->tcpServerCustom->comm_task, TM_NOW, 50e6);
+    rt_task_set_periodic(&pTcpServer->tcpServerCustom->comm_task, TM_NOW, 100e6);
 
     pTcpServer->comm_thread_run = true;
     while(pTcpServer->comm_thread_run){

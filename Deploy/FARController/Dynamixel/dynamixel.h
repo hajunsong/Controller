@@ -59,9 +59,14 @@ const uint8_t LEN_PRESENT_VELOCITY = 4;
 const uint8_t LEN_PRESENT_CURRENT = 2;
 const uint8_t LEN_INDIRECTADDRESS_FOR_READ = LEN_PRESENT_POSITION + LEN_PRESENT_VELOCITY + LEN_PRESENT_CURRENT;
 const uint8_t LEN_TORQUE_ENABLE = 1;
+const uint8_t LEN_OPERATING_MODE = 1;
 const uint8_t LEN_GOAL_POSITION = 4;
 const uint8_t LEN_GOAL_CURRENT = 2;
-const uint8_t LEN_INDIRECTADDRESS_FOR_WRITE = LEN_TORQUE_ENABLE + LEN_GOAL_POSITION + LEN_GOAL_CURRENT;
+const uint8_t LEN_PROFILE_ACCELERATION = 4;
+const uint8_t LEN_PROFILE_VELOCTIY = 4;
+const uint8_t LEN_VELOCITY_LIMIT = 4;
+const uint8_t LEN_POSITION_P_GAIN = 2;
+const uint8_t LEN_INDIRECTADDRESS_FOR_WRITE = LEN_PROFILE_ACCELERATION + LEN_PROFILE_VELOCTIY + LEN_VELOCITY_LIMIT + LEN_POSITION_P_GAIN;
 
 // Protocol version
 #define PROTOCOL_VERSION 2.0
@@ -109,13 +114,17 @@ public:
     void getPresentVelocity(uint8_t ID, int32_t *present_velocity_ptr);
     void getPresentCurrent(uint8_t ID, int16_t *present_current_ptr);
 
-    void initGroupSyncReadIndirectAddress(uint8_t ID);
-    void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint);
+	void initGroupSyncReadIndirectAddress(uint8_t ID);
+	void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint);
+	void getGroupSyncReadIndirectAddress(int32_t *present_position, int32_t *present_velocity, int16_t *present_current, uint8_t num_joint, uint8_t ID);
 
     void initGroupSyncWriteIndirectAddress(uint8_t ID);
-    void setGroupSyncWriteIndirectAddress(uint8_t *torque_enable, int32_t *goal_position, int16_t *goal_current, uint8_t num_joint);
+    void setGroupSyncWriteIndirectAddress(const uint32_t *profile_acc, const uint32_t* profile_vel, const uint32_t* vel_limit, const uint16_t* pos_p_gain, uint8_t num_joint);
+
+
 
     void setGroupSyncWriteTorqueEnable(uint8_t enable, uint8_t num_joint);
+    void setGroupSyncWriteOperatingMode(uint8_t enable, uint8_t num_joint);
     void setGroupSyncWriteGoalPosition(int32_t *goalPosition, uint8_t num_joint);
     void setGroupSyncWriteGoalCurrent(int16_t *goalCurrent, uint8_t num_joint);
 
@@ -133,8 +142,21 @@ const double VELOCITY_UNIT = 0.229;	// [RPM]
 
 enum JointOpMode{ current_mode = 0, velocity_mode, position_mode = 3, extended_position_mode, current_based_position_mode, pwm_mode = 16 };
 
-const double TORQUE_CONSTANT_W270 = 2.8;
+const double TORQUE_CONSTANT_W270 = 3.5;
 const double TORQUE_CONSTANT_W150 = 1.65;
+const double TORQUE_CONSTANT_V270 = 8.0;
+const double TORQUE_CONSTANT_V350 = 4.7;
+const double TORQUE_CONSTANT_W350 = 4.2;
+
+const uint32_t init_profile_acc[6] = {80, 80, 80, 80, 80, 80};
+const uint32_t init_profile_vel[6] = {30, 30, 30, 30, 30, 30};
+const uint32_t init_vel_limit[6] = {128, 128, 128, 135, 135, 135};
+const uint16_t init_pos_p_gain[6] = {300, 300, 300, 300, 300, 300};
+
+const uint32_t default_profile_acc[6] = {0, 0, 0, 0, 0, 0};
+const uint32_t default_profile_vel[6] = {0, 0, 0, 0, 0, 0};
+const uint32_t default_vel_limit[6] = {128, 128, 128, 135, 135, 135};
+const uint16_t default_pos_p_gain[6] = {800, 800, 800, 800, 800, 800};
 
 }
 
