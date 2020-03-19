@@ -6,7 +6,7 @@ TorqueID::TorqueID(void* _tcp, QWidget *parent) : QMainWindow(parent), ui(new Ui
     ui->setupUi(this);
 	tcp = static_cast<TcpClient*>(_tcp);
 
-	connect(ui->sbTorqueConst, SIGNAL(editingFinished()), this, SLOT(sbTorqueConstEditingFinished()));
+    connect(ui->sbTorqueConst, SIGNAL(editingFinished()), this, SLOT(sbTorqueConstEditingFinished()));
 }
 
 TorqueID::~TorqueID(){
@@ -14,18 +14,18 @@ TorqueID::~TorqueID(){
 
 void TorqueID::sbTorqueConstEditingFinished()
 {
-	txData.clear();
-	txData.append(Qt::Key_N);
-	txData.append(Qt::Key_T);
+    txData.clear();
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_T);
 
     txData.append(DataControl::OpMode::TorqueID);
-	txData.append(QByteArray::number(ui->sbMass->value(), 'f', 6));
-	txData.append(QByteArray::number(ui->sbTorqueConst->value(), 'f', 6));
+    txData.append(QByteArray::number(ui->sbMass->value(), 'f', 6));
+    txData.append(QByteArray::number(ui->sbTorqueConst->value(), 'f', 6));
 
-	txData.append(Qt::Key_N);
-	txData.append(Qt::Key_E);
+    txData.append(Qt::Key_N);
+    txData.append(Qt::Key_E);
 
-	qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << txData;
 
-	static_cast<TcpClient*>(tcp)->socket->write(txData);
+    static_cast<TcpClient*>(tcp)->socket->write(txData);
 }
