@@ -80,6 +80,7 @@ public:
         double present_end_pose[NUM_DOF];
         double desired_end_pose[NUM_DOF];
         double old_desired_end_pose[NUM_DOF];
+        bool ik_flag;
         double present_q[NUM_JOINT];
         double present_q_dot[NUM_JOINT];
         double desired_q[NUM_JOINT];
@@ -104,6 +105,7 @@ public:
         char cmd_type, cycle_count, cycle_count_max;
         uint8_t row, col;
         std::vector<double> total_time, point_x, point_y, point_z, point_theta, acc_time, point_roll, point_pitch, point_yaw;
+        double teaching_x, teaching_y, teaching_z, teaching_roll, teaching_pitch, teaching_yaw;
         StructPathGenerateData movePath[10], readyPath;
         uint path_data_indx;
         uint8_t path_struct_indx;
@@ -134,7 +136,7 @@ public:
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
     enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding};
-    enum Section{Side1=1, Side2, Side3, Soup, Rise, Mouse};
+    enum Section{Side1=1, Side2, Side3, Soup, Rise, Mouse, Home};
 
     bool config_check;
     bool cartesian_goal_reach;

@@ -78,8 +78,10 @@ public:
         int32_t present_joint_velocity[NUM_JOINT];
         int16_t present_joint_current[NUM_JOINT];
         double present_end_pose[NUM_DOF];
+        double previous_end_pose[NUM_DOF];
         double desired_end_pose[NUM_DOF];
         double old_desired_end_pose[NUM_DOF];
+        bool ik_flag;
         double present_q[NUM_JOINT];
         double present_q_dot[NUM_JOINT];
         double desired_q[NUM_JOINT];
@@ -104,6 +106,7 @@ public:
         char cmd_type, cycle_count, cycle_count_max;
         uint8_t row, col;
         std::vector<double> total_time, point_x, point_y, point_z, point_theta, acc_time, point_roll, point_pitch, point_yaw;
+        double teaching_x, teaching_y, teaching_z, teaching_roll, teaching_pitch, teaching_yaw;
         StructPathGenerateData movePath[10], readyPath;
         uint path_data_indx;
         uint8_t path_struct_indx;
@@ -134,7 +137,7 @@ public:
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
     enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding};
-    enum Section{Side1=1, Side2, Side3, Soup, Rise, Mouse};
+    enum Section{Side1=1, Side2, Side3, Soup, Rise, Mouse, Home};
 
     bool config_check;
     bool cartesian_goal_reach;
@@ -176,8 +179,8 @@ public:
     const double mA2RAW = 0.371747212;
 
     const double operateReadyJoint[6] = {0.74944438, 0.40421825, -2.0655972, -1.6613789, 0.82135195, 0};
-    const double operateReadyPose[6] = {-0.21011225, 0.13552308, 0.12537458, 1.5707963, 0, -1.5707963};
-    const double operateFeedingReadyPose[6] = {-0.21011225, 0.13552308, 0.12537459, 1.5642233, -0.78231204, -1.5661557};
+    const double operateReadyPose[6] = {-0.21011225, 0.13552308, 0.12537458, 1.5707963, 3.141592/2, -1.5707963};
+    const double operateFeedingReadyPose[6] = {-0.21011225, 0.13552308, 0.12537459, 1.5642233, -0.78231204+3.141592/2, -1.5661557};
     bool feeding;
 
 //    const int32_t offset[6] = {2202, 500, 1672, 3200, 901, 1924};

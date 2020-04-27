@@ -276,11 +276,11 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     // | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
     // |=====================================================|
     // |  1   |    -90     |  0      |   0      |     90     |
-	// |  2   |     0      |  151.75 |   0      |    -90     |
-	// |  3   |     0      |  150    |   0      |     0      |
-	// |  4   |     90     |  86.75  |   0      |     90     |
-	// |  5   |     90     |  0      |   -20.25 |     90     |
-	// |  6   |     0      |  0      |   102.5  |     0      |
+    // |  2   |     0      |  151.75 |   0      |    -90     |
+    // |  3   |     0      |  150    |   0      |     0      |
+    // |  4   |     90     |  86.75  |   0      |     90     |
+    // |  5   |     90     |  0      |   -20.25 |     90     |
+    // |  6   |     0      |  0      |   102.5  |     0      |
 
     DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = 90;
     DH[4] = 0;      DH[5] = 0.15175;    DH[6] = 0;          DH[7] = -90;
@@ -417,150 +417,150 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
     body[6].Jip[6] = body[6].Izx; body[6].Jip[7] = body[6].Iyz; body[6].Jip[8] = body[6].Izz;
     body[6].u_vec[0] = 0; body[6].u_vec[1] = 0; body[6].u_vec[2] = 1;
 #elif MODULE_TYPE == 2
-	// DH paramter
-	// | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
-	// |=====================================================|
-	// |  1   |    -90     |  0      |   0      |    -90     |
-	// |  2   |     0      |  164.25 |   16.50  |    -90     |
-	// |  3   |     180    |  170    |   0      |     0      |
-	// |  4   |     90     |  65.25  |   0      |     90     |
-	// |  5   |     90     |  0      |  -16.75  |     90     |
-	// |  6   |     0      |  0      |   84     |     0      |
+    // DH paramter
+    // | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
+    // |=====================================================|
+    // |  1   |    -90     |  0      |   0      |    -90     |
+    // |  2   |     0      |  164.25 |   16.50  |    -90     |
+    // |  3   |     180    |  170    |   0      |     0      |
+    // |  4   |     90     |  65.25  |   0      |     90     |
+    // |  5   |     90     |  0      |  -16.75  |     90     |
+    // |  6   |     0      |  0      |   84     |     0      |
 
-	DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = -90;
+    DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = -90;
     DH[4] = 0;      DH[5] = 0.16425;    DH[6] = -0.0165;     DH[7] = -90;
-	DH[8] = 180;    DH[9] = 0.170;      DH[10] = 0;         DH[11] = 0;
-	DH[12] = 90;    DH[13] = 0.06525;   DH[14] = 0;         DH[15] = 90;
-	DH[16] = 90;    DH[17] = 0;         DH[18] = -0.01675;  DH[19] = 90;
-	DH[20] = 0;     DH[21] = 0;         DH[22] = 0.084;     DH[23] = 0;
+    DH[8] = 180;    DH[9] = 0.170;      DH[10] = 0;         DH[11] = 0;
+    DH[12] = 90;    DH[13] = 0.06525;   DH[14] = 0;         DH[15] = 90;
+    DH[16] = 90;    DH[17] = 0;         DH[18] = -0.01675;  DH[19] = 90;
+    DH[20] = 0;     DH[21] = 0;         DH[22] = 0.084;     DH[23] = 0;
 
-	// body 0 variable
-	body[0].Ai[0] = 1; body[0].Ai[1] = 0; body[0].Ai[2] = 0;
-	body[0].Ai[3] = 0; body[0].Ai[4] = 1; body[0].Ai[5] = 0;
-	body[0].Ai[6] = 0; body[0].Ai[7] = 0; body[0].Ai[8] = 1;
+    // body 0 variable
+    body[0].Ai[0] = 1; body[0].Ai[1] = 0; body[0].Ai[2] = 0;
+    body[0].Ai[3] = 0; body[0].Ai[4] = 1; body[0].Ai[5] = 0;
+    body[0].Ai[6] = 0; body[0].Ai[7] = 0; body[0].Ai[8] = 1;
 
-	body[0].ri[0] = 0; body[0].ri[1] = 0; body[0].ri[2] = 0;
+    body[0].ri[0] = 0; body[0].ri[1] = 0; body[0].ri[2] = 0;
 
-	// preliminary work
-	memset(body[0].Yih, 0, sizeof(double)*6);
-	memset(body[0].wi, 0, sizeof(double)*3);
-	memset(body[0].wit, 0, sizeof(double)*9);
+    // preliminary work
+    memset(body[0].Yih, 0, sizeof(double)*6);
+    memset(body[0].wi, 0, sizeof(double)*3);
+    memset(body[0].wit, 0, sizeof(double)*9);
 
-	Body::ang2mat(0, 0, 0, body[0].Cij);
-	body[0].sijp[0] = 0; body[0].sijp[1] = 0; body[0].sijp[2] = 0;
+    Body::ang2mat(0, 0, 0, body[0].Cij);
+    body[0].sijp[0] = 0; body[0].sijp[1] = 0; body[0].sijp[2] = 0;
 
-	body[0].ri_dot[0] = 0; body[0].ri_dot[1] = 0; body[0].ri_dot[2] = 0;
-	body[0].wi[0] = 0; body[0].wi[1] = 0; body[0].wi[2] = 0;
+    body[0].ri_dot[0] = 0; body[0].ri_dot[1] = 0; body[0].ri_dot[2] = 0;
+    body[0].wi[0] = 0; body[0].wi[1] = 0; body[0].wi[2] = 0;
 
-	body[0].u_vec[0] = 0; body[0].u_vec[1] = 0; body[0].u_vec[2] = 1;
+    body[0].u_vec[0] = 0; body[0].u_vec[1] = 0; body[0].u_vec[2] = 1;
 
-	// body 1 variables
-	Body::ang2mat(DH[0*4+3], DH[0*4+0], 0, body[1].Cij);
-	body[1].sijp[0] = 0; body[1].sijp[1] = 0; body[1].sijp[2] = 0;
+    // body 1 variables
+    Body::ang2mat(DH[0*4+3], DH[0*4+0], 0, body[1].Cij);
+    body[1].sijp[0] = 0; body[1].sijp[1] = 0; body[1].sijp[2] = 0;
 
-	Body::ang2mat(0, 0, 0, body[1].Cii, false);
-	body[1].rhoip[0] = -0.000135874; body[1].rhoip[1] = -1.068e-12; body[1].rhoip[2] = -0.0246531;
-	body[1].mi = 7.08684533226054e-002;
-	body[1].Ixx = 2.15089916203442e-005;
-	body[1].Iyy = 3.65070109080493e-005;
-	body[1].Izz = 2.83989018839352e-005;
-	body[1].Ixy = -1.24014643551512e-017;
-	body[1].Iyz = -1.12222253664962e-010;
-	body[1].Izx = 3.33296217281281e-008;
-	body[1].Jip[0] = body[1].Ixx; body[1].Jip[1] = body[1].Ixy; body[1].Jip[2] = body[1].Izx;
-	body[1].Jip[3] = body[1].Ixy; body[1].Jip[4] = body[1].Iyy; body[1].Jip[5] = body[1].Iyz;
-	body[1].Jip[6] = body[1].Izx; body[1].Jip[7] = body[1].Iyz; body[1].Jip[8] = body[1].Izz;
-	body[1].u_vec[0] = 0; body[1].u_vec[1] = 0; body[1].u_vec[2] = 1;
+    Body::ang2mat(0, 0, 0, body[1].Cii, false);
+    body[1].rhoip[0] = -0.000135874; body[1].rhoip[1] = -1.068e-12; body[1].rhoip[2] = -0.0246531;
+    body[1].mi = 7.08684533226054e-002;
+    body[1].Ixx = 2.15089916203442e-005;
+    body[1].Iyy = 3.65070109080493e-005;
+    body[1].Izz = 2.83989018839352e-005;
+    body[1].Ixy = -1.24014643551512e-017;
+    body[1].Iyz = -1.12222253664962e-010;
+    body[1].Izx = 3.33296217281281e-008;
+    body[1].Jip[0] = body[1].Ixx; body[1].Jip[1] = body[1].Ixy; body[1].Jip[2] = body[1].Izx;
+    body[1].Jip[3] = body[1].Ixy; body[1].Jip[4] = body[1].Iyy; body[1].Jip[5] = body[1].Iyz;
+    body[1].Jip[6] = body[1].Izx; body[1].Jip[7] = body[1].Iyz; body[1].Jip[8] = body[1].Izz;
+    body[1].u_vec[0] = 0; body[1].u_vec[1] = 0; body[1].u_vec[2] = 1;
 
-	// body 2 variables
-	Body::ang2mat(DH[1*4+3], DH[1*4+0], 0, body[2].Cij);
-	body[2].sijp[0] = DH[1*4+2]; body[2].sijp[1] = -DH[1*4+1]; body[2].sijp[2] = 0;
+    // body 2 variables
+    Body::ang2mat(DH[1*4+3], DH[1*4+0], 0, body[2].Cij);
+    body[2].sijp[0] = DH[1*4+2]; body[2].sijp[1] = -DH[1*4+1]; body[2].sijp[2] = 0;
 
-	Body::ang2mat(0, M_PI_2, M_PI_2, body[2].Cii, false);
-	body[2].rhoip[0] = 0.00264336; body[2].rhoip[1] = -0.0319009; body[2].rhoip[2] = -0.000524792;
-	body[2].mi = 0.233270004294732;
-	body[2].Ixx = 4.08019849963512e-004;
-	body[2].Iyy = 4.36730722674176e-004;
-	body[2].Izz = 8.71040040349363e-005;
-	body[2].Ixy = -3.23596533711006e-007;
-	body[2].Iyz = -4.58645443586337e-005;
-	body[2].Izx = -2.40916440855742e-006;
-	body[2].Jip[0] = body[2].Ixx; body[2].Jip[1] = body[2].Ixy; body[2].Jip[2] = body[2].Izx;
-	body[2].Jip[3] = body[2].Ixy; body[2].Jip[4] = body[2].Iyy; body[2].Jip[5] = body[2].Iyz;
-	body[2].Jip[6] = body[2].Izx; body[2].Jip[7] = body[2].Iyz; body[2].Jip[8] = body[2].Izz;
-	body[2].u_vec[0] = 0; body[2].u_vec[1] = 0; body[2].u_vec[2] = 1;
+    Body::ang2mat(0, M_PI_2, M_PI_2, body[2].Cii, false);
+    body[2].rhoip[0] = 0.00264336; body[2].rhoip[1] = -0.0319009; body[2].rhoip[2] = -0.000524792;
+    body[2].mi = 0.233270004294732;
+    body[2].Ixx = 4.08019849963512e-004;
+    body[2].Iyy = 4.36730722674176e-004;
+    body[2].Izz = 8.71040040349363e-005;
+    body[2].Ixy = -3.23596533711006e-007;
+    body[2].Iyz = -4.58645443586337e-005;
+    body[2].Izx = -2.40916440855742e-006;
+    body[2].Jip[0] = body[2].Ixx; body[2].Jip[1] = body[2].Ixy; body[2].Jip[2] = body[2].Izx;
+    body[2].Jip[3] = body[2].Ixy; body[2].Jip[4] = body[2].Iyy; body[2].Jip[5] = body[2].Iyz;
+    body[2].Jip[6] = body[2].Izx; body[2].Jip[7] = body[2].Iyz; body[2].Jip[8] = body[2].Izz;
+    body[2].u_vec[0] = 0; body[2].u_vec[1] = 0; body[2].u_vec[2] = 1;
 
-	// body 3 variables
-	Body::ang2mat(DH[2*4+3], DH[2*4+0], 0, body[3].Cij);
-	body[3].sijp[0] = DH[2*4+1]; body[3].sijp[1] = 0; body[3].sijp[2] = 0;
+    // body 3 variables
+    Body::ang2mat(DH[2*4+3], DH[2*4+0], 0, body[3].Cij);
+    body[3].sijp[0] = DH[2*4+1]; body[3].sijp[1] = 0; body[3].sijp[2] = 0;
 
-	Body::ang2mat(M_PI_2,M_PI_2,M_PI_2, body[3].Cii, false);
-	body[3].rhoip[0] = 0.0668431; body[3].rhoip[1] = -4.49044e-11; body[3].rhoip[2] = -0.000574255;
-	body[3].mi = 0.294733648136712;
-	body[3].Ixx = 1.33438729955757e-003;
-	body[3].Iyy = 1.35236609017727e-003;
-	body[3].Izz = 6.10851857303522e-005;
-	body[3].Ixy = -1.65934500194573e-013;
-	body[3].Iyz = 5.8944693629749e-013;
-	body[3].Izx = -1.46477397988517e-006;
-	body[3].Jip[0] = body[3].Ixx; body[3].Jip[1] = body[3].Ixy; body[3].Jip[2] = body[3].Izx;
-	body[3].Jip[3] = body[3].Ixy; body[3].Jip[4] = body[3].Iyy; body[3].Jip[5] = body[3].Iyz;
-	body[3].Jip[6] = body[3].Izx; body[3].Jip[7] = body[3].Iyz; body[3].Jip[8] = body[3].Izz;
-	body[3].u_vec[0] = 0; body[3].u_vec[1] = 0; body[3].u_vec[2] = 1;
+    Body::ang2mat(M_PI_2,M_PI_2,M_PI_2, body[3].Cii, false);
+    body[3].rhoip[0] = 0.0668431; body[3].rhoip[1] = -4.49044e-11; body[3].rhoip[2] = -0.000574255;
+    body[3].mi = 0.294733648136712;
+    body[3].Ixx = 1.33438729955757e-003;
+    body[3].Iyy = 1.35236609017727e-003;
+    body[3].Izz = 6.10851857303522e-005;
+    body[3].Ixy = -1.65934500194573e-013;
+    body[3].Iyz = 5.8944693629749e-013;
+    body[3].Izx = -1.46477397988517e-006;
+    body[3].Jip[0] = body[3].Ixx; body[3].Jip[1] = body[3].Ixy; body[3].Jip[2] = body[3].Izx;
+    body[3].Jip[3] = body[3].Ixy; body[3].Jip[4] = body[3].Iyy; body[3].Jip[5] = body[3].Iyz;
+    body[3].Jip[6] = body[3].Izx; body[3].Jip[7] = body[3].Iyz; body[3].Jip[8] = body[3].Izz;
+    body[3].u_vec[0] = 0; body[3].u_vec[1] = 0; body[3].u_vec[2] = 1;
 
-	// body 4 variables
-	Body::ang2mat(DH[3*4+3], DH[3*4+0], 0, body[4].Cij);
-	body[4].sijp[0] = 0; body[4].sijp[1] = DH[3*4+1]; body[4].sijp[2] = 0;
+    // body 4 variables
+    Body::ang2mat(DH[3*4+3], DH[3*4+0], 0, body[4].Cij);
+    body[4].sijp[0] = 0; body[4].sijp[1] = DH[3*4+1]; body[4].sijp[2] = 0;
 
-	Body::ang2mat(M_PI_2,M_PI_2,-M_PI_2, body[4].Cii, false);
-	body[4].rhoip[0] = 0.000488263; body[4].rhoip[1] = 0.0465912; body[4].rhoip[2] = 3.24848e-5;
-	body[4].mi = 0.108749563323237;
-	body[4].Ixx = 5.19451711277109e-005;
-	body[4].Iyy = 2.17677195227188e-005;
-	body[4].Izz = 5.3423100843467e-005;
-	body[4].Ixy = -5.50565486810879e-008;
-	body[4].Iyz = -4.1508751024039e-007;
-	body[4].Izx = -1.72489029231613e-009;
-	body[4].Jip[0] = body[4].Ixx; body[4].Jip[1] = body[4].Ixy; body[4].Jip[2] = body[4].Izx;
-	body[4].Jip[3] = body[4].Ixy; body[4].Jip[4] = body[4].Iyy; body[4].Jip[5] = body[4].Iyz;
-	body[4].Jip[6] = body[4].Izx; body[4].Jip[7] = body[4].Iyz; body[4].Jip[8] = body[4].Izz;
-	body[4].u_vec[0] = 0; body[4].u_vec[1] = 0; body[4].u_vec[2] = 1;
+    Body::ang2mat(M_PI_2,M_PI_2,-M_PI_2, body[4].Cii, false);
+    body[4].rhoip[0] = 0.000488263; body[4].rhoip[1] = 0.0465912; body[4].rhoip[2] = 3.24848e-5;
+    body[4].mi = 0.108749563323237;
+    body[4].Ixx = 5.19451711277109e-005;
+    body[4].Iyy = 2.17677195227188e-005;
+    body[4].Izz = 5.3423100843467e-005;
+    body[4].Ixy = -5.50565486810879e-008;
+    body[4].Iyz = -4.1508751024039e-007;
+    body[4].Izx = -1.72489029231613e-009;
+    body[4].Jip[0] = body[4].Ixx; body[4].Jip[1] = body[4].Ixy; body[4].Jip[2] = body[4].Izx;
+    body[4].Jip[3] = body[4].Ixy; body[4].Jip[4] = body[4].Iyy; body[4].Jip[5] = body[4].Iyz;
+    body[4].Jip[6] = body[4].Izx; body[4].Jip[7] = body[4].Iyz; body[4].Jip[8] = body[4].Izz;
+    body[4].u_vec[0] = 0; body[4].u_vec[1] = 0; body[4].u_vec[2] = 1;
 
-	// body 5 variables
-	Body::ang2mat(DH[4*4+3], DH[4*4+0], 0, body[5].Cij);
-	body[5].sijp[0] = 0; body[5].sijp[1] = 0; body[5].sijp[2] = DH[4*4+2];
+    // body 5 variables
+    Body::ang2mat(DH[4*4+3], DH[4*4+0], 0, body[5].Cij);
+    body[5].sijp[0] = 0; body[5].sijp[1] = 0; body[5].sijp[2] = DH[4*4+2];
 
-	Body::ang2mat(-M_PI_2, 0, 0, body[5].Cii, false);
-	body[5].rhoip[0] = 0.0449512; body[5].rhoip[1] = -1.30501e-12; body[5].rhoip[2] = -0.00250684;
-	body[5].mi = 0.110204790536652;
-	body[5].Ixx = 5.65872649539517e-005;
-	body[5].Iyy = 3.21370607982722e-005;
-	body[5].Izz = 3.83261110287993e-005;
-	body[5].Ixy = 3.11849020965568e-015;
-	body[5].Iyz = 2.2933899377825e-006;
-	body[5].Izx = 1.98601435820104e-015;
-	body[5].Jip[0] = body[5].Ixx; body[5].Jip[1] = body[5].Ixy; body[5].Jip[2] = body[5].Izx;
-	body[5].Jip[3] = body[5].Ixy; body[5].Jip[4] = body[5].Iyy; body[5].Jip[5] = body[5].Iyz;
-	body[5].Jip[6] = body[5].Izx; body[5].Jip[7] = body[5].Iyz; body[5].Jip[8] = body[5].Izz;
-	body[5].u_vec[0] = 0; body[5].u_vec[1] = 0; body[5].u_vec[2] = 1;
+    Body::ang2mat(-M_PI_2, 0, 0, body[5].Cii, false);
+    body[5].rhoip[0] = 0.0449512; body[5].rhoip[1] = -1.30501e-12; body[5].rhoip[2] = -0.00250684;
+    body[5].mi = 0.110204790536652;
+    body[5].Ixx = 5.65872649539517e-005;
+    body[5].Iyy = 3.21370607982722e-005;
+    body[5].Izz = 3.83261110287993e-005;
+    body[5].Ixy = 3.11849020965568e-015;
+    body[5].Iyz = 2.2933899377825e-006;
+    body[5].Izx = 1.98601435820104e-015;
+    body[5].Jip[0] = body[5].Ixx; body[5].Jip[1] = body[5].Ixy; body[5].Jip[2] = body[5].Izx;
+    body[5].Jip[3] = body[5].Ixy; body[5].Jip[4] = body[5].Iyy; body[5].Jip[5] = body[5].Iyz;
+    body[5].Jip[6] = body[5].Izx; body[5].Jip[7] = body[5].Iyz; body[5].Jip[8] = body[5].Izz;
+    body[5].u_vec[0] = 0; body[5].u_vec[1] = 0; body[5].u_vec[2] = 1;
 
-	// body 6 variables
-	Body::ang2mat(DH[5*4+3], DH[5*4+0], 0, body[6].Cij);
-	body[6].sijp[0] = 0; body[6].sijp[1] = 0; body[6].sijp[2] = DH[5*4+2];
+    // body 6 variables
+    Body::ang2mat(DH[5*4+3], DH[5*4+0], 0, body[6].Cij);
+    body[6].sijp[0] = 0; body[6].sijp[1] = 0; body[6].sijp[2] = DH[5*4+2];
 
-	Body::ang2mat(M_PI, M_PI_2, 0, body[6].Cii, false);
-	body[6].rhoip[0] = 4.25231e-8; body[6].rhoip[1] = 0.00049999; body[6].rhoip[2] = 0.0756101;
-	body[6].mi = 1.06900256777816e-002;
-	body[6].Ixx = 5.4230201398644e-007;
-	body[6].Iyy = 8.27349038593228e-007;
-	body[6].Izz = 6.80541319418483e-007;
-	body[6].Ixy = 1.68734917731254e-012;
-	body[6].Iyz = 1.25961065157397e-013;
-	body[6].Izx = 3.11703037783589e-013;
-	body[6].Jip[0] = body[6].Ixx; body[6].Jip[1] = body[6].Ixy; body[6].Jip[2] = body[6].Izx;
-	body[6].Jip[3] = body[6].Ixy; body[6].Jip[4] = body[6].Iyy; body[6].Jip[5] = body[6].Iyz;
-	body[6].Jip[6] = body[6].Izx; body[6].Jip[7] = body[6].Iyz; body[6].Jip[8] = body[6].Izz;
-	body[6].u_vec[0] = 0; body[6].u_vec[1] = 0; body[6].u_vec[2] = 1;
+    Body::ang2mat(M_PI, M_PI_2, 0, body[6].Cii, false);
+    body[6].rhoip[0] = 4.25231e-8; body[6].rhoip[1] = 0.00049999; body[6].rhoip[2] = 0.0756101;
+    body[6].mi = 1.06900256777816e-002;
+    body[6].Ixx = 5.4230201398644e-007;
+    body[6].Iyy = 8.27349038593228e-007;
+    body[6].Izz = 6.80541319418483e-007;
+    body[6].Ixy = 1.68734917731254e-012;
+    body[6].Iyz = 1.25961065157397e-013;
+    body[6].Izx = 3.11703037783589e-013;
+    body[6].Jip[0] = body[6].Ixx; body[6].Jip[1] = body[6].Ixy; body[6].Jip[2] = body[6].Izx;
+    body[6].Jip[3] = body[6].Ixy; body[6].Jip[4] = body[6].Iyy; body[6].Jip[5] = body[6].Iyz;
+    body[6].Jip[6] = body[6].Izx; body[6].Jip[7] = body[6].Iyz; body[6].Jip[8] = body[6].Izz;
+    body[6].u_vec[0] = 0; body[6].u_vec[1] = 0; body[6].u_vec[2] = 1;
 #endif
 
     numeric = new Numerical();
@@ -666,7 +666,7 @@ void RobotArm::run_inverse_kinematics() {
 }
 #endif
 
-void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double* cur_joint, double* cur_pose){
+int RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double* cur_joint, double* cur_pose){
     bool goal_reach = false;
 
     double epsilon_pos = 0.05;
@@ -688,7 +688,7 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
 
         kinematics();
 
-        inverse_kinematics(pos_d, ori_d);
+        int err = inverse_kinematics(pos_d, ori_d);
 
         for(uint i = 1; i <= num_body; i++){
             cur_joint[i - 1] = body[i].qi;
@@ -702,6 +702,8 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
         cur_pose[3] = body[num_body].ori[0];
         cur_pose[4] = body[num_body].ori[1];
         cur_pose[5] = body[num_body].ori[2];
+
+        return err;
 
 //        double pos = sqrt(pow(des_pose[0] - cur_pose[0], 2) + pow(des_pose[1] - cur_pose[1], 2) + pow(des_pose[2] - cur_pose[2], 2));
 //        double ang_r = abs(des_pose[3] - cur_pose[3]);
@@ -806,9 +808,11 @@ void RobotArm::kinematics()
 //    body_end->ori[2] = atan2(body_end->Ae[1 * 3 + 0], body_end->Ae[0 * 3 + 0]);
 }
 
-void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
+int RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
     int *indx = new int[6];
     double *fac = new double[36];
+    double errmax = 0;
+    double errtol = 0.8;
 
     double desired[6] = {0,};
     for(int i = 0; i < 3; i++){
@@ -816,7 +820,7 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         desired[i + 3] = des_ang[i];
     }
 
-    double alpha = 1/4.0;
+    double alpha = 1/10.0;
     double err[6], qdot[6];
     for(int i = 0; i < 1/alpha; i++){
         for(int j = 0; j < 3; j++){
@@ -840,8 +844,23 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         kinematics();
     }
 
+
+    errmax = err[0];
+    for(uint i = 1; i < num_body;i++){
+        errmax = errmax > abs(err[i]) ? errmax : abs(err[i]);
+    }
+
+//    rt_printf("[IK]Err Max : %E\n", errmax);
+
     delete[] indx;
     delete[] fac;
+
+    if(errmax < errtol){
+        return 0;
+    }
+    else{
+        return 1;
+    }
 
 
 //    Body *body_end = &body[num_body];
@@ -914,8 +933,8 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
 //        kinematics();
 
 //        for (uint i = 0; i < 3; i++) {
-//            PH_pos[i] = des_pos[i] - body_end->re[i];
-//            PH_ori[i] = des_ang[i] - body_end->ori[i];
+//            PH_pos[i] = des_pos[i] - body[num_body].re[i];
+//            PH_ori[i] = des_ang[i] - body[num_body].ori[i];
 //        }
 
 //        for (uint i = 0; i < 3; i++) {
@@ -929,12 +948,19 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
 //        }
 
 //        NRcount++;
-//    }while(errmax > 1e-3 && NRcount < 10);
+//    }while(errmax > 1e-1 && NRcount < 10);
 
-////    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+//    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
 
 //    delete[] indx;
 //    delete[] fac;
+
+//    if (NRcount == 10){
+//        return 0;
+//    }
+//    else{
+//        return 1;
+//    }
 //#endif
 }
 
@@ -974,7 +1000,7 @@ void RobotArm::jacobian()
             Jw[i*num_body + (indx - 1)] = body1->Jwi[i];
         }
     }
-#elif 1
+#elif 0
     for(uint indx = 1; indx <= num_body; indx++){
         body1 = &body[indx];
         body1->Aijpp_qi[0] = -sin(body1->qi); body1->Aijpp_qi[1] = -cos(body1->qi); body1->Aijpp_qi[2] = 0;

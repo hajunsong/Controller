@@ -17,11 +17,9 @@
 #include "TcpSocket/tcpclient.h"
 #include "Settings/customsettings.h"
 #include "DataControl/datacontrol.h"
-#include "FileIO/fileio.h"
 #include "Input/keyinputclass.h"
 #include "Logger/logger.h"
 #include "OperateUI/operateui.h"
-#include "TorqueID/torqueid.h"
 
 #include <QtCore/qglobal.h>
 
@@ -69,7 +67,6 @@ private:
     bool logging_start;
 
     OperateUI *operateUI;
-    TorqueID *torqueID;
 
 public slots:
     // button event

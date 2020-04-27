@@ -13,6 +13,7 @@ DataControl::DataControl()
     memset(&torqueIdeData, 0, sizeof(torqueIdeData));
     memset(&PIDControl, 0, sizeof(PIDControl));
     RobotData.offset_setting = false;
+    RobotData.ik_flag = true;
 
     load_data("motion_data/motion.txt", &PathData.file_data, "\t");
     load_data("motion_data/side1_motion.txt", &side1_motion.file_data, "\t");

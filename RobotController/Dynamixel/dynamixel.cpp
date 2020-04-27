@@ -251,6 +251,14 @@ void DxlControl::setGoalVelocity(uint8_t ID, int32_t goal_velocity)
     packetHandler->write4ByteTxRx(portHandler, ID, ADDR_GOAL_VELOCITY, static_cast<uint32_t>(goal_velocity), &dxl_error);
 }
 
+void DxlControl::setProfileVelocity(uint8_t ID, uint32_t profile_velocity){
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_VELOCITY, profile_velocity, &dxl_error);
+}
+
+void DxlControl::setProfileAcceleration(uint8_t ID, uint32_t profile_acceleration){
+    packetHandler->write4ByteTxRx(portHandler, ID, ADDR_PROFILE_ACCELERATION, profile_acceleration, &dxl_error);
+}
+
 void DxlControl::setOperateMode(uint8_t mode, uint8_t ID)
 {
     // Disable Dynamixel Torque
@@ -580,6 +588,141 @@ void DxlControl::setGroupSyncWriteIndirectAddress(const uint32_t *profile_acc, c
     // Clear syncwrite parameter storage
     groupSyncWrite.clearParam();
 }
+
+void DxlControl::setGroupSyncWriteIndirectAddress(uint32_t *profile_acc, uint32_t* profile_vel, const uint32_t* vel_limit, const uint16_t* pos_p_gain, uint8_t num_joint){
+
+    // Syncwrite present data from indirectdata
+    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_WRITE, LEN_INDIRECTADDRESS_FOR_WRITE);
+
+    bool dxl_addparam_result = false;	// addParam result
+
+    for (uint8_t i = 0; i < num_joint; i++) {
+        // Allocate LED and goal position value into byte array
+        uint8_t param_indirect_sync_write[LEN_INDIRECTADDRESS_FOR_WRITE];
+        param_indirect_sync_write[0] = DXL_LOBYTE(DXL_LOWORD(profile_acc[i]));
+        param_indirect_sync_write[1] = DXL_HIBYTE(DXL_LOWORD(profile_acc[i]));
+        param_indirect_sync_write[2] = DXL_LOBYTE(DXL_HIWORD(profile_acc[i]));
+        param_indirect_sync_write[3] = DXL_HIBYTE(DXL_HIWORD(profile_acc[i]));
+        param_indirect_sync_write[4] = DXL_LOBYTE(DXL_LOWORD(profile_vel[i]));
+        param_indirect_sync_write[5] = DXL_HIBYTE(DXL_LOWORD(profile_vel[i]));
+        param_indirect_sync_write[6] = DXL_LOBYTE(DXL_HIWORD(profile_vel[i]));
+        param_indirect_sync_write[7] = DXL_HIBYTE(DXL_HIWORD(profile_vel[i]));
+        param_indirect_sync_write[8] = DXL_LOBYTE(DXL_LOWORD(vel_limit[i]));
+        param_indirect_sync_write[9] = DXL_HIBYTE(DXL_LOWORD(vel_limit[i]));
+        param_indirect_sync_write[10] = DXL_LOBYTE(DXL_HIWORD(vel_limit[i]));
+        param_indirect_sync_write[11] = DXL_HIBYTE(DXL_HIWORD(vel_limit[i]));
+        param_indirect_sync_write[12] = DXL_LOBYTE(DXL_LOWORD(pos_p_gain[i]));
+        param_indirect_sync_write[13] = DXL_HIBYTE(DXL_LOWORD(pos_p_gain[i]));
+
+        // Add values to the Syncwrite storage
+        dxl_addparam_result = groupSyncWrite.addParam(i, param_indirect_sync_write);
+        if (dxl_addparam_result != true)
+        {
+            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+            return;
+        }
+    }
+
+    // Syncwrite all
+    dxl_comm_result = groupSyncWrite.txPacket();
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    }
+
+    // Clear syncwrite parameter storage
+    groupSyncWrite.clearParam();
+}
+
+//void DxlControl::initGroupSyncWirteIndirectAddress6()
+//{
+//    // INDIRECTDATA parameter storages replace profile_acceleration, profile_velocity, goal_position
+//    uint8_t ID = 5;
+//    uint16_t indx = 0;
+//    for(uint8_t i = 0; i < LEN_PROFILE_ACCELERATION; i++){
+//        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_WRITE + indx, ADDR_PROFILE_ACCELERATION + i, &dxl_error);
+//        if (dxl_comm_result != COMM_SUCCESS)
+//        {
+//            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+//        }
+//        else if (dxl_error != 0)
+//        {
+//            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+//        }
+//        indx += 2;
+//    }
+
+//    for(uint8_t i = 0; i < LEN_PROFILE_VELOCTIY; i++){
+//        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_WRITE + indx, ADDR_PROFILE_VELOCITY + i, &dxl_error);
+//        if (dxl_comm_result != COMM_SUCCESS)
+//        {
+//            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+//        }
+//        else if (dxl_error != 0)
+//        {
+//            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+//        }
+//        indx += 2;
+//    }
+
+//    for(uint8_t i = 0; i < LEN_GOAL_POSITION; i++){
+//        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, ID, ADDR_INDIRECTADDRESS_FOR_WRITE + indx, ADDR_GOAL_POSITION + i, &dxl_error);
+//        if (dxl_comm_result != COMM_SUCCESS)
+//        {
+//            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+//        }
+//        else if (dxl_error != 0)
+//        {
+//            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+//        }
+//        indx += 2;
+//    }
+//}
+
+//void DxlControl::setGroupSyncWriteIndirectAddress6(const uint32_t profile_acc, const uint32_t profile_vel, const uint32_t goal_position)
+//{
+//    // Syncwrite present data from indirectdata
+//    dynamixel::GroupSyncWrite groupSyncWrite(portHandler, packetHandler, ADDR_INDIRECTDATA_FOR_WRITE, LEN_INDIRECTADDRESS_FOR_WRITE);
+
+//    bool dxl_addparam_result = false;	// addParam result
+
+//    for (uint8_t i = 0; i < num_joint; i++) {
+//        // Allocate LED and goal position value into byte array
+//        uint8_t param_indirect_sync_write[LEN_INDIRECTADDRESS_FOR_WRITE];
+//        param_indirect_sync_write[0] = DXL_LOBYTE(DXL_LOWORD(profile_acc[i]));
+//        param_indirect_sync_write[1] = DXL_HIBYTE(DXL_LOWORD(profile_acc[i]));
+//        param_indirect_sync_write[2] = DXL_LOBYTE(DXL_HIWORD(profile_acc[i]));
+//        param_indirect_sync_write[3] = DXL_HIBYTE(DXL_HIWORD(profile_acc[i]));
+//        param_indirect_sync_write[4] = DXL_LOBYTE(DXL_LOWORD(profile_vel[i]));
+//        param_indirect_sync_write[5] = DXL_HIBYTE(DXL_LOWORD(profile_vel[i]));
+//        param_indirect_sync_write[6] = DXL_LOBYTE(DXL_HIWORD(profile_vel[i]));
+//        param_indirect_sync_write[7] = DXL_HIBYTE(DXL_HIWORD(profile_vel[i]));
+//        param_indirect_sync_write[8] = DXL_LOBYTE(DXL_LOWORD(vel_limit[i]));
+//        param_indirect_sync_write[9] = DXL_HIBYTE(DXL_LOWORD(vel_limit[i]));
+//        param_indirect_sync_write[10] = DXL_LOBYTE(DXL_HIWORD(vel_limit[i]));
+//        param_indirect_sync_write[11] = DXL_HIBYTE(DXL_HIWORD(vel_limit[i]));
+//        param_indirect_sync_write[12] = DXL_LOBYTE(DXL_LOWORD(pos_p_gain[i]));
+//        param_indirect_sync_write[13] = DXL_HIBYTE(DXL_LOWORD(pos_p_gain[i]));
+
+//        // Add values to the Syncwrite storage
+//        dxl_addparam_result = groupSyncWrite.addParam(i, param_indirect_sync_write);
+//        if (dxl_addparam_result != true)
+//        {
+//            fprintf(stderr, "[ID:%03d] groupSyncWrite add param failed", i);
+//            return;
+//        }
+//    }
+
+//    // Syncwrite all
+//    dxl_comm_result = groupSyncWrite.txPacket();
+//    if (dxl_comm_result != COMM_SUCCESS)
+//    {
+//        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+//    }
+
+//    // Clear syncwrite parameter storage
+//    groupSyncWrite.clearParam();
+//}
 
 void DxlControl::initGroupSyncReadIndirectAddress(uint8_t ID){
     // INDIRECTDATA parameter storages replace present position, present velocity, present current

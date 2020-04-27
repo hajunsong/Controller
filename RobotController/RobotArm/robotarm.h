@@ -67,7 +67,7 @@ public:
     void run_dynamics();
 #endif
     void run_kinematics(double *q, double *des_pose);
-    void run_inverse_kinematics(double* cur_joint, double* des_pose, double* res_joint, double* res_pose);
+    int run_inverse_kinematics(double* cur_joint, double* des_pose, double* res_joint, double* res_pose);
     void gravity_compensation(double *q, double *q_dot, double *torque);
 
     static void rpy2mat(double yaw, double pitch, double roll, double *mat);
@@ -111,7 +111,7 @@ private:
     double lamda;
 
     void kinematics();
-    void inverse_kinematics(double pos_d[3], double ori_d[3]=nullptr);
+    int inverse_kinematics(double pos_d[3], double ori_d[3]=nullptr);
     void dynamics();
     void save_data();
 

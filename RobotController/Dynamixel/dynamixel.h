@@ -109,6 +109,8 @@ public:
     void setGoalVelocity(uint8_t ID, int32_t goal_velocity);
     void setOperateMode(uint8_t ID, uint8_t mode);
     void setTorqueEnable(uint8_t ID, uint8_t enable);
+    void setProfileVelocity(uint8_t ID, uint32_t profile_velocity);
+    void setProfileAcceleration(uint8_t ID, uint32_t profile_velocity);
 
     void getPresentPosition(uint8_t ID, int32_t *present_position_ptr);
     void getPresentVelocity(uint8_t ID, int32_t *present_velocity_ptr);
@@ -120,8 +122,9 @@ public:
 
     void initGroupSyncWriteIndirectAddress(uint8_t ID);
     void setGroupSyncWriteIndirectAddress(const uint32_t *profile_acc, const uint32_t* profile_vel, const uint32_t* vel_limit, const uint16_t* pos_p_gain, uint8_t num_joint);
-
-
+    void setGroupSyncWriteIndirectAddress(uint32_t *profile_acc, uint32_t* profile_vel, const uint32_t* vel_limit, const uint16_t* pos_p_gain, uint8_t num_joint);
+//    void initGroupSyncWirteIndirectAddress6();
+//    void setGroupSyncWriteIndirectAddress6(const uint32_t profile_acc, const uint32_t profile_vel, const uint32_t goal_position);
 
     void setGroupSyncWriteTorqueEnable(uint8_t enable, uint8_t num_joint);
     void setGroupSyncWriteOperatingMode(uint8_t enable, uint8_t num_joint);

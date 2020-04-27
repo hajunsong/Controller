@@ -432,7 +432,7 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
 	DH[8] = 180;    DH[9] = 0.170;      DH[10] = 0;         DH[11] = 0;
 	DH[12] = 90;    DH[13] = 0.06525;   DH[14] = 0;         DH[15] = 90;
 	DH[16] = 90;    DH[17] = 0;         DH[18] = -0.01675;  DH[19] = 90;
-	DH[20] = 0;     DH[21] = 0;         DH[22] = 0.084;     DH[23] = 0;
+    DH[20] = 0;     DH[21] = 0;         DH[22] = 0.084;     DH[23] = 0;
 
 	// body 0 variable
 	body[0].Ai[0] = 1; body[0].Ai[1] = 0; body[0].Ai[2] = 0;
@@ -545,7 +545,7 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
 	body[5].u_vec[0] = 0; body[5].u_vec[1] = 0; body[5].u_vec[2] = 1;
 
 	// body 6 variables
-	Body::ang2mat(DH[5*4+3], DH[5*4+0], 0, body[6].Cij);
+    Body::ang2mat(DH[5*4+3], DH[5*4+0], 0, body[6].Cij);
 	body[6].sijp[0] = 0; body[6].sijp[1] = 0; body[6].sijp[2] = DH[5*4+2];
 
 	Body::ang2mat(M_PI, M_PI_2, 0, body[6].Cii, false);
@@ -666,7 +666,7 @@ void RobotArm::run_inverse_kinematics() {
 }
 #endif
 
-void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double* cur_joint, double* cur_pose){
+int RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double* cur_joint, double* cur_pose){
     bool goal_reach = false;
 
     double epsilon_pos = 0.05;
@@ -688,7 +688,7 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
 
         kinematics();
 
-        inverse_kinematics(pos_d, ori_d);
+        int err = inverse_kinematics(pos_d, ori_d);
 
         for(uint i = 1; i <= num_body; i++){
             cur_joint[i - 1] = body[i].qi;
@@ -702,6 +702,8 @@ void RobotArm::run_inverse_kinematics(double* input_q, double* des_pose, double*
         cur_pose[3] = body[num_body].ori[0];
         cur_pose[4] = body[num_body].ori[1];
         cur_pose[5] = body[num_body].ori[2];
+
+        return err;
 
 //        double pos = sqrt(pow(des_pose[0] - cur_pose[0], 2) + pow(des_pose[1] - cur_pose[1], 2) + pow(des_pose[2] - cur_pose[2], 2));
 //        double ang_r = abs(des_pose[3] - cur_pose[3]);
@@ -806,9 +808,11 @@ void RobotArm::kinematics()
 //    body_end->ori[2] = atan2(body_end->Ae[1 * 3 + 0], body_end->Ae[0 * 3 + 0]);
 }
 
-void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
+int RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
     int *indx = new int[6];
     double *fac = new double[36];
+    double errmax = 0;
+    double errtol = 0.5;
 
     double desired[6] = {0,};
     for(int i = 0; i < 3; i++){
@@ -816,7 +820,7 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         desired[i + 3] = des_ang[i];
     }
 
-    double alpha = 1/4.0;
+    double alpha = 1/10.0;
     double err[6], qdot[6];
     for(int i = 0; i < 1/alpha; i++){
         for(int j = 0; j < 3; j++){
@@ -840,8 +844,23 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
         kinematics();
     }
 
+
+    errmax = err[0];
+    for(uint i = 1; i < num_body;i++){
+        errmax = errmax > abs(err[i]) ? errmax : abs(err[i]);
+    }
+
+//    rt_printf("[IK]Err Max : %E\n", errmax);
+
     delete[] indx;
     delete[] fac;
+
+    if(errmax < errtol){
+        return 0;
+    }
+    else{
+        return 1;
+    }
 
 
 //    Body *body_end = &body[num_body];
@@ -914,8 +933,8 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
 //        kinematics();
 
 //        for (uint i = 0; i < 3; i++) {
-//            PH_pos[i] = des_pos[i] - body_end->re[i];
-//            PH_ori[i] = des_ang[i] - body_end->ori[i];
+//            PH_pos[i] = des_pos[i] - body[num_body].re[i];
+//            PH_ori[i] = des_ang[i] - body[num_body].ori[i];
 //        }
 
 //        for (uint i = 0; i < 3; i++) {
@@ -929,12 +948,19 @@ void RobotArm::inverse_kinematics(double des_pos[3], double des_ang[3]) {
 //        }
 
 //        NRcount++;
-//    }while(errmax > 1e-3 && NRcount < 10);
+//    }while(errmax > 1e-1 && NRcount < 10);
 
-////    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
+//    rt_printf("[IK]Err Max : %E\t : Iteration : %d\n", errmax, NRcount);
 
 //    delete[] indx;
 //    delete[] fac;
+
+//    if (NRcount == 10){
+//        return 0;
+//    }
+//    else{
+//        return 1;
+//    }
 //#endif
 }
 
@@ -974,7 +1000,7 @@ void RobotArm::jacobian()
             Jw[i*num_body + (indx - 1)] = body1->Jwi[i];
         }
     }
-#elif 1
+#elif 0
     for(uint indx = 1; indx <= num_body; indx++){
         body1 = &body[indx];
         body1->Aijpp_qi[0] = -sin(body1->qi); body1->Aijpp_qi[1] = -cos(body1->qi); body1->Aijpp_qi[2] = 0;

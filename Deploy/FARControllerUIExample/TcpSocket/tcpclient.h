@@ -5,14 +5,6 @@
 #include <QHostAddress>
 #include <QtDebug>
 
-#include <QtCore/qglobal.h>
-
-#if defined(TCPCLIENTLIB_LIBRARY)
-#  define TCPCLIENTLIB_EXPORT Q_DECL_EXPORT
-#else
-#  define TCPCLIENTLIB_EXPORT Q_DECL_IMPORT
-#endif
-
 class TcpClient : public QObject
 {
     Q_OBJECT

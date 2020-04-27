@@ -1,6 +1,5 @@
 QT -= gui
-QT += core network \
-    widgets
+QT += core network widgets
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -65,3 +64,19 @@ DEPENDPATH += \
 
 PRE_TARGETDEPS += \
     $$NRMK_LIB_PATH/libNRMKHelperi686.a
+
+TEMPLATE = lib
+
+DEFINES += \
+    DATACONTROLLIB_LIBRARY \
+    DYNAMIXELLIB_LIBRARY \
+    FILEIOLIB_LIBRARY \
+    KEYINPUTLIB_LIBRARY \
+    ROBOTARMLIB_LIBRARY \
+    CONTROLMAINLIB_LIBRARY \
+    TCPSERVERLIB_LIBRARY \
+    CUSTOMSETTINGSLIB_LIBRARY \
+
+DESTDIR = $$PWD/../Deploy/FARController/lib
+
+TARGET = RobotControllerLib
