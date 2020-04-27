@@ -15,7 +15,6 @@ DEFINES += \
     TCPSERVERLIB_LIBRARY \
     TORQUEIDLIB_LIBRARY \
 
-
 DESTDIR = $$PWD/../Deploy/FARControllerUI/lib
 
 SOURCE_PATH = $$PWD/../RobotControllerUI

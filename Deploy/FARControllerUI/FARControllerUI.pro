@@ -5,6 +5,8 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
 
+DEFINES += QT_NO_VERSION_TAGGING
+
 HEADERS += \
     DataControl/datacontrol.h \
     Logger/logger.h \
