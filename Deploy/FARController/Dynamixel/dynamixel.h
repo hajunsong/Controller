@@ -71,7 +71,7 @@ const uint8_t LEN_INDIRECTADDRESS_FOR_WRITE = LEN_PROFILE_ACCELERATION + LEN_PRO
 // Protocol version
 #define PROTOCOL_VERSION 2.0
 
-const char DEVICENAME[] = "/dev/ttyUSB0";
+const char DEVICENAME[] = "/dev/ttyU2D2";
 const int32_t BAUDRATE = 4000000;
 
 const uint8_t BR_DF = 1;

@@ -107,13 +107,13 @@ bool NRMKHelper::TcpServer::isConnected()
 
 void NRMKHelper::TcpServer::OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount)
 {
-//    printf("dwCount : %ld\n", dwCount);
+    printf("dwCount : %ld\n", dwCount);
 
-//    printf("Receive data : ");
-//    for(unsigned long i = 0; i < dwCount; i++){
-//        printf("%d\t", lpBuffer[i]);
-//    }
-//    printf("\n");
+    printf("Receive data : ");
+    for(unsigned long i = 0; i < dwCount; i++){
+        printf("%d\t", lpBuffer[i]);
+    }
+    printf("\n");
 
     if (!connected)
     {
