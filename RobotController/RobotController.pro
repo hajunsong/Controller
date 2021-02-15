@@ -9,6 +9,16 @@ include($$PWD/NRMKLib.pri)
 target.path = /home/user/Project/RobotController
 INSTALLS += target
 
+DEFINES += \
+    DATACONTROLLIB_LIBRARY \
+    DYNAMIXELLIB_LIBRARY \
+    FILEIOLIB_LIBRARY \
+#    KEYINPUTLIB_LIBRARY \
+    ROBOTARMLIB_LIBRARY \
+    CONTROLMAINLIB_LIBRARY \
+    TCPSERVERLIB_LIBRARY \
+    CUSTOMSETTINGSLIB_LIBRARY \
+
 SOURCES += main.cpp \
     ControlMain/controlmain.cpp \
     Dynamixel/dynamixel.cpp \
@@ -16,9 +26,9 @@ SOURCES += main.cpp \
     TcpServer/tcpserver.cpp \
     RobotArm/robotarm.cpp \
     RobotArm/numerical.cpp \
-    Input/keyinput.cpp \
+#    Input/keyinput.cpp \
     FileIO/fileio.cpp \
-    Settings/customsettings.cpp \
+#    Settings/customsettings.cpp \
     CustomFunc/tcpserver_custom.cpp \
     CustomFunc/controlmain_custom.cpp \
 
@@ -29,9 +39,9 @@ HEADERS += \
     TcpServer/tcpserver.h \
     RobotArm/robotarm.h \
     RobotArm/numerical.h \
-    Input/keyinput.h \
+#    Input/keyinput.h \
     FileIO/fileio.h \
-    Settings/customsettings.h \
+#    Settings/customsettings.h \
     CustomFunc/tcpserver_custom.h \
     CustomFunc/controlmain_custom.h \
 
@@ -44,6 +54,7 @@ LIBS += \
     -L$$NRMK_XENO_PATH/lib/ -lnative \
     -L$$NRMK_XENO_PATH/lib/ -lrtdm \
     -L$$NRMK_XENO_PATH/lib/ -lxenomai \
+    -L$$NRMK_LIB_PATH -lNRMKhw_tp \
     -L$$DXL_PATH -ldxl_x86_cpp \
 
 INCLUDEPATH += \
@@ -52,7 +63,9 @@ INCLUDEPATH += \
     $$NRMK_XENO_PATH/include \
     $$NRMK_POCO_INC_PATH \
     $$NRMK_HELPER_INC_PATH \
-    $$DXL_PATH
+    $$NRMK_HELPER_INC_PATH/hw \
+    $$DXL_PATH \
+#    /usr/include \
 
 DEPENDPATH += \
     $$NRMK_PATH \
@@ -60,23 +73,30 @@ DEPENDPATH += \
     $$NRMK_XENO_PATH/include \
     $$NRMK_POCO_INC_PATH \
     $$NRMK_HELPER_INC_PATH \
+    $$NRMK_HELPER_INC_PATH/hw \
     $$DXL_PATH \
 
 PRE_TARGETDEPS += \
     $$NRMK_LIB_PATH/libNRMKHelperi686.a
 
-TEMPLATE = lib
+#TEMPLATE = lib
+TARGET = FARController
 
-DEFINES += \
-    DATACONTROLLIB_LIBRARY \
-    DYNAMIXELLIB_LIBRARY \
-    FILEIOLIB_LIBRARY \
-    KEYINPUTLIB_LIBRARY \
-    ROBOTARMLIB_LIBRARY \
-    CONTROLMAINLIB_LIBRARY \
-    TCPSERVERLIB_LIBRARY \
-    CUSTOMSETTINGSLIB_LIBRARY \
+#DEFINES += \
+#    DATACONTROLLIB_LIBRARY \
+#    DYNAMIXELLIB_LIBRARY \
+#    FILEIOLIB_LIBRARY \
+#    KEYINPUTLIB_LIBRARY \
+#    ROBOTARMLIB_LIBRARY \
+#    CONTROLMAINLIB_LIBRARY \
+#    TCPSERVERLIB_LIBRARY \
+#    CUSTOMSETTINGSLIB_LIBRARY \
 
-DESTDIR = $$PWD/../Deploy/FARController/lib
+#DESTDIR = $$PWD/../Deploy/FARController/lib
 
-TARGET = RobotControllerLib
+#LIBS += -L/usr/lib/i386-linux-gnu/ -lX11
+
+#INCLUDEPATH += /usr/lib/i386-linux-gnu
+#DEPENDPATH += /usr/lib/i386-linux-gnu
+
+#PRE_TARGETDEPS += /usr/lib/i386-linux-gnu/libX11.a

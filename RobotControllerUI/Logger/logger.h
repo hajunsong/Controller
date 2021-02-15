@@ -28,6 +28,8 @@ public:
     void setShowDateTime(bool value);
     QFile *file;
     bool loggerStart;
+    int bufLog[1024];
+    QString strBuf;
 
 private:
     QPlainTextEdit *m_editor;

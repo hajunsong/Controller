@@ -8,16 +8,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->btnConnect, SIGNAL(clicked()), this, SLOT(btnConnectClicked()));
     connect(ui->btnDisconnect, SIGNAL(clicked()), this, SLOT(btnDisconnectClicked()));
 
-    tcpClient = new TcpClient();
-    connect(tcpClient->socket, SIGNAL(connected()), this, SLOT(onConnectServer()));
-    connect(tcpClient->socket, SIGNAL(readyRead()), this, SLOT(readMessage()));
-    connect(tcpClient->socket, SIGNAL(disconnected()), this, SLOT(disConnectServer()));
-
     ui->btnDisconnect->setEnabled(false);
 
     connect(ui->btnSetInit, SIGNAL(clicked()), this, SLOT(btnSetInitClicked()));
 
     dataControl = new DataControl();
+    tcpClient = new TcpClient(dataControl, this);
+
+    mainTimer = new QTimer(this);
+    connect(mainTimer, SIGNAL(timeout()), this, SLOT(mainTimeOut()));
+    mainTimer->setInterval(10);
 
     connect(ui->btnServoOn, SIGNAL(clicked()), this, SLOT(btnServOnClicked()));
     connect(ui->btnServoOff, SIGNAL(clicked()), this, SLOT(btnServoOffClicked()));
@@ -73,6 +73,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         txtCCmd[i]->setText("0");
     }
 
+    ui->txtCartesianMoveTime->setText("0");
+    ui->txtCartesianMoveAccTime->setText("0");
+
     connect(ui->btnPathClear, SIGNAL(clicked()), this, SLOT(btnPathClearClicked()));
     connect(ui->btnPathApply, SIGNAL(clicked()), this, SLOT(btnPathApplyClicked()));
     connect(ui->btnPathInsert, SIGNAL(clicked()), this, SLOT(btnPathInsertClicked()));
@@ -105,7 +108,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     operateUI = new OperateUI(tcpClient);
     torqueID = new TorqueID(tcpClient);
 
-    keyInputClass = new KeyInputClass(ui, operateUI, torqueID);
+    keyInputClass = new KeyInputClass(ui, operateUI, torqueID, tcpClient);
 
     ui->tabWidget->setCurrentIndex(0);
 
@@ -120,7 +123,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->btnLoggingStart, SIGNAL(clicked()), this, SLOT(btnLoggingStartClicked()));
     connect(ui->btnLoggingStop, SIGNAL(clicked()), this, SLOT(btnLoggingStopClicked()));
-    logging_start = false;
 
     ui->tabWidget->addTab(operateUI, "Operate");
 
@@ -142,37 +144,98 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::btnConnectClicked(){
-    tcpClient->setIpAddress(ui->txtIP->text());
-    tcpClient->setPort(ui->txtPORT->text().toUShort());
-    emit tcpClient->connectToServer();
+    tcpClient->setting(ui->txtIP->text().toStdString(), ui->txtPORT->text().toUShort());
+    tcpClient->start();
 }
 
 void MainWindow::btnDisconnectClicked(){
+    mainTimer->stop();
     ui->btnConnect->setEnabled(true);
     ui->btnDisconnect->setEnabled(false);
     ui->gbRobotConfig->setEnabled(false);
     componentEnable(false);
-    tcpClient->socket->close();
+    tcpClient->stop();
     qDebug() << "Disconnected Server";
 
     ui->btnRun->setEnabled(false);
+
+    operateUI->stop();
+    usleep(10000);
+
+    ui->tabWidget->setCurrentIndex(0);
+}
+
+void MainWindow::mainTimeOut()
+{
+    if(tcpClient->isConnected() && ui->gbRobotInfor->isEnabled()){
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(0, i);
+            model->setData(index, dataControl->ServerToClient.presentJointPosition[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(1, i);
+            model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(2, i);
+            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_JOINT; i++){
+            QModelIndex index = model->index(3, i);
+            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
+            ui->tvRobotInfor->update(index);
+        }
+
+        for(int i = 0; i < NUM_DOF; i++){
+            QModelIndex index = model->index(4, i);
+            model->setData(index, dataControl->ServerToClient.presentCartesianVelocity[i]*dataControl->RAD2DEG);
+            ui->tvRobotInfor->update(index);
+        }
+
+        ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
+        ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));
+        ui->txtIKTime->setText(QString::number(dataControl->ServerToClient.ik_time, 'f', 6));
+    }
+    if(!tcpClient->isConnected()){
+        mainTimer->stop();
+        ui->btnDisconnect->animateClick(100);
+    }
+}
+
+void MainWindow::onConnectServer(){
+    qDebug() << "Connected Server";
+    ui->btnConnect->setEnabled(false);
+    ui->btnDisconnect->setEnabled(true);
+    ui->gbRobotConfig->setEnabled(true);
+}
+
+void MainWindow::disConnectServer(){
+    ui->btnDisconnect->animateClick(100);
 }
 
 void MainWindow::btnSetInitClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_D);
-    txData.append(static_cast<char>(ui->cbNumJoint->currentText().toInt()));
-    txData.append(static_cast<char>(ui->cbNumDOF->currentText().toInt()));
-    txData.append(static_cast<char>(ui->cbModuleType->currentIndex()));
-    txData.append(static_cast<char>(JointOpMode[(ui->cbJointMode->currentIndex())]));
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_D;
+    bufSend[indx++] = static_cast<char>(ui->cbNumJoint->currentText().toInt());
+    bufSend[indx++] = static_cast<char>(ui->cbNumDOF->currentText().toInt());
+    bufSend[indx++] = static_cast<char>(ui->cbModuleType->currentIndex());
+    bufSend[indx++] = static_cast<char>(JointOpMode[(ui->cbJointMode->currentIndex())]);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << bufSend;
 
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
+    mainTimer->start();
 
     int row = 5;
     model = new QStandardItemModel(row, NUM_JOINT, this);
@@ -208,12 +271,12 @@ void MainWindow::btnSetInitClicked()
 
     QStringList hHeader;
     hHeader.append("Time");
-    hHeader.append("X");
-    hHeader.append("Y");
-    hHeader.append("Z");
-    hHeader.append("Roll");
-    hHeader.append("Pitch");
-    hHeader.append("Yaw");
+    hHeader.append("PX");
+    hHeader.append("PY");
+    hHeader.append("PZ");
+    hHeader.append("PX");
+    hHeader.append("PY");
+    hHeader.append("PZ");
     hHeader.append("Acc time");
     pathModel->setHorizontalHeaderLabels(hHeader);
 }
@@ -222,53 +285,38 @@ void MainWindow::btnServOnClicked()
 {
     dataControl->ClientToServer.opMode = OpMode::ServoOnOff;
     dataControl->ClientToServer.subMode = Servo::On;
-    memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredPose, 0, sizeof(double)*NUM_DOF);
 
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_S);
-    txData.append(dataControl->ClientToServer.opMode);
-    txData.append(dataControl->ClientToServer.subMode);
-    for(int i = 0; i < NUM_JOINT; i++){
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
-    }
-    for(int i = 0; i < NUM_DOF; i++){
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredPose[i], 'f', 6));
-    }
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_S;
+    bufSend[indx++] = dataControl->ClientToServer.opMode;
+    bufSend[indx++] = dataControl->ClientToServer.subMode;
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 }
 
 void MainWindow::btnServoOffClicked()
 {
     dataControl->ClientToServer.opMode = OpMode::ServoOnOff;
     dataControl->ClientToServer.subMode = Servo::Off;
-    memset(dataControl->ClientToServer.desiredJoint, 0, sizeof(double)*NUM_JOINT);
-    memset(dataControl->ClientToServer.desiredPose, 0, sizeof(double)*NUM_DOF);
 
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_S);
-    txData.append(dataControl->ClientToServer.opMode);
-    txData.append(dataControl->ClientToServer.subMode);
-    for(int i = 0; i < NUM_JOINT; i++){
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
-    }
-    for(int i = 0; i < NUM_DOF; i++){
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredPose[i], 'f', 6));
-    }
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_S;
+    bufSend[indx++] = dataControl->ClientToServer.opMode;
+    bufSend[indx++] = dataControl->ClientToServer.subMode;
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << bufSend;
 
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 }
 
 void MainWindow::btnSetJCommandClicked() {
@@ -306,23 +354,23 @@ void MainWindow::btnSetJCommandClicked() {
         return;
     }
 
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_S);
-    txData.append(dataControl->ClientToServer.opMode);
-    txData.append(dataControl->ClientToServer.subMode);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_S;
+    bufSend[indx++] = dataControl->ClientToServer.opMode;
+    bufSend[indx++] = dataControl->ClientToServer.subMode;
     for(int i = 0; i < NUM_JOINT; i++)
     {
-        txData.append(',');
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredJoint[i], 'f', 6));
+        memcpy(bufSend + indx, to_string(dataControl->ClientToServer.desiredJoint[i]).c_str(), MOTION_DATA_LEN);
+        indx += MOTION_DATA_LEN;
     }
-    txData.append(',');
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << bufSend;
 
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 
     setTxtCommandClear();
 }
@@ -364,220 +412,31 @@ void MainWindow::btnSetCCommandClicked() {
         return;
     }
 
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_S);
-    txData.append(dataControl->ClientToServer.opMode);
-    txData.append(dataControl->ClientToServer.subMode);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_S;
+    bufSend[indx++] = dataControl->ClientToServer.opMode;
+    bufSend[indx++] = dataControl->ClientToServer.subMode;
     for(int i = 0; i < NUM_DOF; i++)
     {
-        txData.append(',');
-        txData.append(QByteArray::number(dataControl->ClientToServer.desiredPose[i], 'f', 6));
+        memcpy(bufSend + indx, to_string(dataControl->ClientToServer.desiredPose[i]).c_str(), MOTION_DATA_LEN);
+        indx += MOTION_DATA_LEN;
     }
-    txData.append(',');
-    txData.append(QByteArray::number(move_time, 'f', 6));
-    txData.append(',');
-    txData.append(QByteArray::number(acc_time, 'f', 6));
-    txData.append(',');
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+//    bufSend[indx++] = move_time;
+//    bufSend[indx++] = acc_time;
+    memcpy(bufSend + indx, to_string(move_time).c_str(), MOTION_DATA_LEN);
+    indx += MOTION_DATA_LEN;
+    memcpy(bufSend + indx, to_string(acc_time).c_str(), MOTION_DATA_LEN);
+    indx += MOTION_DATA_LEN;
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << bufSend;
 
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 
-    setTxtCommandClear();
-}
-
-void MainWindow::onConnectServer(){
-    qDebug() << "Connected Server";
-    ui->btnConnect->setEnabled(false);
-    ui->btnDisconnect->setEnabled(true);
-    ui->gbRobotConfig->setEnabled(true);
-    tcpClient->socket->write("O");
-}
-
-void MainWindow::readMessage(){
-    QByteArray rxData = tcpClient->socket->readAll();
-//    qDebug() << "Data size : " << rxData.size();
-//    qDebug() << rxData;
-
-    size_t size = static_cast<size_t>(rxData.size());
-    if (size == 1){
-        if(rxData.at(0) == 'X'){
-            qDebug() << "Client & Server configuration is difference";
-            disConnectServer();
-        }
-        else if(rxData.at(0) == 'S'){
-//            qDebug() << "Client & Server configuration check complete";
-            componentEnable(true);
-        }
-    }
-    else
-    {
-        if (rxData.at(0) == 'N' && rxData.at(1) == 'S'){
-            QByteArrayList rxDataSplit = rxData.split('=');
-            for(int i = 1; i < rxDataSplit.size() - 1; i++){
-                QByteArrayList csvString = rxDataSplit[i].split(',');
-//                qDebug() << (int)csvString.size();
-                if (csvString.size() == 52){
-                    int indx = 0;
-                    dataControl->ServerToClient.t = csvString[indx++].toDouble();
-                    for(int j = 0; j < NUM_JOINT; j++){
-                        dataControl->ServerToClient.presentJointPosition[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_DOF; j++){
-                        dataControl->ServerToClient.presentCartesianPose[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_JOINT; j++){
-                        dataControl->ServerToClient.desiredJointPosition[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_DOF; j++){
-                        dataControl->ServerToClient.desiredCartesianPose[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_DOF; j++){
-                        dataControl->ServerToClient.calculateCartesianPose[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_JOINT; j++){
-                        dataControl->ServerToClient.presentJointVelocity[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_JOINT; j++){
-                        dataControl->ServerToClient.presentJointCurrent[j] = csvString[indx++].toDouble();
-                    }
-                    for(int j = 0; j < NUM_DOF; j++){
-                        dataControl->ServerToClient.presentCartesianVelocity[j] = csvString[indx++].toDouble();
-                    }
-                    dataControl->ServerToClient.time = csvString[indx++].toDouble();
-                    dataControl->ServerToClient.dxl_time = csvString[indx++].toDouble();
-                    dataControl->ServerToClient.ik_time = csvString[indx++].toDouble();
-
-                    if (logging_start){
-                        QString logStr;
-                        logStr.push_back(QString::number(dataControl->ServerToClient.t, 'f', 6));
-                        logStr.push_back(",");
-                        for(int i = 0; i < NUM_JOINT; i++){
-                            logStr.push_back(QString::number(dataControl->ServerToClient.presentJointPosition[i], 'f', 6));
-                            logStr.push_back(",");
-                        }
-                        for(int i = 0; i < NUM_DOF; i++){
-                            logStr.push_back(QString::number(dataControl->ServerToClient.presentCartesianPose[i], 'f', 6));
-                            logStr.push_back(",");
-                        }
-                        for(int i = 0; i < NUM_JOINT; i++){
-                            logStr.push_back(QString::number(dataControl->ServerToClient.presentJointVelocity[i], 'f', 6));
-                            logStr.push_back(",");
-                        }
-                        for(int i = 0; i < NUM_DOF; i++){
-                            logStr.push_back(QString::number(dataControl->ServerToClient.presentCartesianVelocity[i], 'f', 6));
-                            logStr.push_back(",");
-                        }
-                        for(int i = 0; i < NUM_JOINT; i++){
-                            logStr.push_back(QString::number(dataControl->ServerToClient.presentJointCurrent[i], 'f', 6));
-                            logStr.push_back(",");
-                        }
-                        for(int i = 0; i < NUM_DOF; i++){
-                            logStr.push_back(QString::number(dataControl->ServerToClient.desiredCartesianPose[i], 'f', 6));
-                            logStr.push_back(",");
-                        }
-						for(int i = 0; i < NUM_JOINT; i++){
-							logStr.push_back(QString::number(dataControl->ServerToClient.desiredJointPosition[i], 'f', 6));
-							logStr.push_back(",");
-						}
-                        logStr.push_back("\n");
-                        logger->write(logStr);
-                    }
-                }
-            }
-        }
-//        char *pData = rxData.data();
-//        int indx = NRMK_SOCKET_TOKEN_SIZE;
-//        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
-//        indx += DATA_INDEX_LEN;
-
-////        qDebug() << dataControl->ServerToClient.data_index;
-
-//        memcpy(&dataControl->ServerToClient.data_index, pData + indx, DATA_INDEX_LEN);
-//        indx += DATA_INDEX_LEN;
-//        memcpy(dataControl->ServerToClient.presentJointPosition, pData + indx, JOINT_POSITION_LEN*NUM_JOINT);
-//        indx += JOINT_POSITION_LEN*NUM_JOINT;
-//        memcpy(dataControl->ServerToClient.presentCartesianPose, pData + indx, CARTESIAN_POSE_LEN*NUM_DOF);
-//        indx += CARTESIAN_POSE_LEN*NUM_DOF;
-//        memcpy(dataControl->ServerToClient.desiredJointPosition, pData + indx, JOINT_COMMAND_LEN*NUM_JOINT);
-//        indx += JOINT_COMMAND_LEN*NUM_JOINT;
-//        memcpy(dataControl->ServerToClient.desiredCartesianPose, pData + indx, CARTESIAN_COMMAND_LEN*NUM_DOF);
-//        indx += CARTESIAN_COMMAND_LEN*NUM_DOF;
-//        memcpy(dataControl->ServerToClient.calculateCartesianPose, pData + indx, CARTESIAN_CALCULATE_LEN*NUM_DOF);
-//        indx += CARTESIAN_CALCULATE_LEN*NUM_DOF;
-//        memcpy(dataControl->ServerToClient.presentJointVelocity, pData + indx, JOINT_VELOCITY_LEN*NUM_JOINT);
-//        indx += JOINT_VELOCITY_LEN*NUM_JOINT;
-//        memcpy(dataControl->ServerToClient.presentJointCurrent, pData + indx, JOINT_CURRENT_LEN*NUM_JOINT);
-//        indx += JOINT_CURRENT_LEN*NUM_JOINT;
-//        memcpy(dataControl->ServerToClient.presentCartesianVelocity, pData + indx, CARTESIAN_VELOCITY_LEN*NUM_DOF);
-//        indx += CARTESIAN_VELOCITY_LEN*NUM_DOF;
-
-//        memcpy(&dataControl->ServerToClient.time, pData + indx, TIME_LEN);
-//        indx += TIME_LEN;
-//        memcpy(&dataControl->ServerToClient.dxl_time, pData + indx, TIME_LEN);
-//        indx += TIME_LEN;
-//        memcpy(&dataControl->ServerToClient.ik_time, pData + indx, TIME_LEN);
-//        indx += TIME_LEN;
-
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(0, i);
-            model->setData(index, dataControl->ServerToClient.presentJointPosition[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(1, i);
-            model->setData(index, dataControl->ServerToClient.presentCartesianPose[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-//        for(int i = 0; i < NUM_JOINT; i++){
-//            QModelIndex index = model->index(2, i);
-//            model->setData(index, dataControl->ServerToClient.desiredJointPosition[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
-
-//        for(int i = 0; i < NUM_DOF; i++){
-//            QModelIndex index = model->index(3, i);
-//            model->setData(index, dataControl->ServerToClient.desiredCartesianPose[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
-
-//        for(int i = 0; i < NUM_DOF; i++){
-//            QModelIndex index = model->index(4, i);
-//            model->setData(index, dataControl->ServerToClient.calculateCartesianPose[i]);
-//            ui->tvRobotInfor->update(index);
-//        }
-
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(2, i);
-            model->setData(index, dataControl->ServerToClient.presentJointVelocity[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-        for(int i = 0; i < NUM_JOINT; i++){
-            QModelIndex index = model->index(3, i);
-            model->setData(index, dataControl->ServerToClient.presentJointCurrent[i]);
-            ui->tvRobotInfor->update(index);
-        }
-
-        for(int i = 0; i < NUM_DOF; i++){
-            QModelIndex index = model->index(4, i);
-            model->setData(index, dataControl->ServerToClient.presentCartesianVelocity[i]*dataControl->RAD2DEG);
-            ui->tvRobotInfor->update(index);
-        }
-
-        ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
-        ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));
-        ui->txtIKTime->setText(QString::number(dataControl->ServerToClient.ik_time, 'f', 6));
-    }
-}
-
-void MainWindow::disConnectServer(){
-    ui->btnDisconnect->animateClick();
+//    setTxtCommandClear();
 }
 
 void MainWindow::componentEnable(bool enable){
@@ -613,6 +472,35 @@ void MainWindow::componentEnable(bool enable){
     if (ui->cbNumDOF->currentText().toInt() == 1){
         ui->gbCartMoveCommand->setEnabled(false);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+//    if (ui->gbTrajectory->isEnabled()){
+//        ui->tvPathData->model()->removeRows(0, ui->tvPathData->model()->rowCount());
+//        ui->tvPathData->model()->insertRows(0,7);
+
+//        double path[7*8] = {
+//            0.0, -0.205112, 0.105523,  0.001374, 1.570796,  0.000000, -1.570796, 0.3,
+//            1.0, -0.284822, 0.077250, -0.041363, 1.570796,  0.698131, -1.570796, 0.3,
+//            2.0, -0.284822, 0.077250, -0.088270, 1.570796,  0.698131, -1.570796, 0.3,
+//            3.0, -0.285133, 0.026167, -0.088270, 1.570796,  0.698131, -1.570796, 0.3,
+//            4.0, -0.285133, 0.015167, -0.080270, 1.564223, -0.782312, -1.566155, 0.3,
+//            5.0, -0.285133, 0.015167,  0.011729, 1.564223, -0.782312, -1.566155, 0.3,
+//            6.0, -0.205422, 0.026833,  0.058549, 1.564223, -0.782312, -1.566155, 0.3
+////            0.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3,
+////            1.0, -0.124, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+////            2.0, -0.292, 0.2590735, -0.014, 1.5707963, 0.0, -2.094399, 0.3,
+////            3.0, -0.292, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+////            4.0, -0.124, 0.0910735,  0.154, 1.5707963, 0.0, -2.094399, 0.3,
+////            5.0, -0.208, 0.1750735,   0.07, 1.5707963, 0.0, -2.094399, 0.3
+//        };
+
+//        for(int i = 0; i < 7; i++){
+//            for(int j = 0; j < 8; j++){
+//                QModelIndex indx = ui->tvPathData->model()->index(i, j, QModelIndex());
+//                ui->tvPathData->model()->setData(indx, QString::number(path[i*8 + j]));
+//            }
+//        }
+//    }
 }
 
 void MainWindow::setTxtCommandClear()
@@ -661,50 +549,41 @@ void MainWindow::cbCartAbsChanged(int checked)
 
 void MainWindow::btnRunClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
-
-    txData.append(DataControl::CmdType::RunCmd);
-    txData.append(DataControl::OpMode::RunMode);
-
-    if (ui->cbRepeat->isChecked()){
-        txData.append(-1);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::RunMode;
+    bufSend[indx++] = DataControl::CmdType::RunCmd;
+    if(ui->cbRepeat->isChecked()){
+        bufSend[indx++] = -1;
     }
     else{
-        txData.append(1);
+        bufSend[indx++] = 1;
     }
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 }
 
 void MainWindow::btnStopClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::Wait;
+    bufSend[indx++] = DataControl::CmdType::StopCmd;
+    bufSend[indx++] = 0;
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(DataControl::CmdType::StopCmd);
-    txData.append(DataControl::OpMode::Wait);
+    qDebug() << "txData : " << bufSend;
 
-    if (ui->cbRepeat->isChecked()){
-        txData.append(-1);
-    }
-    else{
-        txData.append(1);
-    }
-
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
-
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 
     ui->btnRun->setEnabled(false);
     ui->btnReady->setEnabled(false);
@@ -712,131 +591,120 @@ void MainWindow::btnStopClicked()
 
 void MainWindow::btnReadyClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
-
-    txData.append(DataControl::CmdType::ReadyCmd);
-    txData.append(DataControl::OpMode::ReadyMode);
-
-    if (ui->cbRepeat->isChecked()){
-        txData.append(-1);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::ReadyMode;
+    bufSend[indx++] = DataControl::CmdType::ReadyCmd;
+    if(ui->cbRepeat->isChecked()){
+        bufSend[indx++] = -1;
     }
     else{
-        txData.append(1);
+        bufSend[indx++] = 1;
     }
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 
     ui->btnRun->setEnabled(true);
 }
 
 void MainWindow::btnFileReadyClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
-
-    txData.append(DataControl::CmdType::FileReady);
-    txData.append(DataControl::OpMode::RunMode);
-
-    if (ui->cbRepeat->isChecked()){
-        txData.append(-1);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::RunMode;
+    bufSend[indx++] = DataControl::CmdType::FileReady;
+    if(ui->cbRepeat->isChecked()){
+        bufSend[indx++] = -1;
     }
     else{
-        txData.append(1);
+        bufSend[indx++] = 1;
     }
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 }
 
 void MainWindow::btnFileRunClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
-
-    txData.append(DataControl::CmdType::FileRun);
-    txData.append(DataControl::OpMode::RunMode);
-
-    if (ui->cbRepeat->isChecked()){
-        txData.append(-1);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::RunMode;
+    bufSend[indx++] = DataControl::CmdType::FileRun;
+    if(ui->cbRepeat->isChecked()){
+        bufSend[indx++] = -1;
     }
     else{
-        txData.append(1);
+        bufSend[indx++] = 1;
     }
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 }
 
 void MainWindow::btnCustomRunClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
-
-    txData.append(DataControl::CmdType::CustomRun);
-    txData.append(DataControl::OpMode::RunMode);
-
-    if (ui->cbRepeat->isChecked()){
-        txData.append(-1);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::RunMode;
+    bufSend[indx++] = DataControl::CmdType::CustomRun;
+    if(ui->cbRepeat->isChecked()){
+        bufSend[indx++] = -1;
     }
     else{
-        txData.append(1);
+        bufSend[indx++] = 1;
     }
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 }
 
 void MainWindow::btnPathApplyClicked()
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_U);
-
-    txData.append(DataControl::CmdType::PathCmd);
-    txData.append(DataControl::OpMode::PathGenerateMode);
-
     int8_t tvRow = static_cast<int8_t>(pathModel->rowCount());
     int8_t tvCol = static_cast<int8_t>(pathModel->columnCount());
 
-    txData.append(tvRow);
-    txData.append(tvCol);
-
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_U;
+    bufSend[indx++] = DataControl::OpMode::PathGenerateMode;
+    bufSend[indx++] = DataControl::CmdType::PathCmd;
+    bufSend[indx++] = tvRow;
+    bufSend[indx++] = tvCol;
     for(int i = 0; i < tvRow; i++){
         for(int j = 0; j < tvCol; j++){
-            txData.append(',');
-            txData.append(QByteArray::number(pathModel->data(pathModel->index(i, j)).toDouble() ,'f', 6));
+            memcpy(bufSend + indx, pathModel->data(pathModel->index(i, j)).toString().toStdString().c_str(), PATH_DATA_LEN);
+            indx += PATH_DATA_LEN;
+//            qDebug() << pathModel->data(pathModel->index(i, j)).toString();
         }
     }
-    txData.append(',');
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    qDebug() << "txData : " << bufSend;
 
-    qDebug() << "txData : " << txData;
-
-    tcpClient->socket->write(txData);
+    tcpClient->sendData(bufSend, indx);
 
     ui->btnReady->setEnabled(true);
 }
@@ -931,7 +799,7 @@ void MainWindow::btnLoggingStartClicked()
     qDebug() << "Logging Start";
     QDateTime date;
     QString fileName = "../logging/" + date.currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".csv";
-    logger = new Logger(this, fileName);
+    dataControl->logger = new Logger(this, fileName);
 
     QString data = "Indx";
     data += ",";
@@ -965,20 +833,28 @@ void MainWindow::btnLoggingStartClicked()
     data += "End Roll Cmd [deg],";
     data += "End Pitch Cmd [deg],";
     data += "End Yaw Cmd [deg],";
-	for (uint i = 0; i < NUM_JOINT; i++){
-		data += "Joint Cmd" + QString::number(i+1) + " [deg]";
-		data += ",";
-	}
+    for (uint i = 0; i < NUM_JOINT; i++){
+        data += "Joint Cmd" + QString::number(i+1) + " [deg]";
+        data += ",";
+    }
+    for (uint i = 0; i < NUM_JOINT; i++){
+        data += "Joint Tor" + QString::number(i+1) + " [Nm]";
+        data += ",";
+    }
+    for (uint i = 0; i < NUM_JOINT; i++){
+        data += "Joint Dist" + QString::number(i+1) + " [Nm]";
+        data += ",";
+    }
     data += "\n";
-    logger->write(data);
-    logging_start = true;
+    dataControl->logger->write(data);
+    dataControl->logging_start = true;
     ui->txtLoggingState->setText("Logging...");
 }
 
 void MainWindow::btnLoggingStopClicked()
 {
     qDebug() << "Logging Stop";
-    delete logger;
-    logging_start = false;
+    delete dataControl->logger;
+    dataControl->logging_start = false;
     ui->txtLoggingState->setText("Wait...");
 }

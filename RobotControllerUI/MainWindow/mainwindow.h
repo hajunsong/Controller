@@ -13,17 +13,31 @@
 #include <QStandardItem>
 #include <QFileDialog>
 #include <QListWidgetItem>
+#include <QTimer>
 
 #include "TcpSocket/tcpclient.h"
 #include "Settings/customsettings.h"
 #include "DataControl/datacontrol.h"
 #include "FileIO/fileio.h"
 #include "Input/keyinputclass.h"
-#include "Logger/logger.h"
 #include "OperateUI/operateui.h"
 #include "TorqueID/torqueid.h"
 
 #include <QtCore/qglobal.h>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <cstring>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <iostream>
+#include <math.h>
+
+//const int MAXCONNECTIONS = 5;
+//const int MAXWAITBUFSIZE = 4096;
+//const int MAXRECEIVEBUFSIZE = 1024;
+//const int RECVBUFSIZE = 156;
 
 #if defined(MAINWINDOWLIB_LIBRARY)
 #  define MAINWINDOWLIB_EXPORT Q_DECL_EXPORT
@@ -47,6 +61,10 @@ public:
     enum Servo{On=1,Off=0};
     enum Motion{JogMotion = 0, JointMotion, CartesianJogMotion, CartesianMotion};
 
+    void onConnectServer();
+    void disConnectServer();
+    void componentEnable(bool enable);
+
 private:
     Ui::MainWindow *ui;
     TcpClient *tcpClient;
@@ -58,18 +76,17 @@ private:
     QByteArray txData;
     int rowClickedIndex, colClickedIndex, rowPressedIndex, colPressedIndex;
 
-    void componentEnable(bool enable);
-
     QVector<QLineEdit*> txtJCmd, txtCCmd;
     void setTxtCommandClear();
 
     bool cmdJointRel, cmdJointAbs, cmdCartRel, cmdCartAbs;
 
-    Logger *logger;
-    bool logging_start;
-
     OperateUI *operateUI;
     TorqueID *torqueID;
+
+    QTimer *mainTimer;
+
+    char bufSend[MAXSENDBUFSIZE];
 
 public slots:
     // button event
@@ -100,11 +117,6 @@ public slots:
     void cbCartRelChanged(int arg);
     void cbCartAbsChanged(int arg);
 
-    // server event
-    void onConnectServer();
-    void disConnectServer();
-    void readMessage();
-
     // event
      void keyPressEvent(QKeyEvent *event);
      void closeEvent(QCloseEvent* event);
@@ -115,6 +127,9 @@ public slots:
     void horizontalSectionClicked(int index);
     void verticalSectionPressed(int index);
     void horizontalSectionPressed(int index);
+
+    // timer event
+    void mainTimeOut();
 };
 
 #endif // MAINWINDOW_H

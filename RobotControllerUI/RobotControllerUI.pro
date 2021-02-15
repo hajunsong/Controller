@@ -20,6 +20,7 @@ SOURCES += \
     TcpSocket/tcpserver.cpp \
     Input/keyinputclass.cpp \
     Input/keyinputnomodifiedclass.cpp \
+    Input/keyinputkeypadclass.cpp \
     MainWindow/mainwindow.cpp \
     TorqueID/torqueid.cpp \
     OperateUI/operateui.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
     TcpSocket/tcpserver.h \
     Input/keyinputclass.h \
     Input/keyinputnomodifiedclass.h \
+    Input/keyinputkeypadclass.h \
     MainWindow/mainwindow.h \
     TorqueID/torqueid.h \
     OperateUI/operateui.h \

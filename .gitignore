@@ -7,3 +7,4 @@ RobotControllerTemp/
 **/build/
 **/config.ini
 **/deploy*
+*.tar.gz

@@ -9,7 +9,7 @@
 //#include "keyinputshiftaltclass.h"
 //#include "keyinputshiftcontrolclass.h"
 //#include "keyinputctrlaltclass.h"
-//#include "keyinputkeypadclass.h"
+#include "keyinputkeypadclass.h"
 
 #include <QtCore/qglobal.h>
 
@@ -22,7 +22,7 @@
 class KeyInputClass
 {
 public:
-    KeyInputClass(void* _ui, void* _ui_op, void* _torque_id);
+    KeyInputClass(void* _ui, void* _ui_op, void* _torque_id, void* _tcp_client);
     void InputKeyboard(QKeyEvent *keyevt);
 
 private:
@@ -34,11 +34,12 @@ private:
 //    KeyinputShiftControlClass* keyshiftctrl;
 //    KeyinputShiftAltClass* keyshiftalt;
 //    KeyinputCtrlAltClass* keyctrlalt;
-//    KeyinputKeypadClass* keypad;
+    KeyinputKeypadClass* keypad;
 
     void* ui;
     void* ui_op;
     void* torque_id;
+    void* tcpClient;
 };
 
 #endif // KEYINPUTCLASS_H

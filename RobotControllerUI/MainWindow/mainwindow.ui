@@ -308,6 +308,16 @@
                    <string>FAR V2</string>
                   </property>
                  </item>
+                 <item>
+                  <property name="text">
+                   <string>FAR V3</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </item>
                 </widget>
                </item>
                <item>

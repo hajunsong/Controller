@@ -1,27 +1,43 @@
-#pragma once
+#ifndef TCPSERVER_H
+#define TCPSERVER_H
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <cstring>
+#include <arpa/inet.h>
+#include <iostream>
+#include <math.h>
+#include <time.h>
+#include <sstream>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <string.h>		// string function definitions
-#include <fcntl.h>		// File control definitions
-#include <errno.h>		// Error number definitions
-#include <termios.h>	// POSIX terminal control definitions
-#include <time.h>		// time calls
-#include <sys/ioctl.h>
-#include <math.h>
 
-#include <Poco/Event.h>
-#include <NRMKSocketBase.h>
+#include <native/task.h>
+#include <native/timer.h>
+#include <rtdk.h>
+
+using namespace std;
+
+const int MAXCONNECTIONS = 5;
+const int MAXWAITBUFSIZE = 4096;
+const int MAXSENDBUFSIZE = 1024;
+const int MAXRECEIVEBUFSIZE = 1024;
+const int SENDBUFSIZE = 156;
+
+const uint8_t SOP_RX = 0xCA;
+const uint8_t SOP_TX = 0xCB;
+const uint8_t EOP = 0xCE;
+const uint8_t CMD_DATA = 0xD0;
+const uint8_t CMD_SECTION = 0xD1;
+const uint8_t CMD_FEEDING = 0xD2;
+const uint8_t CMD_TABLET_CHECK = 0xD3;
 
 #include "DataControl/datacontrol.h"
 #include "CustomFunc/tcpserver_custom.h"
-
-#include <QString>
-#include <QByteArray>
-#include <QtDebug>
 
 #include <QtCore/qglobal.h>
 
@@ -31,42 +47,53 @@
 #  define TCPSERVERLIB_EXPORT Q_DECL_IMPORT
 #endif
 
-namespace NRMKHelper{
-    class TcpServer : public NRMKSocketBase
-    {
-    public:
-        TcpServer(DataControl *dataControl_);
-        ~TcpServer();
+class TcpServer
+{
+public:
+    TcpServer(DataControl *_dataControl);
+    ~TcpServer();
 
-        DataControl *dataControl;
-        void sendData();
-        bool comm_thread_run;
-        TcpServerCustom *tcpServerCustom;
-        bool isConnected();
+    DataControl* dataControl;
+    TcpServerCustom *tcpServerCustom;
 
-        // sendKey is used to send key input only
-        void sendKey(char key);
-        void getKey(char & key);
-        void setting(QString _ip, int _port);
-        bool getDataCorrected(){return data_corrected;}
-        int getPort(){return PORT;}
-        QString getIP(){return IP;}
+    void start();
+    void initSocket();
+    void connectSocket();
+    void stop();
+    int sendData();
+    void sendKey(const char* key);
+    bool isConnected(){return connected;}
+    void setting(uint16_t port_);
+    uint16_t getPort(){return port;}
+    static void* comm_func(void* arg);
+    static void* comm_rx_func(void* arg);
+    int in_area(const double section[4], double *p, int div_count);
 
-        int8_t data_size;
+    bool comm_thread_run, comm_run;
+    int clientSockFD;
 
-    private:
-        QString IP;
-        int PORT;
-        volatile char commandkey;
-        Poco::Event dataReceiveEvent;
-        unsigned char *cmdbuf;
-        bool data_corrected;
-        void OnEvent(UINT uEvent, LPVOID lpvData);
-        void OnDataReceived(const LPBYTE lpBuffer, DWORD dwCount);
-        void setConnected(bool flag);
-        volatile bool connected;
+private:
+    long sendByteLen;
+    long byteLen, len;
+    unsigned int curLen;
+    int listenSockFD;
+    char *ptrRecvBufIndx = nullptr;
+    unsigned char buf[MAXRECEIVEBUFSIZE] = {0,};
+    char bufWait[MAXWAITBUFSIZE] = {0,};
+    char bufSend[MAXSENDBUFSIZE] = {0,};
 
-    signals:
-        void disconnectClient();
-    };
-}
+    int dataLen = 0;
+
+    pthread_t comm_thread, comm_rx_thread;
+
+    sockaddr_in server_addr, client_addr;
+    bool comm_thread_rx_run, comm_thread_tx_run;
+
+    uint16_t port;
+    string msg;
+
+    bool connected;
+    uint8_t temp;
+};
+
+#endif // TCPSERVER_H

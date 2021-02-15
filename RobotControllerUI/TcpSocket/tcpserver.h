@@ -14,24 +14,24 @@
 
 class TcpServer : public QTcpServer
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit TcpServer(QObject *parent = nullptr);
-	QTcpServer *server;
-	QTcpSocket *socket;
-	void startServer();
-	void setIpAddress(QString address);
-	void setPort(quint16 num);
+    explicit TcpServer(QObject *parent = nullptr);
+    QTcpServer *server;
+    QTcpSocket *socket;
+    void startServer();
+    void setIpAddress(QString address);
+    void setPort(quint16 num);
 
 signals:
-	void error(QTcpSocket::SocketError socketerror);
+    void error(QTcpSocket::SocketError socketerror);
     void connectedClient();
 
 protected:
-	void incomingConnection(qintptr socketDescriptor);
+    void incomingConnection(qintptr socketDescriptor);
 
 private:
-	QString ipAddress;
-	quint16 portNum;
+    QString ipAddress;
+    quint16 portNum;
 };
 

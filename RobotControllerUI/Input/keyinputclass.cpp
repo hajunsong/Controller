@@ -5,11 +5,12 @@
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
 
-KeyInputClass::KeyInputClass(void* _ui, void* _ui_op, void* _torque_id)
+KeyInputClass::KeyInputClass(void* _ui, void* _ui_op, void* _torque_id, void* _tcp_client)
 {
     ui = static_cast<Ui::MainWindow*>(_ui);
     ui_op = static_cast<OperateUI*>(_ui_op);
     torque_id = static_cast<TorqueID*>(_torque_id);
+    tcpClient = static_cast<TcpClient*>(_tcp_client);
 
     keynone = new KeyinputNoModifiedClass(ui, ui_op, torque_id);
 //    keyalt = new KeyinputAltClass(ui);
@@ -18,7 +19,7 @@ KeyInputClass::KeyInputClass(void* _ui, void* _ui_op, void* _torque_id)
 //    keyshiftctrl = new KeyinputShiftControlClass(ui);
 //    keyshiftalt = new KeyinputShiftAltClass(ui);
 //    keyctrlalt = new KeyinputCtrlAltClass(ui);
-//    keypad = new KeyinputKeypadClass(ui);
+    keypad = new KeyinputKeypadClass(ui, tcpClient);
 }
 
 void KeyInputClass::InputKeyboard(QKeyEvent* keyevt)
@@ -87,10 +88,10 @@ void KeyInputClass::InputKeyboard(QKeyEvent* keyevt)
 
 //            break;
 
-//        case Qt::KeypadModifier:
-//            keypad->KeypadKeyInput(keyevt);
+        case Qt::KeypadModifier:
+            keypad->KeypadKeyInput(keyevt);
 
-//            break;
+            break;
     }
 
 }

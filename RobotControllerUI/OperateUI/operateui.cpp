@@ -18,6 +18,8 @@ OperateUI::OperateUI(void* _tcpClient, QWidget *parent) : QWidget(parent), ui(ne
     connect(ui->btnListen, SIGNAL(clicked()), this, SLOT(btnListenClicked()));
 
     tcpServer = new TcpServer();
+
+    client_connected = false;
 }
 
 OperateUI::~OperateUI(){
@@ -35,6 +37,17 @@ void OperateUI::init()
     }
     componentEnable(false);
     tcpServer->socket->disconnectFromHost();
+}
+
+void OperateUI::stop()
+{
+    ui->btnStart->setText("Start");
+    ui->btnFeeding->setText("Feeding\nMode");
+    ui->btnTeaching->setText("Teaching\nMode");
+    componentEnable(false);
+    if(client_connected){
+        tcpServer->socket->close();
+    }
 }
 
 void OperateUI::btnStartClciked()
@@ -116,7 +129,7 @@ void OperateUI::btnSide3Clicked(){
 }
 
 void OperateUI::btnRiseClicked(){
-    char data[2] = {DataControl::Operate::Feeding, DataControl::Section::Rise};
+    char data[2] = {DataControl::Operate::Feeding, DataControl::Section::Rice};
 
     sendDataToServer(data);
 }
@@ -148,10 +161,11 @@ void OperateUI::btnListenClicked()
 
 void OperateUI::connected()
 {
-//    ui->rbConnectState->setChecked(true);
+    ui->rbConnectState->setChecked(true);
     connect(tcpServer->socket, SIGNAL(readyRead()), this, SLOT(readMessage()), Qt::DirectConnection);
     connect(tcpServer->socket, SIGNAL(disconnected()), this, SLOT(disconnected()), Qt::DirectConnection);
     ui->txtLogMessage->append("Connected tablet");
+    client_connected = true;
 }
 
 void OperateUI::readMessage()
@@ -184,7 +198,7 @@ void OperateUI::readMessage()
                 ui->btnSoup->animateClick();
                 qDebug() << "Selected Soup";
                 break;
-            case DataControl::Section::Rise:
+            case DataControl::Section::Rice:
                 ui->btnRise->animateClick();
                 qDebug() << "Selected Rise";
                 break;
@@ -198,6 +212,7 @@ void OperateUI::disconnected()
     disconnect(tcpServer->socket, SIGNAL(readyRead()), this, SLOT(readMessage()));
     disconnect(tcpServer->socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
     ui->txtLogMessage->append("Disconnected tablet");
+    client_connected = false;
 }
 
 void OperateUI::componentEnable(bool enable)
@@ -211,18 +226,19 @@ void OperateUI::componentEnable(bool enable)
 
 void OperateUI::sendDataToServer(char *data)
 {
-    txData.clear();
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_O);
+    int16_t indx = 0;
+    memset(bufSend, 0, MAXSENDBUFSIZE);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_O;
 
-    txData.append(DataControl::OpMode::OperateMode);
-    txData.append(data[0]);
-    txData.append(data[1]);
+    bufSend[indx++] = DataControl::OpMode::OperateMode;
+    bufSend[indx++] = data[0];
+    bufSend[indx++] = data[1];
 
-    txData.append(Qt::Key_N);
-    txData.append(Qt::Key_E);
+    bufSend[indx++] = Qt::Key_N;
+    bufSend[indx++] = Qt::Key_E;
 
-    qDebug() << "txData : " << txData;
+    qDebug() << "txData : " << QByteArray::fromRawData(bufSend, indx);
 
-    static_cast<TcpClient*>(tcpClient)->socket->write(txData);
+    static_cast<TcpClient*>(tcpClient)->sendData(bufSend, indx);
 }

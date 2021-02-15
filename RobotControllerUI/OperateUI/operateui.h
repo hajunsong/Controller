@@ -29,6 +29,7 @@ public:
     ~OperateUI();
     Ui::OperateUI *ui;
     void init();
+    void stop();
 
 public slots:
     // button event
@@ -52,8 +53,12 @@ private:
     QByteArray txData;
     TcpServer *tcpServer;
 
+    char bufSend[MAXSENDBUFSIZE];
+
     void componentEnable(bool enable);
     void sendDataToServer(char *data);
+
+    bool client_connected;
 };
 
 #endif // OPERATEUI_H

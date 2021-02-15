@@ -7,6 +7,8 @@
 #include <native/timer.h>
 #include <rtdk.h>
 
+#include "NRMKhw_tp.h"	//NRMK gpio library
+
 #include <pthread.h>
 
 #include "DataControl/datacontrol.h"
@@ -15,25 +17,12 @@
 #include "RobotArm/robotarm.h"
 #include "CustomFunc/controlmain_custom.h"
 
-#include <QObject>
-#include <QTimer>
-
-#include <QtCore/qglobal.h>
-
-#if defined(CONTROLMAINLIB_LIBRARY)
-#  define CONTROLMAINLIB_EXPORT Q_DECL_EXPORT
-#else
-#  define CONTROLMAINLIB_EXPORT Q_DECL_IMPORT
-#endif
-
-class ControlMain : public QObject{
-    Q_OBJECT
+class ControlMain{
 public:
-    explicit ControlMain(QObject *parent = nullptr);
+    ControlMain();
     ~ControlMain();
     void start();
     bool robot_thread_run;
-    RT_TASK robot_task;
     ControlMainCustom *controlMainCustom;
     void robot_RT_stop();
     DataControl *dataControl;
@@ -44,28 +33,43 @@ public:
     void robotDynamics();
     void robotJointMove(char mode, double desJoint[NUM_JOINT]);
     void robotCartesianMove(char mode, double desCartesian[NUM_DOF]);
-    void robotPathGenerate();
+    void robotPathGenerate(std::vector<double> px, std::vector<double> py, std::vector<double> pz, std::vector<double> rx, std::vector<double> ry, std::vector<double> rz);
     void robotRun();
     void robotReady();
 	void robotSPGC();
     void robotOperate();
+    void robotVSD();
 
     DxlControl *module;
     char data_indx;
 
-    NRMKHelper::TcpServer *tcpServer;
+    TcpServer *tcpServer;
+    TcpServer *tcpServerLatte;
 
     void getPresentEnc(int32_t enc[NUM_JOINT]);
     void setOffsetEnc(int32_t enc[NUM_JOINT]);
+
+    static void* init_func(void* arg);
+    bool init_thread_run;
+
+    void setObiMode();
+    void unsetObiMode();
+    char putObiMode(char key);
+
+    uint8_t gpio0_state, gpio1_state, gpio0_state_old, gpio1_state_old;
+    TP_PORT gpio0;
+    TP_PORT gpio1;
+
+    char key_value;
+
+    void flag_on(int arg);
 private:
-    QTimer *dxlTimer;
     void robot_RT();
 
     RobotArm *robotArm;
 
     void moduleInitSEA();
     void moduleInitFAR();
-    bool module_init;
 	bool old_end_pose_update;
 
     void goalReach(double desired_pose[NUM_DOF], double present_pose[NUM_DOF], bool *goal_reach);
@@ -78,12 +82,12 @@ private:
     int delay_cnt, delay_cnt_max;
     int fork_cnt, fork_cnt_max;
     int32_t origin_pos;
+    double step_size;
 
-signals:
-    void disconnectClientSignal();
+    double goal_current[NUM_JOINT];
 
-public slots:
-    void dxlTimeout();
-    void disconnectClient();
+    pthread_t init_thread;
+    int count;
+    FILE *fp_count;
 };
 

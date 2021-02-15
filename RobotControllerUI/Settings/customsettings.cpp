@@ -69,6 +69,7 @@ void CustomSettings::loadConfigFile()
 QString CustomSettings::configFile()
 {
     QString filePath = qApp->applicationDirPath() + "/config.ini";
+//    qDebug() << filePath;
     return filePath;
 }
 
