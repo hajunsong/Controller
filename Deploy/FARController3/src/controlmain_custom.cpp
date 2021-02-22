@@ -1,5 +1,5 @@
 #include "controlmain_custom.h"
-#include "ControlMain/controlmain.h"
+#include "controlmain.h"
 
 ControlMainCustom::ControlMainCustom(){
 }

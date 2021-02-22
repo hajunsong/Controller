@@ -204,7 +204,7 @@ void MainWindow::mainTimeOut()
     }
     if(!tcpClient->isConnected()){
         mainTimer->stop();
-        ui->btnDisconnect->animateClick(100);
+        ui->btnDisconnect->animateClick();
     }
 }
 
@@ -216,7 +216,7 @@ void MainWindow::onConnectServer(){
 }
 
 void MainWindow::disConnectServer(){
-    ui->btnDisconnect->animateClick(100);
+    ui->btnDisconnect->animateClick();
 }
 
 void MainWindow::btnSetInitClicked()

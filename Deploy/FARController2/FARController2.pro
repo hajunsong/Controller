@@ -36,7 +36,6 @@ LIBS += \
     -L$$NRMK_LIB_PATH -lNRMKhw_tp \
     -L$$DXL_PATH -ldxl_x86_cpp \
 
-
 INCLUDEPATH += \
     $$NRMK_PATH \
     $$NRMK_POCO_LIB_PATH/i686 \
@@ -58,9 +57,7 @@ DEPENDPATH += \
 PRE_TARGETDEPS += \
     $$NRMK_LIB_PATH/libNRMKHelperi686.a
 
-
-
-LIBS += -L$$PWD/lib/ -lFARControllerLib2
+LIBS += -L$$PWD/./ -lFARController2
 
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.

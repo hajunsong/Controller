@@ -11,7 +11,7 @@ INSTALLS += target
 
 TARGET = FARController2
 #TEMPLATE = lib
-#DESTDIR = $$PWD/../Deploy/FARController2/lib
+#DESTDIR = $$PWD/../Deploy/FARController2
 
 DEFINES += \
     DATACONTROLLIB_LIBRARY \
