@@ -87,22 +87,24 @@ link_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/lib
 )
 
-set(TARGET_LIB FARControllerLib)
-add_library(
-    ${TARGET_LIB} SHARED ${SRCS}
-)
-
 #############################################################
 # Executable                                                #
 #############################################################
 set(TARGET_EXE RobotController2)
-add_executable(${TARGET_EXE} main.cpp ${SRCS})
+add_executable(${TARGET_EXE} src/main.cpp ${SRCS})
+
+#############################################################
+# Deployment                                                #
+#############################################################
+set(DEPLOY_LIB FARControllerLib)
+add_library(${DEPLOY_LIB} SHARED ${SRCS})
 
 #############################################################
 # Libraries linking                                         #
 #############################################################
 target_link_libraries(${TARGET_EXE} ${LIBS})
-target_link_libraries(${TARGET_LIB} ${LIBS})
+target_link_libraries(${DEPLOY_LIB} ${LIBS})
 
 set_target_properties(${TARGET_EXE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin")
-set_target_properties(${TARGET_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib")
+# set_target_properties(${DEPLOY_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib")
+set_target_properties(${DEPLOY_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../Deploy/FARController3/lib")

@@ -31,7 +31,7 @@ DataControl::DataControl()
     memset(tool_offset, 0, sizeof(double)*3);
 
     char readBuffer[65536];
-    FILE* fp = fopen("../config.json", "r");
+    FILE* fp = fopen("config.json", "r");
     FileReadStream frs(fp, readBuffer, sizeof(readBuffer));
     Document document;
     document.ParseStream(frs);

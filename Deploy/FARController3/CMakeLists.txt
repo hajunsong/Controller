@@ -54,7 +54,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0")
 # Sources                                                   #
 #############################################################
 set(SRCS
-	main.cpp
+	src/main.cpp
 	src/controlmain_custom.cpp
 )
 
@@ -85,7 +85,7 @@ link_directories(
 #############################################################
 # Executable                                                #
 #############################################################
-set(TARGET_EXE RobotController2)
+set(TARGET_EXE FARController2)
 add_executable(${TARGET_EXE} ${SRCS})
 
 #############################################################
