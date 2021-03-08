@@ -1,7 +1,7 @@
 #############################################################
 # Minimum required version                                  #
 #############################################################
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.16)
 
 #############################################################
 # Toolchains                                                #
@@ -90,21 +90,21 @@ link_directories(
 #############################################################
 # Executable                                                #
 #############################################################
-set(TARGET_EXE RobotController2)
+set(TARGET_EXE FARController2)
 add_executable(${TARGET_EXE} src/main.cpp ${SRCS})
 
 #############################################################
 # Deployment                                                #
 #############################################################
-set(DEPLOY_LIB FARControllerLib)
-add_library(${DEPLOY_LIB} SHARED ${SRCS})
+#set(DEPLOY_LIB FARControllerLib)
+#add_library(${DEPLOY_LIB} SHARED ${SRCS})
 
 #############################################################
 # Libraries linking                                         #
 #############################################################
 target_link_libraries(${TARGET_EXE} ${LIBS})
-target_link_libraries(${DEPLOY_LIB} ${LIBS})
+#target_link_libraries(${DEPLOY_LIB} ${LIBS})
 
 set_target_properties(${TARGET_EXE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin")
-# set_target_properties(${DEPLOY_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib")
-set_target_properties(${DEPLOY_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../Deploy/FARController3/lib")
+#set_target_properties(${DEPLOY_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib")
+# set_target_properties(${DEPLOY_LIB} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../Deploy/FARController3/lib")

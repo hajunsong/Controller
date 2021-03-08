@@ -20,7 +20,7 @@ const uint8_t SOCKET_TOKEN_SIZE = 2;
 
 const uint8_t NUM_JOINT = 6;
 const uint8_t NUM_DOF = 6;
-const uint8_t MODULE_TYPE = 3; // 1: FAR v1, 2: FAR v2, 3: FAR v3
+const uint8_t MODULE_TYPE = 2; // 1: FAR v1, 2: FAR v2, 3: FAR v3
 const uint8_t DATA_INDEX_LEN = 1;
 const uint8_t MOTION_DATA_LEN = 8;
 const uint8_t TIME_LEN = 8;
@@ -221,6 +221,9 @@ public:
     const double RAW2mA = 2.69;
     const double mA2RAW = 0.371747212;
 
+    const double initJoint2Deg = 20;
+    const double initJoint4Deg = -200;
+
 //    const double operateCameraReadyJoint[6] = {1.173420, -0.086010, -0.637394, -0.824773, -1.154989, -1.549713};
     const double operateFeedingReadyPose[6] = {-0.222, 0.058758770483143,  0.0989879236551952, -1.57080736369899,  1.48352986419518, 1.5708665530537};
 
@@ -232,7 +235,7 @@ public:
     int32_t joint_offset[6];
     double tool_offset[3];
     double operateCameraReadyJoint[6];
-    int32_t initJoint_2, initJoint_4;
+    // int32_t initJoint_2, initJoint_4;
 
     double obi_ready_joint[5*6];
 };

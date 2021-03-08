@@ -415,8 +415,8 @@ void ControlMain::setTabletMode()
     usleep(10000);
     rt_printf("Feeding start\n");
 
-    dataControl->obi_section_indx = -1;
-    dataControl->obi_section_indx2 = -1;
+    dataControl->section_indx = -1;
+    dataControl->section_indx2 = -1;
 }
 
 void ControlMain::unsetTabletMode()
@@ -464,14 +464,14 @@ char ControlMain::putTabletMode(char key)
             dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
             dataControl->operateMode.mode = DataControl::Operate::ReadyFeeding;
 
-            dataControl->obi_section_indx++;
-            if(dataControl->obi_section_indx >= 5){
-                dataControl->obi_section_indx = 0;
+            dataControl->section_indx++;
+            if(dataControl->section_indx >= 5){
+                dataControl->section_indx = 0;
             }
         }
     }
     else if(key == 39 || key == 's'){
-        if(dataControl->ClientToServer.opMode == DataControl::OpMode::Wait/* && dataControl->obi_section_indx2 >= 0*/){
+        if(dataControl->ClientToServer.opMode == DataControl::OpMode::Wait/* && dataControl->section_indx2 >= 0*/){
 //            for(uint i = 0; i < NUM_JOINT; i++){
 //                module->feeding_profile_acc[i] = 1;//50;
 //                module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
@@ -483,7 +483,7 @@ char ControlMain::putTabletMode(char key)
             dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
             dataControl->operateMode.mode = DataControl::Operate::Feeding;
 
-            switch(dataControl->obi_section_indx){
+            switch(dataControl->section_indx){
                 case 0: // side 1
                 {
                     rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
@@ -533,15 +533,15 @@ char ControlMain::putTabletMode(char key)
             dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
             dataControl->operateMode.mode = DataControl::Operate::ReadyFeeding2;
 
-            dataControl->obi_section_indx2++;
-            if(dataControl->obi_section_indx == 0 || dataControl->obi_section_indx == 1 || dataControl->obi_section_indx == 2){
-                if(dataControl->obi_section_indx2 >= 4){
-                    dataControl->obi_section_indx2 = 0;
+            dataControl->section_indx2++;
+            if(dataControl->section_indx == 0 || dataControl->section_indx == 1 || dataControl->section_indx == 2){
+                if(dataControl->section_indx2 >= 4){
+                    dataControl->section_indx2 = 0;
                 }
             }
-            else if(dataControl->obi_section_indx == 4){
-                if(dataControl->obi_section_indx2 >= 9){
-                    dataControl->obi_section_indx2 = 0;
+            else if(dataControl->section_indx == 4){
+                if(dataControl->section_indx2 >= 9){
+                    dataControl->section_indx2 = 0;
                 }
             }
         }
@@ -744,10 +744,10 @@ void ControlMain::moduleInitFAR()
             err = module->setTorqueEnable(0, 1);
         }while(err == 1);
 
-        module->setGoalPosition(3, dataControl->initJoint_4);
+        module->setGoalPosition(3, dataControl->initJoint4Deg*dataControl->DEG2ENC + dataControl->RobotData.joint_offset[3]);
         usleep(1500000);
 
-        module->setGoalPosition(1, dataControl->initJoint_2);
+        module->setGoalPosition(1, dataControl->initJoint2Deg*dataControl->DEG2ENC + dataControl->RobotData.joint_offset[1]);
         usleep(1500000);
     }
 
@@ -1295,26 +1295,30 @@ void ControlMain::robotRun()
                     else
                     {
                         if(dataControl->feeding){
-                            switch(dataControl->operateMode.section){
-                                case DataControl::Section::Side1:
-                                case DataControl::Section::Side2:
-                                case DataControl::Section::Side3:
-                                case DataControl::Section::Rice:
-                                case DataControl::Section::Soup:
-                                    dataControl->operateMode.section = DataControl::Section::Mouse;
-                                    dataControl->operateMode.mode = DataControl::Operate::Feeding;
-                                    dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
-                                    break;
-                                case DataControl::Section::Mouse:
-                                    dataControl->operateMode.section = DataControl::Section::Home;
-                                    dataControl->operateMode.mode = DataControl::Operate::Feeding;
-                                    dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
-                                    break;
-                                case DataControl::Section::Home:
-                                    dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
-                                    dataControl->operateMode.mode = DataControl::Operate::ReadyFeeding;
-                                    break;
-
+                            if(dataControl->KITECHData.interface_cmd == CMD_SECTION && dataControl->KITECHData.interface_sub == 1){
+                                dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+                            }
+                            else{
+                                switch(dataControl->operateMode.section){
+                                    case DataControl::Section::Side1:
+                                    case DataControl::Section::Side2:
+                                    case DataControl::Section::Side3:
+                                    case DataControl::Section::Rice:
+                                    case DataControl::Section::Soup:
+                                        dataControl->operateMode.section = DataControl::Section::Mouse;
+                                        dataControl->operateMode.mode = DataControl::Operate::Feeding;
+                                        dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                                        break;
+                                    case DataControl::Section::Mouse:
+                                        dataControl->operateMode.section = DataControl::Section::Home;
+                                        dataControl->operateMode.mode = DataControl::Operate::Feeding;
+                                        dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                                        break;
+                                    case DataControl::Section::Home:
+                                        dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                                        dataControl->operateMode.mode = DataControl::Operate::ReadyFeeding;
+                                        break;
+                                }
                             }
                         }
                         else{
@@ -1563,7 +1567,12 @@ void ControlMain::robotOperate()
 
                     dataControl->KITECHData.sp_food[0] = ((double)dataControl->KITECHData.food_pos[2*(dataControl->operateMode.section - 1)])*0.001;
                     dataControl->KITECHData.sp_food[1] = ((double)dataControl->KITECHData.food_pos[2*(dataControl->operateMode.section - 1) + 1])*0.001;
-                    dataControl->KITECHData.sp_food[2] = 0;
+                    if(dataControl->KITECHData.interface_cmd == CMD_SECTION && dataControl->KITECHData.interface_sub == 1){
+                        dataControl->KITECHData.sp_food[2] = -200;
+                    }
+                    else{
+                        dataControl->KITECHData.sp_food[2] = 0;
+                    }
 
                     RobotArm::mat(dataControl->KITECHData.A_marker, dataControl->KITECHData.sp_food, 3,3,3, dataControl->KITECHData.sp);
                     for(uint i = 0; i < 3; i++){
@@ -1759,8 +1768,7 @@ void ControlMain::robotOperate()
             usleep(3000000);
             dataControl->KITECHData.camera_request = false;
 
-
-//            if(dataControl->obi_section_indx == 4 || dataControl->obi_section_indx == 3){
+//            if(dataControl->section_indx == 4 || dataControl->section_indx == 3){
 //                for(int i = 0; i < 6; i++){
 //                    dataControl->RobotData.desired_q[i] = dataControl->operateCameraReadyJoint[i];
 //                }
@@ -1770,7 +1778,7 @@ void ControlMain::robotOperate()
 //            }
 
 //            for(int i = 0; i < 6; i++){
-//                dataControl->RobotData.desired_q[i] = dataControl->obi_ready_joint[dataControl->obi_section_indx*6 + i];
+//                dataControl->RobotData.desired_q[i] = dataControl->obi_ready_joint[dataControl->section_indx*6 + i];
 //            }
 //            dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
 //            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);

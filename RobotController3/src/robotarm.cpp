@@ -734,6 +734,15 @@ RobotArm::RobotArm(uint numbody, uint DOF, double step_size) {
 //        body[6].u_vec[0] = 0; body[6].u_vec[1] = 0; body[6].u_vec[2] = 1;
     }
     else if(MODULE_TYPE == DataControl::Module::FAR_V3){
+        // DH paramter
+        // | Link | alpha(deg) |  a(mm)  |  d(mm)   | theta(deg) |
+        // |=====================================================|
+        // |  1   |    -90     |  0      |   0      |    -90     |
+        // |  2   |     0      |  164.25 |   0      |    -90     |
+        // |  3   |     180    |  170    |   0      |     0      |
+        // |  4   |     90     |  65.2457|   0      |     90     |
+        // |  5   |     90     |  0      |  -16.2558|     90     |
+        // |  6   |     0      |  0      |   88.9972|     0      |
 
         DH[0] = -90;    DH[1] = 0;          DH[2] = 0;          DH[3] = -90;
         DH[4] = 0;      DH[5] = 0.16425;    DH[6] = 0;          DH[7] = -90;

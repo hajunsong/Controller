@@ -167,8 +167,10 @@ void TcpServer::send_RT(void *arg){
 void TcpServer::recvData(){
     if(/*(byteLen == 23 || byteLen == 4) && */bufRecv[0] == SOP_RX/* && !dataControl->feeding*//* && (buf[3] == EOP || buf[22] == EOP)*/){
         dataControl->KITECHData.camera_request = false;
+        dataControl->KITECHData.interface_cmd = bufRecv[1];
+        dataControl->KITECHData.interface_sub = bufRecv[2];
 
-        switch(bufRecv[1]){
+        switch(dataControl->KITECHData.interface_cmd){
             case CMD_DATA:
             {
                 rt_printf("Received Data Packet\n");
@@ -201,48 +203,90 @@ void TcpServer::recvData(){
             case CMD_SECTION:
             {
                 rt_printf("Received Section Packet\n");
-                break;
-            }
-            case CMD_FEEDING:
-            {
-                rt_printf("Received Feeding Packet\n");
-                rt_printf("Section : %d\n", bufRecv[2]);
-                dataControl->obi_section_indx = bufRecv[2] - 1;
+                // choose section
+                if(dataControl->KITECHData.interface_sub == 1){
+                    dataControl->section_indx++;
+                    if(dataControl->section_indx >= 5) {
+                        dataControl->section_indx = 0;
+                    }
+                    rt_printf("Section Index : %d\n", dataControl->section_indx);
+                }
+                else if(dataControl->KITECHData.interface_sub == 2){
+                    rt_printf("Received Feeding Packet\n");
+                    rt_printf("Section : %d\n", dataControl->section_indx);
+                }
+
                 dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
                 dataControl->operateMode.mode = DataControl::Operate::Feeding;
-                switch(dataControl->obi_section_indx){
+                switch(dataControl->section_indx){
                     case 0: // side 1
                     {
                         rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
-                        dataControl->side1_motion[dataControl->trayInfor.section1%2].file_data_indx = 500;
                         dataControl->operateMode.section = DataControl::Section::Side1;
                         break;
                     }
                     case 1: // side 2
                     {
                         rt_printf("section2 count : %d, %d\n", dataControl->trayInfor.section2, dataControl->trayInfor.section2%2);
-                        dataControl->side2_motion[dataControl->trayInfor.section2%2].file_data_indx = 500;
+                        dataControl->operateMode.section = DataControl::Section::Side2;
+                        break;
+                    }
+                    // case 2: // side 3
+                    // {
+                    //     rt_printf("section3 count : %d, %d\n", dataControl->trayInfor.section3, dataControl->trayInfor.section3%2);
+                    //     dataControl->operateMode.section = DataControl::Section::Side3;
+                    //     break;
+                    // }
+                    // case 3: // soup
+                    // {
+                    //     rt_printf("section4 count : %d\n", dataControl->trayInfor.section4);
+                    //     dataControl->operateMode.section = DataControl::Section::Soup;
+                    //     break;
+                    // }
+                    case 4: // rice
+                    {
+                        rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%3);
+                        dataControl->operateMode.section = DataControl::Section::Rice;
+                        break;
+                    }
+                }
+                break;
+            }
+            case CMD_FEEDING:
+            {
+                rt_printf("Received Feeding Packet\n");
+                rt_printf("Section : %d\n", dataControl->KITECHData.interface_sub);
+                dataControl->section_indx = dataControl->KITECHData.interface_sub - 1;
+                dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                dataControl->operateMode.mode = DataControl::Operate::Feeding;
+                switch(dataControl->section_indx){
+                    case 0: // side 1
+                    {
+                        rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
+                        dataControl->operateMode.section = DataControl::Section::Side1;
+                        break;
+                    }
+                    case 1: // side 2
+                    {
+                        rt_printf("section2 count : %d, %d\n", dataControl->trayInfor.section2, dataControl->trayInfor.section2%2);
                         dataControl->operateMode.section = DataControl::Section::Side2;
                         break;
                     }
                     case 2: // side 3
                     {
                         rt_printf("section3 count : %d, %d\n", dataControl->trayInfor.section3, dataControl->trayInfor.section3%2);
-                        dataControl->side3_motion[dataControl->trayInfor.section3%2].file_data_indx = 500;
                         dataControl->operateMode.section = DataControl::Section::Side3;
                         break;
                     }
                     case 3: // soup
                     {
                         rt_printf("section4 count : %d\n", dataControl->trayInfor.section4);
-                        dataControl->soup_motion.file_data_indx = 500;
                         dataControl->operateMode.section = DataControl::Section::Soup;
                         break;
                     }
                     case 4: // rice
                     {
                         rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%3);
-                        dataControl->rice_motion[dataControl->trayInfor.section5%3].file_data_indx = 500;
                         dataControl->operateMode.section = DataControl::Section::Rice;
                         break;
                     }
@@ -251,7 +295,7 @@ void TcpServer::recvData(){
             }
             case CMD_TABLET_CHECK:
             {
-                if(bufRecv[2] == 1){
+                if(dataControl->KITECHData.interface_sub == 1){
                     dataControl->KITECHData.tablet_connect = true;
                 }
                 else{

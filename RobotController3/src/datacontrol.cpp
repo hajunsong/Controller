@@ -15,7 +15,7 @@ DataControl::DataControl()
     RobotData.offset_setting = false;
     RobotData.ik_flag = true;
     tablet_mode = false;
-    obi_section_indx = -1;
+    section_indx = -1;
     trayInfor.section1 = 0;
     trayInfor.section2 = 0;
     trayInfor.section3 = 0;
@@ -26,6 +26,8 @@ DataControl::DataControl()
     KITECHData.camera_request_old = KITECHData.camera_request;
     KITECHData.tablet_check = false;
     KITECHData.tablet_check_old = KITECHData.tablet_check;
+    KITECHData.interface_cmd = 0;
+    KITECHData.interface_sub = 0;
 
     memset(joint_offset, 0, sizeof(int32_t)*6);
     memset(tool_offset, 0, sizeof(double)*3);
@@ -54,14 +56,6 @@ DataControl::DataControl()
         printf("camera_joint[%d] = %f\n", i, camera_joint_json[i].GetDouble());
         operateCameraReadyJoint[i] = camera_joint_json[i].GetDouble();
     }
-    const Value& init_joint_4_json = document["INIT_JOINT_4"];
-    assert(init_joint_4_json.IsNumber());
-    assert(init_joint_4_json.IsInt());
-    initJoint_4 = init_joint_4_json.GetInt();
-    const Value& init_joint_2_json = document["INIT_JOINT_2"];
-    assert(init_joint_2_json.IsNumber());
-    assert(init_joint_2_json.IsInt());
-    initJoint_2 = init_joint_2_json.GetInt();
 }
 
 DataControl::~DataControl()
