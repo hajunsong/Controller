@@ -85,8 +85,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->tvPathData, SIGNAL(clicked(QModelIndex)), this, SLOT(tvCellClicked(QModelIndex)));
     connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(horizontalSectionClicked(int)));
     connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(verticalSectionClicked(int)));
-    connect(ui->tvPathData->horizontalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(horizontalSectionPressed(int)));
-    connect(ui->tvPathData->verticalHeader(), SIGNAL(sectionPressed(int)), this, SLOT(verticalSectionPressed(int)));
 
     connect(ui->btnRun, SIGNAL(clicked()), this, SLOT(btnRunClicked()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(btnStopClicked()));
@@ -120,14 +118,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 //    connect(ui->btnCustomRun, SIGNAL(clicked()), this, SLOT(btnCustomRunClicked()));
     ui->btnCustomRun->hide();
+    ui->btnFileReady->hide();
+    ui->btnFileRun->hide();
 
     connect(ui->btnLoggingStart, SIGNAL(clicked()), this, SLOT(btnLoggingStartClicked()));
     connect(ui->btnLoggingStop, SIGNAL(clicked()), this, SLOT(btnLoggingStopClicked()));
 
-    ui->tabWidget->addTab(operateUI, "Operate");
+//    ui->tabWidget->addTab(operateUI, "Operate");
 
     customSettings = new CustomSettings(ui, operateUI->ui);
     customSettings->loadConfigFile();
+
+    ui->groupBox_2->hide();
 }
 
 MainWindow::~MainWindow()
@@ -201,6 +203,27 @@ void MainWindow::mainTimeOut()
         ui->txtTime->setText(QString::number(dataControl->ServerToClient.time, 'f', 6));
         ui->txtDxlTime->setText(QString::number(dataControl->ServerToClient.dxl_time, 'f', 6));
         ui->txtIKTime->setText(QString::number(dataControl->ServerToClient.ik_time, 'f', 6));
+
+        QString RobotStateStr;
+        switch(dataControl->ServerToClient.opMode){
+        case 2:
+            RobotStateStr = "Wait";
+            break;
+//        case 5:
+//            RobotStateStr = "Path generate";
+//            break;
+//        case 6:
+//            RobotStateStr = "Ready";
+//            break;
+        case 7:
+            RobotStateStr = "Run";
+            break;
+        default:
+            RobotStateStr = "...";
+            break;
+        }
+
+        ui->txtRobotState->setText(RobotStateStr);
     }
     if(!tcpClient->isConnected()){
         mainTimer->stop();
@@ -274,9 +297,9 @@ void MainWindow::btnSetInitClicked()
     hHeader.append("PX");
     hHeader.append("PY");
     hHeader.append("PZ");
-    hHeader.append("PX");
-    hHeader.append("PY");
-    hHeader.append("PZ");
+    hHeader.append("RX");
+    hHeader.append("RY");
+    hHeader.append("RZ");
     hHeader.append("Acc time");
     pathModel->setHorizontalHeaderLabels(hHeader);
 }
@@ -712,6 +735,7 @@ void MainWindow::btnPathApplyClicked()
 void MainWindow::btnPathClearClicked()
 {
     pathModel->removeRows(0, pathModel->rowCount());
+    pathModel->insertRow(0);
 }
 
 void MainWindow::btnPathInsertClicked()
@@ -719,22 +743,16 @@ void MainWindow::btnPathInsertClicked()
     if (rowClickedIndex >= 0){
         pathModel->insertRow(rowClickedIndex);
     }
-    if (colClickedIndex >= 0){
-        pathModel->insertColumn(colClickedIndex);
-    }
 }
 
 void MainWindow::btnPathDeleteClicked()
 {
-    if (rowClickedIndex >= 0 && rowPressedIndex >= 0){
-        pathModel->removeRows(rowPressedIndex, abs(rowClickedIndex - rowPressedIndex) + 1);
+    if (rowClickedIndex >= 0){
+        pathModel->removeRows(rowClickedIndex, 1);
         rowClickedIndex = -1;
-        rowPressedIndex = -1;
     }
-    if (colClickedIndex >= 0 && colPressedIndex >= 0){
-        pathModel->removeColumns(colPressedIndex, abs(colClickedIndex - colPressedIndex) + 1);
-        colClickedIndex = -1;
-        colPressedIndex = -1;
+    if(pathModel->rowCount() == 0){
+        pathModel->insertRow(0);
     }
 }
 
@@ -742,9 +760,6 @@ void MainWindow::btnPathAppendClicked()
 {
     if (rowClickedIndex >= 0){
         pathModel->insertRow(pathModel->rowCount());
-    }
-    if (colClickedIndex >= 0){
-        pathModel->insertColumn(pathModel->columnCount());
     }
 }
 
@@ -767,22 +782,6 @@ void MainWindow::verticalSectionClicked(int index)
     rowClickedIndex = index;
     qDebug() << "Clicked vertical : " << index;
     colClickedIndex = -1;
-}
-
-void MainWindow::horizontalSectionPressed(int index)
-{
-    colPressedIndex = index;
-    qDebug() << "Pressed horizontal : " << index;
-    rowClickedIndex = -1;
-    rowPressedIndex = -1;
-}
-
-void MainWindow::verticalSectionPressed(int index)
-{
-    rowPressedIndex = index;
-    qDebug() << "Pressed vertical : " << index;
-    colClickedIndex = -1;
-    colPressedIndex = -1;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

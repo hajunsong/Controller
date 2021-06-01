@@ -53,7 +53,7 @@ public:
 
     void setTabletMode();
     void unsetTabletMode();
-    char putTabletMode(char key);
+//    char putTabletMode(char key);
 
     uint8_t gpio0_state, gpio1_state, gpio0_state_old, gpio1_state_old;
     TP_PORT gpio0;
@@ -80,7 +80,7 @@ private:
 	bool old_end_pose_update;
 
     void goalReach(double desired_pose[NUM_DOF], double present_pose[NUM_DOF], bool *goal_reach);
-    void path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path);
+    void path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path, int path_index);
 
     uint8_t module_indx;
 

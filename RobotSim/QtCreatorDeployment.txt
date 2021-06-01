@@ -1,0 +1,4 @@
+
+bin/RobotSim:/mnt/mtd5/daincube/keti
+data/recurdyn_data2.txt:/mnt/mtd5/daincube/keti/data
+data/recurdyn_data3.txt:/mnt/mtd5/daincube/keti/data

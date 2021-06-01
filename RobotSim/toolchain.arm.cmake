@@ -1,0 +1,10 @@
+SET(CMAKE_SYSTEM_NAME Linux)
+SET(CMAKE_SYSTEM_PROCESSOR arm)
+
+SET(CMAKE_C_COMPILER /opt/poky/1.8/sysroots/i686-pokysdk-linux/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc)
+# SET(CMAKE_CXX_COMPILER ${COMPILER_ROOT}g++)
+# SET(CMAKE_LINKER ${COMPILER_ROOT}ld)
+# SET(CMAKE_NM ${COMPILER_ROOT}nm)
+# SET(CMAKE_OBJCOPY ${COMPILER_ROOT}objcopy)
+# SET(CMAKE_OBJDUMP ${COMPILER_ROOT}objdump)
+# SET(CMAKE_RANLIB ${COMPILER_ROOT}ranlib)

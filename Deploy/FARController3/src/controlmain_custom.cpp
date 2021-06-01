@@ -94,10 +94,10 @@ void ControlMainCustom::robot_run(void *arg)
         //           pThis->dataControl->RobotData.present_joint_position[0], pThis->dataControl->RobotData.present_joint_position[1],
         //           pThis->dataControl->RobotData.present_joint_position[2], pThis->dataControl->RobotData.present_joint_position[3],
         //           pThis->dataControl->RobotData.present_joint_position[4], pThis->dataControl->RobotData.present_joint_position[5]);
-        rt_printf("present q(deg) : %f, %f, %f, %f, %f, %f\n",
-                  pThis->dataControl->RobotData.present_q[0] * pThis->dataControl->RAD2DEG, pThis->dataControl->RobotData.present_q[1] * pThis->dataControl->RAD2DEG,
-                  pThis->dataControl->RobotData.present_q[2] * pThis->dataControl->RAD2DEG, pThis->dataControl->RobotData.present_q[3] * pThis->dataControl->RAD2DEG,
-                  pThis->dataControl->RobotData.present_q[4] * pThis->dataControl->RAD2DEG, pThis->dataControl->RobotData.present_q[5] * pThis->dataControl->RAD2DEG);
+        // rt_printf("present q(deg) : %f, %f, %f, %f, %f, %f\n",
+        //           pThis->dataControl->RobotData.present_q[0] * pThis->dataControl->RAD2DEG, pThis->dataControl->RobotData.present_q[1] * pThis->dataControl->RAD2DEG,
+        //           pThis->dataControl->RobotData.present_q[2] * pThis->dataControl->RAD2DEG, pThis->dataControl->RobotData.present_q[3] * pThis->dataControl->RAD2DEG,
+        //           pThis->dataControl->RobotData.present_q[4] * pThis->dataControl->RAD2DEG, pThis->dataControl->RobotData.present_q[5] * pThis->dataControl->RAD2DEG);
         // rt_printf("Present Pose : %f, %f, %f, %f, %f, %f\n",
         //           pThis->dataControl->RobotData.present_end_pose[0], pThis->dataControl->RobotData.present_end_pose[1],
         //           pThis->dataControl->RobotData.present_end_pose[2], pThis->dataControl->RobotData.present_end_pose[3],

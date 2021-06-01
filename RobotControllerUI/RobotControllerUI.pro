@@ -8,6 +8,8 @@ QT += core gui widgets network
 
 TARGET = RobotControllerUI
 TEMPLATE = app
+#TEMPLATE = lib
+#DESTDIR = $$PWD/lib
 
 CONFIG += c++11
 

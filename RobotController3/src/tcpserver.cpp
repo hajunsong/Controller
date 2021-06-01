@@ -173,81 +173,86 @@ void TcpServer::recvData(){
         switch(dataControl->KITECHData.interface_cmd){
             case CMD_DATA:
             {
-                rt_printf("Received Data Packet\n");
+//                rt_printf("Received Data Packet\n");
 
-                for(int i = 0; i < 20; i++){
-                    dataControl->KITECHData.food_pixel[i] = (char)bufRecv[i + 2];
-                }
+//                for(int i = 0; i < 20; i++){
+//                    dataControl->KITECHData.food_pixel[i] = (char)bufRecv[i + 2];
+//                }
 
-                for(int i = 0, j = 0; i < 10; i++, j+=2){
-                    dataControl->KITECHData.food_pos[i] = (int)dataControl->KITECHData.food_pixel[j]*100 + (int)dataControl->KITECHData.food_pixel[j+1];
-                }
+//                for(int i = 0, j = 0; i < 10; i++, j+=2){
+//                    dataControl->KITECHData.food_pos[i] = (int)dataControl->KITECHData.food_pixel[j]*100 + (int)dataControl->KITECHData.food_pixel[j+1];
+//                }
 
-                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[0], dataControl->KITECHData.food_pos[1]);
-                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[2], dataControl->KITECHData.food_pos[3]);
-                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[4], dataControl->KITECHData.food_pos[5]);
-                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[6], dataControl->KITECHData.food_pos[7]);
-                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[8], dataControl->KITECHData.food_pos[9]);
+//                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[0], dataControl->KITECHData.food_pos[1]);
+//                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[2], dataControl->KITECHData.food_pos[3]);
+//                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[4], dataControl->KITECHData.food_pos[5]);
+//                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[6], dataControl->KITECHData.food_pos[7]);
+//                rt_printf("%d, %d\n", dataControl->KITECHData.food_pos[8], dataControl->KITECHData.food_pos[9]);
 
-                for(int i = 0; i < 10; i++){
-                    if(abs(dataControl->KITECHData.food_pos[i]) < 10 || abs(dataControl->KITECHData.food_pos[i]) > 200){
-                        rt_printf("Re-Send to KITECH request camera\n");
-                        dataControl->KITECHData.camera_request = true;
-                        usleep(3000000);
-                        dataControl->KITECHData.camera_request = false;
-                        break;
-                    }
-                }
+//                for(int i = 0; i < 10; i++){
+//                    if(abs(dataControl->KITECHData.food_pos[i]) < 10 || abs(dataControl->KITECHData.food_pos[i]) > 200){
+//                        rt_printf("Re-Send to KITECH request camera\n");
+//                        dataControl->KITECHData.camera_request = true;
+//                        usleep(3000000);
+//                        dataControl->KITECHData.camera_request = false;
+//                        break;
+//                    }
+//                }
                 break;
             }
             case CMD_SECTION:
             {
-                rt_printf("Received Section Packet\n");
-                // choose section
-                if(dataControl->KITECHData.interface_sub == 1){
-                    dataControl->section_indx++;
-                    if(dataControl->section_indx >= 5) {
-                        dataControl->section_indx = 0;
-                    }
-                    rt_printf("Section Index : %d\n", dataControl->section_indx);
-                }
-                else if(dataControl->KITECHData.interface_sub == 2){
-                    rt_printf("Received Feeding Packet\n");
-                    rt_printf("Section : %d\n", dataControl->section_indx);
-                }
+                if(dataControl->ClientToServer.opMode == DataControl::OpMode::Wait){
+                    rt_printf("Received Section Packet\n");
 
-                dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
-                dataControl->operateMode.mode = DataControl::Operate::Feeding;
-                switch(dataControl->section_indx){
-                    case 0: // side 1
-                    {
-                        rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
-                        dataControl->operateMode.section = DataControl::Section::Side1;
-                        break;
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                    dataControl->operateMode.mode = DataControl::Operate::FeedingSwitch;
+
+                    // choose section
+                    if(dataControl->KITECHData.interface_sub == 1){
+                        dataControl->section_indx++;
+                        if(dataControl->section_indx >= 5) {
+                            dataControl->section_indx = 0;
+                        }
+                        rt_printf("Section Index : %d\n", dataControl->section_indx);
                     }
-                    case 1: // side 2
-                    {
-                        rt_printf("section2 count : %d, %d\n", dataControl->trayInfor.section2, dataControl->trayInfor.section2%2);
-                        dataControl->operateMode.section = DataControl::Section::Side2;
-                        break;
-                    }
-                    // case 2: // side 3
-                    // {
-                    //     rt_printf("section3 count : %d, %d\n", dataControl->trayInfor.section3, dataControl->trayInfor.section3%2);
-                    //     dataControl->operateMode.section = DataControl::Section::Side3;
-                    //     break;
-                    // }
-                    // case 3: // soup
-                    // {
-                    //     rt_printf("section4 count : %d\n", dataControl->trayInfor.section4);
-                    //     dataControl->operateMode.section = DataControl::Section::Soup;
-                    //     break;
-                    // }
-                    case 4: // rice
-                    {
-                        rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%3);
-                        dataControl->operateMode.section = DataControl::Section::Rice;
-                        break;
+                    else if(dataControl->KITECHData.interface_sub == 2){
+                        rt_printf("Received Feeding Packet\n");
+                        rt_printf("Section : %d\n", dataControl->section_indx);
+                        dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                        dataControl->operateMode.mode = DataControl::Operate::Feeding;
+                        switch(dataControl->section_indx){
+                            case 0: // side 1
+                            {
+                                rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
+                                dataControl->operateMode.section = DataControl::Section::Side1;
+                                break;
+                            }
+                            case 1: // side 2
+                            {
+                                rt_printf("section2 count : %d, %d\n", dataControl->trayInfor.section2, dataControl->trayInfor.section2%2);
+                                dataControl->operateMode.section = DataControl::Section::Side2;
+                                break;
+                            }
+                             case 2: // side 3
+                             {
+                                 rt_printf("section3 count : %d, %d\n", dataControl->trayInfor.section3, dataControl->trayInfor.section3%2);
+                                 dataControl->operateMode.section = DataControl::Section::Side3;
+                                 break;
+                             }
+                             case 3: // soup
+                             {
+                                 rt_printf("section4 count : %d\n", dataControl->trayInfor.section4);
+                                 dataControl->operateMode.section = DataControl::Section::Soup;
+                                 break;
+                             }
+                            case 4: // rice
+                            {
+                                rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%9);
+                                dataControl->operateMode.section = DataControl::Section::Rice;
+                                break;
+                            }
+                        }
                     }
                 }
                 break;
@@ -257,38 +262,40 @@ void TcpServer::recvData(){
                 rt_printf("Received Feeding Packet\n");
                 rt_printf("Section : %d\n", dataControl->KITECHData.interface_sub);
                 dataControl->section_indx = dataControl->KITECHData.interface_sub - 1;
-                dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
-                dataControl->operateMode.mode = DataControl::Operate::Feeding;
-                switch(dataControl->section_indx){
-                    case 0: // side 1
-                    {
-                        rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
-                        dataControl->operateMode.section = DataControl::Section::Side1;
-                        break;
-                    }
-                    case 1: // side 2
-                    {
-                        rt_printf("section2 count : %d, %d\n", dataControl->trayInfor.section2, dataControl->trayInfor.section2%2);
-                        dataControl->operateMode.section = DataControl::Section::Side2;
-                        break;
-                    }
-                    case 2: // side 3
-                    {
-                        rt_printf("section3 count : %d, %d\n", dataControl->trayInfor.section3, dataControl->trayInfor.section3%2);
-                        dataControl->operateMode.section = DataControl::Section::Side3;
-                        break;
-                    }
-                    case 3: // soup
-                    {
-                        rt_printf("section4 count : %d\n", dataControl->trayInfor.section4);
-                        dataControl->operateMode.section = DataControl::Section::Soup;
-                        break;
-                    }
-                    case 4: // rice
-                    {
-                        rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%3);
-                        dataControl->operateMode.section = DataControl::Section::Rice;
-                        break;
+                if(dataControl->ClientToServer.opMode == DataControl::OpMode::Wait){
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                    dataControl->operateMode.mode = DataControl::Operate::Feeding;
+                    switch(dataControl->section_indx){
+                        case 0: // side 1
+                        {
+                            rt_printf("section1 count : %d, %d\n", dataControl->trayInfor.section1, dataControl->trayInfor.section1%2);
+                            dataControl->operateMode.section = DataControl::Section::Side1;
+                            break;
+                        }
+                        case 1: // side 2
+                        {
+                            rt_printf("section2 count : %d, %d\n", dataControl->trayInfor.section2, dataControl->trayInfor.section2%2);
+                            dataControl->operateMode.section = DataControl::Section::Side2;
+                            break;
+                        }
+                        case 2: // side 3
+                        {
+                            rt_printf("section3 count : %d, %d\n", dataControl->trayInfor.section3, dataControl->trayInfor.section3%2);
+                            dataControl->operateMode.section = DataControl::Section::Side3;
+                            break;
+                        }
+                        case 3: // soup
+                        {
+                            rt_printf("section4 count : %d\n", dataControl->trayInfor.section4);
+                            dataControl->operateMode.section = DataControl::Section::Soup;
+                            break;
+                        }
+                        case 4: // rice
+                        {
+                            rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%9);
+                            dataControl->operateMode.section = DataControl::Section::Rice;
+                            break;
+                        }
                     }
                 }
                 break;
@@ -301,6 +308,7 @@ void TcpServer::recvData(){
                 else{
                     dataControl->KITECHData.tablet_connect = false;
                 }
+                break;
             }
             default:
             {
@@ -313,7 +321,7 @@ void TcpServer::recvData(){
         dataControl->config_check = false;
         dataControl->RobotData.module_init = false;
 
-        if(bufRecv[2] == NUM_JOINT && bufRecv[3] == NUM_DOF && bufRecv[4] == MODULE_TYPE){
+        if(bufRecv[2] == NUM_JOINT && bufRecv[3] == NUM_DOF && bufRecv[4] == dataControl->MODULE_TYPE){
             rt_printf("Client & Server configuration check complete\n");
             dataControl->RobotData.joint_op_mode = bufRecv[5];
             dataControl->config_check = true;
@@ -326,7 +334,7 @@ void TcpServer::recvData(){
             if(bufRecv[3] != NUM_DOF){
                 rt_printf("Client & Server does not matched degree of freedom\n");
             }
-            if(bufRecv[4] != MODULE_TYPE){
+            if(bufRecv[4] != dataControl->MODULE_TYPE){
                 rt_printf("Client & Server does not matched module type\n");
             }
         }
@@ -598,7 +606,8 @@ void TcpServer::sendData(){
                     memcpy(bufSend + indx, to_string(dataControl->ServerToClient.front().presentJointResidual[j]).c_str(), MOTION_DATA_LEN);
                     indx += MOTION_DATA_LEN;
                 }
-
+                bufSend[indx] = dataControl->ServerToClient.front().opMode;
+                indx++;
 
                 strcpy(bufSend + indx, "NE");
                 indx += SOCKET_TOKEN_SIZE;

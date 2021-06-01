@@ -20,7 +20,7 @@ const uint8_t SOCKET_TOKEN_SIZE = 2;
 
 const uint8_t NUM_JOINT = 6;
 const uint8_t NUM_DOF = 6;
-const uint8_t MODULE_TYPE = 3; // 1: FAR v1, 2: FAR v2, 3: FAR v3
+// const uint8_t MODULE_TYPE = 2; // 1: FAR v1, 2: FAR v2, 3: FAR v3
 const uint8_t DATA_INDEX_LEN = 1;
 const uint8_t MOTION_DATA_LEN = 8;
 const uint8_t TIME_LEN = 8;
@@ -70,6 +70,7 @@ public:
         double presentCartesianVelocity[NUM_DOF];
         double time, dxl_time, ik_time;
         double presentJointTorque[NUM_JOINT], presentJointResidual[NUM_JOINT];
+        char opMode;
     }StructServerToClient;
 
     typedef struct _StructRobotData{
@@ -122,7 +123,7 @@ public:
         std::vector<double> point_px, point_py, point_pz, point_rx, point_ry, point_rz;
         std::vector<double> point_px_home, point_py_home, point_pz_home, point_rx_home, point_ry_home, point_rz_home;
         double teaching_mat[9], teaching_pos[3], teaching_ori[3], teaching_fork_pose[6];
-        int32_t fork_joint[6];
+        int32_t fork_joint[6], teaching_joint[6];
         double teaching_pose[NUM_DOF];
         StructPathGenerateData movePath[10], readyPath;
         uint path_data_indx;
@@ -147,7 +148,7 @@ public:
 
     typedef struct _StructOperateMode{
         int mode;
-        int section;
+        unsigned int section;
     }StructOperateMode;
 
     typedef struct _StructKITECHData{
@@ -163,7 +164,7 @@ public:
     }StructKITECHData;
 
     typedef struct _StructTrayInfor{
-        int section1, section2, section3, section4, section5;
+        unsigned int section1, section2, section3, section4, section5;
     }StructTrayInfor;
 
     enum OpMode{ServoOnOff = 0, Initialize, Wait, JointMove, CartesianMove, PathGenerateMode, ReadyMode, RunMode, TorqueID, OperateMode, ObiMode};
@@ -171,7 +172,7 @@ public:
     enum Module{FAR_V1=1, FAR_V2, FAR_V3};
     enum Comm{RS485=1, RS232, EtherCAT};
     enum CmdType{PathCmd=1, ReadyCmd, RunCmd, StopCmd, FileReady, FileRun, CustomRun};
-    enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding, ReadyFeeding, ReadyFeeding2};
+    enum Operate{Start=1, Stop, StartTeaching, StopTeaching, StartFeeding, StopFeeding, Feeding, FeedingSwitch, ReadyFeeding};
     enum Section{Side1=1, Side2, Side3, Soup, Rice, Mouse, Home};
 
     bool config_check;
@@ -180,7 +181,8 @@ public:
     bool feeding;
     bool tablet_mode;
     char section_indx;
-    char section_indx2;
+    unsigned char section_indx2;
+    bool fork_flag;
 
     DataControl();
     ~DataControl();
@@ -227,6 +229,7 @@ public:
 
 //    const double operateCameraReadyJoint[6] = {1.173420, -0.086010, -0.637394, -0.824773, -1.154989, -1.549713};
     const double operateFeedingReadyPose[6] = {-0.222, 0.058758770483143,  0.0989879236551952, -1.57080736369899,  1.48352986419518, 1.5708665530537};
+    const double operateFeedingForkEndJoint[6] = {48.136, 4.488, -86.24, -86.96, 39.688, -95.656};
 
 //    const int32_t initJoint_4 = -141;
 //    const int32_t initJoint_2 = 2933;
@@ -236,6 +239,20 @@ public:
     int32_t joint_offset[6];
     double tool_offset[3];
     double operateCameraReadyJoint[6];
+    uint8_t MODULE_TYPE;
+
+//    vector<double> wp_rice1, wp_rice2, wp_rice3, wp_rice4, wp_rice5, wp_rice6, wp_rice7, wp_rice8, wp_rice9;
+//    vector< vector<double> > wp_rice;
+    typedef struct{
+        vector<double> wp;
+        unsigned int size[2];
+    }waypoints;
+
+    waypoints wp_rice1, wp_rice2, wp_rice3, wp_rice4, wp_rice5, wp_rice6, wp_rice7, wp_rice8, wp_rice9;
+    waypoints wp_side1_1, wp_side1_2, wp_side2_1, wp_side2_2, wp_side3_1, wp_side3_2, wp_soup1;
+    vector<waypoints> wp_rice, wp_side1, wp_side2, wp_side3, wp_soup;
+    waypoints readyJoints;
+
 };
 
 #endif // DATACONTROL_H

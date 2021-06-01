@@ -13,13 +13,13 @@ ControlMain::ControlMain()
     module_indx = 0;
     step_size = 0.003;
 
-    robotArm = new RobotArm(NUM_JOINT, NUM_DOF, step_size);
+    robotArm = new RobotArm(NUM_JOINT, NUM_DOF, step_size, dataControl->MODULE_TYPE);
     robotArm->set_tool_offset(dataControl->tool_offset);
 
     ready_pose = false;
     cartesian_move_flag = false;
 
-    delay_cnt_max = 2000;
+    delay_cnt_max = 100;
     delay_cnt = 0;
     fork_cnt_max = 0;
     fork_cnt = 0;
@@ -297,9 +297,9 @@ void ControlMain::gpio_RT(void *arg)
                     step = 4;
                 }
             }
-            else{
-                pControlMain->putTabletMode(pControlMain->key_value);
-            }
+//            else{
+//                pControlMain->putTabletMode(pControlMain->key_value);
+//            }
         }
 
         pControlMain->gpio1_state &= ~(pin01|pin02|pin03);
@@ -356,12 +356,12 @@ void ControlMain::key_input_RT(void *arg)
         pControlMain->key_value = getch();
         rt_printf("key value : %d\n", pControlMain->key_value);
 
-        if(pControlMain->key_value == KEY_A){
-            pControlMain->dataControl->KITECHData.camera_request = true;
-        }
-        else if(pControlMain->key_value == KEY_S){
-            pControlMain->dataControl->KITECHData.camera_request = false;
-        }
+//        if(pControlMain->key_value == KEY_A){
+//            pControlMain->dataControl->KITECHData.camera_request = true;
+//        }
+//        else if(pControlMain->key_value == KEY_S){
+//            pControlMain->dataControl->KITECHData.camera_request = false;
+//        }
     }
     rt_printf("Finished Key Input Thread\n");
 }
@@ -416,7 +416,7 @@ void ControlMain::setTabletMode()
     rt_printf("Feeding start\n");
 
     dataControl->section_indx = -1;
-    dataControl->section_indx2 = -1;
+    dataControl->section_indx2 = 0;
 }
 
 void ControlMain::unsetTabletMode()
@@ -450,7 +450,7 @@ void ControlMain::unsetTabletMode()
 
     printf("Finished\n");
 }
-
+#if 0
 char ControlMain::putTabletMode(char key)
 {
     if(key == 38 || key == 'a'){
@@ -515,7 +515,7 @@ char ControlMain::putTabletMode(char key)
                 case 4: // rice
                 {
                     rt_printf("section5 count : %d, %d\n", dataControl->trayInfor.section5, dataControl->trayInfor.section5%3);
-                    dataControl->rice_motion[dataControl->trayInfor.section5%3].file_data_indx = 500;
+//                    dataControl->rice_motion[dataControl->trayInfor.section5%9].file_data_indx = 500;
                     dataControl->operateMode.section = DataControl::Section::Rice;
                     break;
                 }
@@ -579,6 +579,7 @@ char ControlMain::putTabletMode(char key)
 
     return key;
 }
+#endif
 
 void* ControlMain::init_func(void* arg){
     ControlMain *pThis = static_cast<ControlMain*>(arg);
@@ -589,7 +590,7 @@ void* ControlMain::init_func(void* arg){
     pThis->module->init();
 
     while(pThis->init_thread_run){
-        switch(MODULE_TYPE){
+        switch(pThis->dataControl->MODULE_TYPE){
             case DataControl::Module::FAR_V1:
                 if (!pThis->dataControl->RobotData.module_init){
                     printf("Start FAR V1 Module Initilization\n");
@@ -839,7 +840,7 @@ void ControlMain::robotDynamics(){
     double goal_current[NUM_JOINT] = {0,};
     double alpha = 1.5;
     for(uint i = 0; i < NUM_JOINT; i++){
-        if(MODULE_TYPE == DataControl::Module::FAR_V1){
+        if(dataControl->MODULE_TYPE == DataControl::Module::FAR_V1){
             if (i < 3){
                 goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W270)*alpha;
             }
@@ -847,15 +848,15 @@ void ControlMain::robotDynamics(){
                 goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W150)*alpha;
             }
         }
-        else if(MODULE_TYPE == DataControl::Module::FAR_V2){
+        else if(dataControl->MODULE_TYPE == DataControl::Module::FAR_V2){
             if (i < 3){
-                goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V270)*alpha;
+                goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W270)*alpha;
             }
             else{
-                goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_V350)*alpha;
+                goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W350)*alpha;
             }
         }
-        else if(MODULE_TYPE == DataControl::Module::FAR_V3){
+        else if(dataControl->MODULE_TYPE == DataControl::Module::FAR_V3){
             if (i < 3){
                 goal_current[i] = 1000*(goal_torque[i] / TORQUE_CONSTANT_W270)*alpha;
             }
@@ -953,6 +954,9 @@ void ControlMain::robotJointMove(char mode, double desJoint[NUM_JOINT])
 
 void ControlMain::robotCartesianMove(char mode, double desCartesian[NUM_DOF])
 {
+    rt_printf("Desired pose : %3.5f, %3.5f, %3.5f, %3.5f, %3.5f, %3.5f\n",
+        desCartesian[0], desCartesian[1], desCartesian[2], 
+        desCartesian[3], desCartesian[4], desCartesian[5]);
     dataControl->cartesianPoseScaleDown(desCartesian, dataControl->RobotData.desired_end_pose);
     switch(mode){
         case DataControl::Motion::CartesianJogMotion:
@@ -1047,9 +1051,9 @@ void ControlMain::robotPathGenerate(std::vector<double> px, std::vector<double> 
         dataControl->PathData.movePath[i].path_x.clear();
         dataControl->PathData.movePath[i].path_y.clear();
         dataControl->PathData.movePath[i].path_z.clear();
-        path_generator(px[i], px[i + 1], dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_x);
-        path_generator(py[i], py[i + 1], dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_y);
-        path_generator(pz[i], pz[i + 1], dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_z);
+        path_generator(px[i], px[i + 1], dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_x, i);
+        path_generator(py[i], py[i + 1], dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_y, i);
+        path_generator(pz[i], pz[i + 1], dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_z, i);
     }
 
     dataControl->PathData.point_theta.push_back(0);
@@ -1066,32 +1070,36 @@ void ControlMain::robotPathGenerate(std::vector<double> px, std::vector<double> 
 
     for(uint8_t i = 0; i < dataControl->PathData.row - 1; i++){
         path_generator(0, dataControl->PathData.point_theta[i + 1],
-                dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_theta);
+                dataControl->PathData.total_time[i + 1] - dataControl->PathData.total_time[i], dataControl->PathData.acc_time[i], step_size, &dataControl->PathData.movePath[i].path_theta, i);
 
         dataControl->PathData.movePath[i].data_size = dataControl->PathData.movePath[i].path_x.size();
-//        rt_printf("section %d path size : %d\n", i, dataControl->PathData.movePath[i].data_size);
+        rt_printf("section %d path size : %d\n", i, dataControl->PathData.movePath[i].data_size);
     }
 
-//    int indx = 1;
-////    for(int i = 0; i < dataControl->PathData.row - 1; i++){
-//    int i = 0;
-//        for(uint j = 0; j < dataControl->PathData.movePath[i].path_x.size(); j++){
-//            printf("%d, %f, %f, %f\n",
-//                      indx++, dataControl->PathData.movePath[i].path_x[j], dataControl->PathData.movePath[i].path_y[j], dataControl->PathData.movePath[i].path_z[j]);
-//        }
-////    }
+    // int indx = 1;
+    // for (int i = 0; i < dataControl->PathData.row - 1; i++){
+    //     for (uint j = 0; j < dataControl->PathData.movePath[i].path_x.size(); j++){
+    //         printf("%d, %f, %f, %f\n",
+    //                indx++, dataControl->PathData.movePath[i].path_x[j], dataControl->PathData.movePath[i].path_y[j], dataControl->PathData.movePath[i].path_z[j]);
+    //     }
+    // }
 
-//    dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+    // dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
 }
 
 void ControlMain::robotReady()
 {
-    path_generator(dataControl->RobotData.present_end_pose[0], dataControl->PathData.point_px[0],
-            dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], step_size, &dataControl->PathData.readyPath.path_x);
-    path_generator(dataControl->RobotData.present_end_pose[1], dataControl->PathData.point_py[0],
-            dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], step_size, &dataControl->PathData.readyPath.path_y);
-    path_generator(dataControl->RobotData.present_end_pose[2], dataControl->PathData.point_pz[0],
-            dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], step_size, &dataControl->PathData.readyPath.path_z);
+    for (uint i = 0; i < NUM_JOINT; i++)
+    {
+        module->feeding_profile_acc[i] = 1;  //50;
+        module->feeding_profile_vel[i] = 3; //static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+    }
+    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+    path_generator(dataControl->RobotData.present_end_pose[0], dataControl->PathData.point_px[0], 2.0, 0.4, step_size, &dataControl->PathData.readyPath.path_x, 0);
+    path_generator(dataControl->RobotData.present_end_pose[1], dataControl->PathData.point_py[0], 2.0, 0.4, step_size, &dataControl->PathData.readyPath.path_y, 0);
+    path_generator(dataControl->RobotData.present_end_pose[2], dataControl->PathData.point_pz[0], 2.0, 0.4, step_size, &dataControl->PathData.readyPath.path_z, 0);
 
     double R_init[9], R_final[9], r[3], theta;
     RobotArm::zyx2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], R_init);
@@ -1099,7 +1107,7 @@ void ControlMain::robotReady()
     RobotArm::mat_to_axis_angle(R_init, R_final, r, &theta);
     memcpy(dataControl->PathData.readyPath.r, r, sizeof(double)*3);
 
-    path_generator(0, theta, dataControl->PathData.total_time[1] - dataControl->PathData.total_time[0], dataControl->PathData.acc_time[0], step_size, &dataControl->PathData.readyPath.path_theta);
+    path_generator(0, theta, 2.0, 0.4, step_size, &dataControl->PathData.readyPath.path_theta, 0);
     memcpy(dataControl->PathData.readyPath.R_init, robotArm->body[robotArm->num_body].Ae, sizeof(double)*9);
 
     dataControl->RobotData.run_mode = DataControl::CmdType::ReadyCmd;
@@ -1110,6 +1118,20 @@ void ControlMain::robotReady()
 
     dataControl->PathData.path_data_indx = 0;
     delay_cnt = 0;
+
+    // double desired_pose[6] = {0,};
+    // desired_pose[0] = dataControl->PathData.point_px[0];
+    // desired_pose[1] = dataControl->PathData.point_py[0];
+    // desired_pose[2] = dataControl->PathData.point_pz[0];
+    // desired_pose[3] = dataControl->PathData.point_rx[0];
+    // desired_pose[4] = dataControl->PathData.point_ry[0];
+    // desired_pose[5] = dataControl->PathData.point_rz[0];
+    // dataControl->ClientToServer.move_time = 1;
+    // dataControl->ClientToServer.acc_time = 0.3;
+
+    // dataControl->ClientToServer.opMode = DataControl::Motion::CartesianMotion;
+
+    // robotCartesianMove(dataControl->ClientToServer.opMode, desired_pose);
 }
 
 void ControlMain::robotRun()
@@ -1176,12 +1198,20 @@ void ControlMain::robotRun()
                 dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
 
                 memcpy(dataControl->PathData.movePath[0].R_init, Rd, sizeof(double)*9);
+
+                robotPathGenerate(dataControl->PathData.point_px, dataControl->PathData.point_py, dataControl->PathData.point_pz,
+                    dataControl->PathData.point_rx, dataControl->PathData.point_ry, dataControl->PathData.point_rz);
             }
 
             break;
         }
         case DataControl::CmdType::RunCmd:
         {
+            // rt_printf("%d\n", dataControl->PathData.path_data_indx);
+            // rt_printf("%d\n", dataControl->PathData.path_struct_indx);
+            // rt_printf("%d\n", dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_x.size());
+            // rt_printf("%d\n", dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_y.size());
+            // rt_printf("%d\n", dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_z.size());
             dataControl->RobotData.desired_end_pose[0] = dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_x[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[1] = dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_y[dataControl->PathData.path_data_indx];
             dataControl->RobotData.desired_end_pose[2] = dataControl->PathData.movePath[dataControl->PathData.path_struct_indx].path_z[dataControl->PathData.path_data_indx];
@@ -1303,6 +1333,30 @@ void ControlMain::robotRun()
                                     case DataControl::Section::Side1:
                                     case DataControl::Section::Side2:
                                     case DataControl::Section::Side3:
+                                    {
+                                        for(uint i = 0; i < NUM_JOINT; i++){
+                                            module->feeding_profile_acc[i] = 100;//50;
+                                            module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                                            module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                                        }
+                                        module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+//                                        memcpy(dataControl->RobotData.desired_q, dataControl->operateCameraReadyJoint, sizeof(double)*NUM_JOINT);
+                                        for(int i = 0; i < NUM_JOINT; i++){
+                                            dataControl->RobotData.desired_q[i] = dataControl->operateFeedingForkEndJoint[i]*dataControl->DEG2RAD;
+                                        }
+                                        dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+
+                                        module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                                        usleep(module->feeding_profile_vel[0]*1000);
+
+                                        dataControl->fork_flag = true;
+
+                                        dataControl->operateMode.section = DataControl::Section::Mouse;
+                                        dataControl->operateMode.mode = DataControl::Operate::Feeding;
+                                        dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
+                                        break;
+                                    }
                                     case DataControl::Section::Rice:
                                     case DataControl::Section::Soup:
                                         dataControl->operateMode.section = DataControl::Section::Mouse;
@@ -1310,6 +1364,31 @@ void ControlMain::robotRun()
                                         dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
                                         break;
                                     case DataControl::Section::Mouse:
+                                        if(dataControl->fork_flag)
+                                        {
+                                            for(uint i = 0; i < NUM_JOINT; i++){
+                                                module->feeding_profile_acc[i] = 100;//50;
+                                                module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                                                module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                                            }
+                                            module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                                            memcpy(dataControl->RobotData.command_joint_position, dataControl->PathData.fork_joint, sizeof(int32_t)*NUM_JOINT);
+                                            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                                            usleep(module->feeding_profile_vel[0]*1000);
+
+                                            usleep(3000000);
+
+                                            memcpy(dataControl->RobotData.command_joint_position, dataControl->PathData.teaching_joint, sizeof(int32_t)*NUM_JOINT);
+                                            module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                                            usleep(module->feeding_profile_vel[0]*1000);
+
+                                            dataControl->fork_flag = false;
+                                        }
+                                        else{
+                                            usleep(3000000);
+                                        }
+
                                         dataControl->operateMode.section = DataControl::Section::Home;
                                         dataControl->operateMode.mode = DataControl::Operate::Feeding;
                                         dataControl->ClientToServer.opMode = DataControl::OpMode::OperateMode;
@@ -1465,10 +1544,9 @@ void ControlMain::robotOperate()
                           dataControl->PathData.acc_time[i]);
             }
 
-            for(uint i = 0; i < NUM_JOINT; i++){
-                dataControl->PathData.fork_joint[i] = dataControl->RobotData.present_joint_position[i];
-            }
-            dataControl->PathData.fork_joint[5] += 180*dataControl->DEG2ENC;
+            memcpy(dataControl->PathData.teaching_joint, dataControl->RobotData.present_joint_position, sizeof(int32_t)*NUM_JOINT);
+            memcpy(dataControl->PathData.fork_joint, dataControl->RobotData.present_joint_position, sizeof(int32_t)*NUM_JOINT);
+            dataControl->PathData.fork_joint[5] += static_cast<int32_t>(180*dataControl->DEG2ENC);
 
 //            rt_printf("%d, %d, %d, %d, %d, %d\n",
 //                      dataControl->PathData.fork_joint[0], dataControl->PathData.fork_joint[1], dataControl->PathData.fork_joint[2],
@@ -1494,9 +1572,9 @@ void ControlMain::robotOperate()
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
             usleep(module->feeding_profile_vel[0]*1000);
 
-            dataControl->KITECHData.camera_request = true;
-            usleep(3000000);
-            dataControl->KITECHData.camera_request = false;
+//            dataControl->KITECHData.camera_request = true;
+//            usleep(3000000);
+//            dataControl->KITECHData.camera_request = false;
 
             dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
 
@@ -1521,41 +1599,58 @@ void ControlMain::robotOperate()
         {
             dataControl->feeding = true;
 
-            for(uint i = 0; i < NUM_JOINT; i++){
-                module->feeding_profile_acc[i] = 1;//50;
-                module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
-                module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
-            }
-            module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+            dataControl->PathData.total_time.clear();
+            dataControl->PathData.point_px.clear();
+            dataControl->PathData.point_py.clear();
+            dataControl->PathData.point_pz.clear();
+            dataControl->PathData.point_rx.clear();
+            dataControl->PathData.point_ry.clear();
+            dataControl->PathData.point_rz.clear();
+            dataControl->PathData.point_theta.clear();
+            dataControl->PathData.acc_time.clear();
 
             switch(dataControl->operateMode.section){
                 case DataControl::Section::Side1:
-                case DataControl::Section::Side2:
-                case DataControl::Section::Side3:
-                case DataControl::Section::Soup:
-                case DataControl::Section::Rice:
                 {
-                    dataControl->PathData.total_time.clear();
-                    dataControl->PathData.point_px.clear();
-                    dataControl->PathData.point_py.clear();
-                    dataControl->PathData.point_pz.clear();
-                    dataControl->PathData.point_rx.clear();
-                    dataControl->PathData.point_ry.clear();
-                    dataControl->PathData.point_rz.clear();
-                    dataControl->PathData.point_theta.clear();
-                    dataControl->PathData.acc_time.clear();
+                    unsigned int s_count = 0, wp_row = 0, wp_col = 0;
 
-                    dataControl->PathData.row = 2;
-                    double time = 0;
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 100;//50;
+                        module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+                    for(unsigned int i = 0; i < NUM_JOINT; i++){
+                        dataControl->RobotData.desired_q[i] = dataControl->readyJoints.wp[(dataControl->operateMode.section-1)*6 + i]*dataControl->DEG2RAD;
+                    }
+
+                    dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                    usleep(module->feeding_profile_vel[0]*1000);
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 1;//50;
+                        module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                    memcpy(dataControl->RobotData.present_joint_position, dataControl->RobotData.command_joint_position, sizeof(int32_t)*NUM_JOINT);
+                    robotKinematics();
+
+                    s_count = dataControl->trayInfor.section1%2;
+                    wp_row = dataControl->wp_side1[s_count].size[0];
+                    wp_col = dataControl->wp_side1[s_count].size[1];
+                    rt_printf("s_count : %d\n", s_count);
+                    rt_printf("wp_row : %d\n", wp_row);
+                    rt_printf("wp_col : %d\n", wp_col);
+
+                    dataControl->PathData.row = static_cast<uint8_t>(wp_row + 1);
                     for(uint i = 0; i < dataControl->PathData.row; i++){
                         dataControl->PathData.movePath[i].path_x.clear();
                         dataControl->PathData.movePath[i].path_y.clear();
                         dataControl->PathData.movePath[i].path_z.clear();
                         dataControl->PathData.movePath[i].path_theta.clear();
-
-                        dataControl->PathData.total_time.push_back(time);
-                        dataControl->PathData.acc_time.push_back(0.2);
-                        time += 3.0;
                     }
 
                     dataControl->PathData.point_px.push_back(dataControl->RobotData.present_end_pose[0]);
@@ -1564,29 +1659,21 @@ void ControlMain::robotOperate()
                     dataControl->PathData.point_rx.push_back(dataControl->RobotData.present_end_pose[3]);
                     dataControl->PathData.point_ry.push_back(dataControl->RobotData.present_end_pose[4]);
                     dataControl->PathData.point_rz.push_back(dataControl->RobotData.present_end_pose[5]);
+                    dataControl->PathData.total_time.push_back(0);
+                    dataControl->PathData.acc_time.push_back(0.3);
 
-                    dataControl->KITECHData.sp_food[0] = ((double)dataControl->KITECHData.food_pos[2*(dataControl->operateMode.section - 1)])*0.001;
-                    dataControl->KITECHData.sp_food[1] = ((double)dataControl->KITECHData.food_pos[2*(dataControl->operateMode.section - 1) + 1])*0.001;
-                    if(dataControl->KITECHData.interface_cmd == CMD_SECTION && dataControl->KITECHData.interface_sub == 1){
-                        dataControl->KITECHData.sp_food[2] = -200;
+                    for(uint i = 1; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.total_time.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 0] + 1.0);
+                        dataControl->PathData.point_px.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 1]*0.001);
+                        dataControl->PathData.point_py.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 2]*0.001);
+                        dataControl->PathData.point_pz.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 3]*0.001);
+                        dataControl->PathData.point_rx.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 4]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_ry.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 5]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_rz.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 6]*dataControl->DEG2RAD);
+                        dataControl->PathData.acc_time.push_back(dataControl->wp_side1[s_count].wp[(i-1)*wp_col + 7]);
                     }
-                    else{
-                        dataControl->KITECHData.sp_food[2] = 0;
-                    }
 
-                    RobotArm::mat(dataControl->KITECHData.A_marker, dataControl->KITECHData.sp_food, 3,3,3, dataControl->KITECHData.sp);
-                    for(uint i = 0; i < 3; i++){
-                        dataControl->KITECHData.rp[i] = dataControl->KITECHData.r_marker[i] + dataControl->KITECHData.sp[i];
-                    }
-
-                    dataControl->PathData.point_px.push_back(dataControl->KITECHData.rp[0]);
-                    dataControl->PathData.point_py.push_back(dataControl->KITECHData.rp[1]);
-                    dataControl->PathData.point_pz.push_back(0);
-                    dataControl->PathData.point_rx.push_back(-1.530946);
-                    dataControl->PathData.point_ry.push_back(-0.009205);
-                    dataControl->PathData.point_rz.push_back(1.594819);
-
-                    rt_printf("path data : \n");
+                    rt_printf("side1 path data : \n");
                     for(int8_t i = 0; i < dataControl->PathData.row; i ++){
                         rt_printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
                                   dataControl->PathData.total_time[i],
@@ -1607,7 +1694,382 @@ void ControlMain::robotOperate()
                     dataControl->PathData.path_struct_indx = 0;
                     dataControl->PathData.cycle_count_max = 1;
                     delay_cnt = 0;
-                    delay_cnt_max = 200;
+                    delay_cnt_max = 100;
+                    dataControl->trayInfor.section1++;
+
+                    break;
+                }
+                case DataControl::Section::Side2:
+                {
+                    unsigned int s_count = 0, wp_row = 0, wp_col = 0;
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 100;//50;
+                        module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+                    for(unsigned int i = 0; i < NUM_JOINT; i++){
+                        dataControl->RobotData.desired_q[i] = dataControl->readyJoints.wp[(dataControl->operateMode.section-1)*6 + i]*dataControl->DEG2RAD;
+                    }
+
+                    dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                    usleep(module->feeding_profile_vel[0]*1000);
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 1;//50;
+                        module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                    memcpy(dataControl->RobotData.present_joint_position, dataControl->RobotData.command_joint_position, sizeof(int32_t)*NUM_JOINT);
+                    robotKinematics();
+
+                    s_count = dataControl->trayInfor.section2%2;
+                    wp_row = dataControl->wp_side2[s_count].size[0];
+                    wp_col = dataControl->wp_side2[s_count].size[1];
+                    rt_printf("s_count : %d\n", s_count);
+                    rt_printf("wp_row : %d\n", wp_row);
+                    rt_printf("wp_col : %d\n", wp_col);
+
+                    dataControl->PathData.row = static_cast<uint8_t>(wp_row + 1);
+                    for(uint i = 0; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.movePath[i].path_x.clear();
+                        dataControl->PathData.movePath[i].path_y.clear();
+                        dataControl->PathData.movePath[i].path_z.clear();
+                        dataControl->PathData.movePath[i].path_theta.clear();
+                    }
+
+                    dataControl->PathData.point_px.push_back(dataControl->RobotData.present_end_pose[0]);
+                    dataControl->PathData.point_py.push_back(dataControl->RobotData.present_end_pose[1]);
+                    dataControl->PathData.point_pz.push_back(dataControl->RobotData.present_end_pose[2]);
+                    dataControl->PathData.point_rx.push_back(dataControl->RobotData.present_end_pose[3]);
+                    dataControl->PathData.point_ry.push_back(dataControl->RobotData.present_end_pose[4]);
+                    dataControl->PathData.point_rz.push_back(dataControl->RobotData.present_end_pose[5]);
+                    dataControl->PathData.total_time.push_back(0);
+                    dataControl->PathData.acc_time.push_back(0.3);
+
+                    for(uint i = 1; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.total_time.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 0] + 1.0);
+                        dataControl->PathData.point_px.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 1]*0.001);
+                        dataControl->PathData.point_py.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 2]*0.001);
+                        dataControl->PathData.point_pz.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 3]*0.001);
+                        dataControl->PathData.point_rx.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 4]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_ry.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 5]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_rz.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 6]*dataControl->DEG2RAD);
+                        dataControl->PathData.acc_time.push_back(dataControl->wp_side2[s_count].wp[(i-1)*wp_col + 7]);
+                    }
+
+                    rt_printf("side2 path data : \n");
+                    for(int8_t i = 0; i < dataControl->PathData.row; i ++){
+                        rt_printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
+                                  dataControl->PathData.total_time[i],
+                                  dataControl->PathData.point_px[i], dataControl->PathData.point_py[i], dataControl->PathData.point_pz[i],
+                                  dataControl->PathData.point_rx[i], dataControl->PathData.point_ry[i], dataControl->PathData.point_rz[i],
+                                  dataControl->PathData.acc_time[i]);
+                    }
+
+                    robotPathGenerate(dataControl->PathData.point_px, dataControl->PathData.point_py, dataControl->PathData.point_pz,
+                                      dataControl->PathData.point_rx, dataControl->PathData.point_ry, dataControl->PathData.point_rz);
+
+                    RobotArm::zyx2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], dataControl->PathData.movePath[0].R_init);
+
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::RunMode;
+
+                    dataControl->RobotData.run_mode = DataControl::CmdType::RunCmd;
+                    dataControl->PathData.path_data_indx = 0;
+                    dataControl->PathData.path_struct_indx = 0;
+                    dataControl->PathData.cycle_count_max = 1;
+                    delay_cnt = 0;
+                    delay_cnt_max = 100;
+                    dataControl->trayInfor.section2++;
+                    break;
+                }
+                case DataControl::Section::Side3:
+                {
+                    unsigned int s_count = 0, wp_row = 0, wp_col = 0;
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 100;//50;
+                        module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+                    for(unsigned int i = 0; i < NUM_JOINT; i++){
+                        dataControl->RobotData.desired_q[i] = dataControl->readyJoints.wp[(dataControl->operateMode.section-1)*6 + i]*dataControl->DEG2RAD;
+                    }
+
+                    dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                    usleep(module->feeding_profile_vel[0]*1000);
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 1;//50;
+                        module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                    memcpy(dataControl->RobotData.present_joint_position, dataControl->RobotData.command_joint_position, sizeof(int32_t)*NUM_JOINT);
+                    robotKinematics();
+
+                    s_count = dataControl->trayInfor.section3%2;
+                    wp_row = dataControl->wp_side3[s_count].size[0];
+                    wp_col = dataControl->wp_side3[s_count].size[1];
+                    rt_printf("s_count : %d\n", s_count);
+                    rt_printf("wp_row : %d\n", wp_row);
+                    rt_printf("wp_col : %d\n", wp_col);
+
+                    dataControl->PathData.row = static_cast<uint8_t>(wp_row + 1);
+                    for(uint i = 0; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.movePath[i].path_x.clear();
+                        dataControl->PathData.movePath[i].path_y.clear();
+                        dataControl->PathData.movePath[i].path_z.clear();
+                        dataControl->PathData.movePath[i].path_theta.clear();
+                    }
+
+                    dataControl->PathData.point_px.push_back(dataControl->RobotData.present_end_pose[0]);
+                    dataControl->PathData.point_py.push_back(dataControl->RobotData.present_end_pose[1]);
+                    dataControl->PathData.point_pz.push_back(dataControl->RobotData.present_end_pose[2]);
+                    dataControl->PathData.point_rx.push_back(dataControl->RobotData.present_end_pose[3]);
+                    dataControl->PathData.point_ry.push_back(dataControl->RobotData.present_end_pose[4]);
+                    dataControl->PathData.point_rz.push_back(dataControl->RobotData.present_end_pose[5]);
+                    dataControl->PathData.total_time.push_back(0);
+                    dataControl->PathData.acc_time.push_back(0.3);
+
+                    for(uint i = 1; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.total_time.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 0] + 1.0);
+                        dataControl->PathData.point_px.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 1]*0.001);
+                        dataControl->PathData.point_py.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 2]*0.001);
+                        dataControl->PathData.point_pz.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 3]*0.001);
+                        dataControl->PathData.point_rx.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 4]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_ry.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 5]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_rz.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 6]*dataControl->DEG2RAD);
+                        dataControl->PathData.acc_time.push_back(dataControl->wp_side3[s_count].wp[(i-1)*wp_col + 7]);
+                    }
+
+                    rt_printf("side3 path data : \n");
+                    for(int8_t i = 0; i < dataControl->PathData.row; i ++){
+                        rt_printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
+                                  dataControl->PathData.total_time[i],
+                                  dataControl->PathData.point_px[i], dataControl->PathData.point_py[i], dataControl->PathData.point_pz[i],
+                                  dataControl->PathData.point_rx[i], dataControl->PathData.point_ry[i], dataControl->PathData.point_rz[i],
+                                  dataControl->PathData.acc_time[i]);
+                    }
+
+                    robotPathGenerate(dataControl->PathData.point_px, dataControl->PathData.point_py, dataControl->PathData.point_pz,
+                                      dataControl->PathData.point_rx, dataControl->PathData.point_ry, dataControl->PathData.point_rz);
+
+                    RobotArm::zyx2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], dataControl->PathData.movePath[0].R_init);
+
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::RunMode;
+
+                    dataControl->RobotData.run_mode = DataControl::CmdType::RunCmd;
+                    dataControl->PathData.path_data_indx = 0;
+                    dataControl->PathData.path_struct_indx = 0;
+                    dataControl->PathData.cycle_count_max = 1;
+                    delay_cnt = 0;
+                    delay_cnt_max = 100;
+                    dataControl->trayInfor.section3++;
+                    break;
+                }
+                case DataControl::Section::Soup:
+                {
+                    unsigned int s_count = 0, wp_row = 0, wp_col = 0;
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 100;//50;
+                        module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+                    for(unsigned int i = 0; i < NUM_JOINT; i++){
+                        dataControl->RobotData.desired_q[i] = dataControl->readyJoints.wp[(dataControl->operateMode.section-1)*6 + i]*dataControl->DEG2RAD;
+                    }
+
+                    dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                    usleep(module->feeding_profile_vel[0]*1000);
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 1;//50;
+                        module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                    memcpy(dataControl->RobotData.present_joint_position, dataControl->RobotData.command_joint_position, sizeof(int32_t)*NUM_JOINT);
+                    robotKinematics();
+
+                    s_count = dataControl->trayInfor.section4%1;
+                    wp_row = dataControl->wp_soup[s_count].size[0];
+                    wp_col = dataControl->wp_soup[s_count].size[1];
+                    rt_printf("s_count : %d\n", s_count);
+                    rt_printf("wp_row : %d\n", wp_row);
+                    rt_printf("wp_col : %d\n", wp_col);
+
+                    dataControl->PathData.row = static_cast<uint8_t>(wp_row + 1);
+                    for(uint i = 0; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.movePath[i].path_x.clear();
+                        dataControl->PathData.movePath[i].path_y.clear();
+                        dataControl->PathData.movePath[i].path_z.clear();
+                        dataControl->PathData.movePath[i].path_theta.clear();
+                    }
+
+                    dataControl->PathData.point_px.push_back(dataControl->RobotData.present_end_pose[0]);
+                    dataControl->PathData.point_py.push_back(dataControl->RobotData.present_end_pose[1]);
+                    dataControl->PathData.point_pz.push_back(dataControl->RobotData.present_end_pose[2]);
+                    dataControl->PathData.point_rx.push_back(dataControl->RobotData.present_end_pose[3]);
+                    dataControl->PathData.point_ry.push_back(dataControl->RobotData.present_end_pose[4]);
+                    dataControl->PathData.point_rz.push_back(dataControl->RobotData.present_end_pose[5]);
+                    dataControl->PathData.total_time.push_back(0);
+                    dataControl->PathData.acc_time.push_back(0.3);
+
+                    for(uint i = 1; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.total_time.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 0] + 1.0);
+                        dataControl->PathData.point_px.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 1]*0.001);
+                        dataControl->PathData.point_py.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 2]*0.001);
+                        dataControl->PathData.point_pz.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 3]*0.001);
+                        dataControl->PathData.point_rx.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 4]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_ry.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 5]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_rz.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 6]*dataControl->DEG2RAD);
+                        dataControl->PathData.acc_time.push_back(dataControl->wp_soup[s_count].wp[(i-1)*wp_col + 7]);
+                    }
+
+                    rt_printf("soup path data : \n");
+                    for(int8_t i = 0; i < dataControl->PathData.row; i ++){
+                        rt_printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
+                                  dataControl->PathData.total_time[i],
+                                  dataControl->PathData.point_px[i], dataControl->PathData.point_py[i], dataControl->PathData.point_pz[i],
+                                  dataControl->PathData.point_rx[i], dataControl->PathData.point_ry[i], dataControl->PathData.point_rz[i],
+                                  dataControl->PathData.acc_time[i]);
+                    }
+
+                    robotPathGenerate(dataControl->PathData.point_px, dataControl->PathData.point_py, dataControl->PathData.point_pz,
+                                      dataControl->PathData.point_rx, dataControl->PathData.point_ry, dataControl->PathData.point_rz);
+
+                    RobotArm::zyx2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], dataControl->PathData.movePath[0].R_init);
+
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::RunMode;
+
+                    dataControl->RobotData.run_mode = DataControl::CmdType::RunCmd;
+                    dataControl->PathData.path_data_indx = 0;
+                    dataControl->PathData.path_struct_indx = 0;
+                    dataControl->PathData.cycle_count_max = 1;
+                    delay_cnt = 0;
+                    delay_cnt_max = 100;
+                    dataControl->trayInfor.section4++;
+                    dataControl->fork_flag = false;
+                    break;
+                }
+                case DataControl::Section::Rice:
+                {
+                    unsigned int s_count = 0, wp_row = 0, wp_col = 0;
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 100;//50;
+                        module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+                    for(unsigned int i = 0; i < NUM_JOINT; i++){
+                        dataControl->RobotData.desired_q[i] = dataControl->readyJoints.wp[(dataControl->operateMode.section-1)*6 + i]*dataControl->DEG2RAD;
+                    }
+
+                    dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                    usleep(module->feeding_profile_vel[0]*1000);
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 1;//50;
+                        module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                    memcpy(dataControl->RobotData.present_joint_position, dataControl->RobotData.command_joint_position, sizeof(int32_t)*NUM_JOINT);
+                    robotKinematics();
+
+                    s_count = dataControl->trayInfor.section5%9;
+                    wp_row = dataControl->wp_rice[s_count].size[0];
+                    wp_col = dataControl->wp_rice[s_count].size[1];
+                    rt_printf("s_count : %d\n", s_count);
+                    rt_printf("wp_row : %d\n", wp_row);
+                    rt_printf("wp_col : %d\n", wp_col);
+
+                    dataControl->PathData.row = static_cast<uint8_t>(wp_row + 1);
+                    for(uint i = 0; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.movePath[i].path_x.clear();
+                        dataControl->PathData.movePath[i].path_y.clear();
+                        dataControl->PathData.movePath[i].path_z.clear();
+                        dataControl->PathData.movePath[i].path_theta.clear();
+                    }
+
+                    dataControl->PathData.point_px.push_back(dataControl->RobotData.present_end_pose[0]);
+                    dataControl->PathData.point_py.push_back(dataControl->RobotData.present_end_pose[1]);
+                    dataControl->PathData.point_pz.push_back(dataControl->RobotData.present_end_pose[2]);
+                    dataControl->PathData.point_rx.push_back(dataControl->RobotData.present_end_pose[3]);
+                    dataControl->PathData.point_ry.push_back(dataControl->RobotData.present_end_pose[4]);
+                    dataControl->PathData.point_rz.push_back(dataControl->RobotData.present_end_pose[5]);
+                    dataControl->PathData.total_time.push_back(0);
+                    dataControl->PathData.acc_time.push_back(0.3);
+
+                    for(uint i = 1; i < dataControl->PathData.row; i++){
+                        dataControl->PathData.total_time.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 0] + 1.0);
+                        dataControl->PathData.point_px.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 1]*0.001);
+                        dataControl->PathData.point_py.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 2]*0.001);
+                        dataControl->PathData.point_pz.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 3]*0.001);
+                        dataControl->PathData.point_rx.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 4]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_ry.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 5]*dataControl->DEG2RAD);
+                        dataControl->PathData.point_rz.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 6]*dataControl->DEG2RAD);
+                        dataControl->PathData.acc_time.push_back(dataControl->wp_rice[s_count].wp[(i-1)*wp_col + 7]);
+                    }
+
+//                    dataControl->KITECHData.sp_food[0] = ((double)dataControl->KITECHData.food_pos[2*(dataControl->operateMode.section - 1)])*0.001;
+//                    dataControl->KITECHData.sp_food[1] = ((double)dataControl->KITECHData.food_pos[2*(dataControl->operateMode.section - 1) + 1])*0.001;
+//                    if(dataControl->KITECHData.interface_cmd == CMD_SECTION && dataControl->KITECHData.interface_sub == 1){
+//                        dataControl->KITECHData.sp_food[2] = -200;
+//                    }
+//                    else{
+//                        dataControl->KITECHData.sp_food[2] = 0;
+//                    }
+
+//                    RobotArm::mat(dataControl->KITECHData.A_marker, dataControl->KITECHData.sp_food, 3,3,3, dataControl->KITECHData.sp);
+//                    for(uint i = 0; i < 3; i++){
+//                        dataControl->KITECHData.rp[i] = dataControl->KITECHData.r_marker[i] + dataControl->KITECHData.sp[i];
+//                    }
+
+//                    dataControl->PathData.point_px.push_back(dataControl->KITECHData.rp[0]);
+//                    dataControl->PathData.point_py.push_back(dataControl->KITECHData.rp[1]);
+//                    dataControl->PathData.point_pz.push_back(0);
+//                    dataControl->PathData.point_rx.push_back(-1.530946);
+//                    dataControl->PathData.point_ry.push_back(-0.009205);
+//                    dataControl->PathData.point_rz.push_back(1.594819);
+
+                    rt_printf("rice path data : \n");
+                    for(int8_t i = 0; i < dataControl->PathData.row; i ++){
+                        rt_printf("%f, %f, %f, %f, %f, %f, %f, %f\n",
+                                  dataControl->PathData.total_time[i],
+                                  dataControl->PathData.point_px[i], dataControl->PathData.point_py[i], dataControl->PathData.point_pz[i],
+                                  dataControl->PathData.point_rx[i], dataControl->PathData.point_ry[i], dataControl->PathData.point_rz[i],
+                                  dataControl->PathData.acc_time[i]);
+                    }
+
+                    robotPathGenerate(dataControl->PathData.point_px, dataControl->PathData.point_py, dataControl->PathData.point_pz, dataControl->PathData.point_rx, dataControl->PathData.point_ry, dataControl->PathData.point_rz);
+
+                    RobotArm::zyx2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], dataControl->PathData.movePath[0].R_init);
+
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::RunMode;
+
+                    dataControl->RobotData.run_mode = DataControl::CmdType::RunCmd;
+                    dataControl->PathData.path_data_indx = 0;
+                    dataControl->PathData.path_struct_indx = 0;
+                    dataControl->PathData.cycle_count_max = 1;
+                    delay_cnt = 0;
+                    delay_cnt_max = 100;
+                    dataControl->trayInfor.section5++;
 
                     break;
                 }
@@ -1658,6 +2120,7 @@ void ControlMain::robotOperate()
                     dataControl->PathData.point_ry.push_back(dataControl->PathData.teaching_pose[4]);
                     dataControl->PathData.point_rz.push_back(dataControl->PathData.teaching_pose[5]);
 
+                    rt_printf("go mouse\n");
                     rt_printf("start pose : %f, %f, %f, %f, %f, %f\n",
                               dataControl->RobotData.present_end_pose[0], dataControl->RobotData.present_end_pose[1], dataControl->RobotData.present_end_pose[2],
                               dataControl->RobotData.present_end_pose[3], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[5]);
@@ -1689,6 +2152,13 @@ void ControlMain::robotOperate()
 //                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
 //                    }
 //                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 1;//50;
+                        module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
 
                     dataControl->PathData.total_time.clear();
                     dataControl->PathData.point_px_home.clear();
@@ -1730,6 +2200,15 @@ void ControlMain::robotOperate()
 
                     RobotArm::zyx2mat(dataControl->RobotData.present_end_pose[5], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[3], dataControl->PathData.movePath[0].R_init);
 
+                    rt_printf("go home\n");
+                    rt_printf("start pose : %f, %f, %f, %f, %f, %f\n",
+                              dataControl->RobotData.present_end_pose[0], dataControl->RobotData.present_end_pose[1], dataControl->RobotData.present_end_pose[2],
+                              dataControl->RobotData.present_end_pose[3], dataControl->RobotData.present_end_pose[4], dataControl->RobotData.present_end_pose[5]);
+
+                    rt_printf("end pose : %f, %f, %f, %f, %f, %f\n",
+                              dataControl->operateFeedingReadyPose[0], dataControl->operateFeedingReadyPose[1], dataControl->operateFeedingReadyPose[2],
+                              dataControl->operateFeedingReadyPose[3], dataControl->operateFeedingReadyPose[4], dataControl->operateFeedingReadyPose[5]);
+
                     robotPathGenerate(dataControl->PathData.point_px_home, dataControl->PathData.point_py_home, dataControl->PathData.point_pz_home,
                                       dataControl->PathData.point_rx_home, dataControl->PathData.point_ry_home, dataControl->PathData.point_rz_home);
 
@@ -1741,6 +2220,68 @@ void ControlMain::robotOperate()
                     dataControl->PathData.cycle_count_max = 1;
                     delay_cnt = 0;
 
+                    break;
+                }
+            }
+            break;
+        }
+        case DataControl::Operate::FeedingSwitch:
+        {
+//            for(uint i = 0; i < NUM_JOINT; i++){
+//                module->feeding_profile_acc[i] = 1;//50;
+//                module->feeding_profile_vel[i] = 3;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+//                module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+//            }
+//            module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+
+//            dataControl->PathData.total_time.clear();
+//            dataControl->PathData.point_px.clear();
+//            dataControl->PathData.point_py.clear();
+//            dataControl->PathData.point_pz.clear();
+//            dataControl->PathData.point_rx.clear();
+//            dataControl->PathData.point_ry.clear();
+//            dataControl->PathData.point_rz.clear();
+//            dataControl->PathData.point_theta.clear();
+//            dataControl->PathData.acc_time.clear();
+
+            unsigned int s_count = 0;
+
+            switch(dataControl->KITECHData.interface_sub)
+            {
+                case 1: // choose section
+                {
+                    for(uint i = 0; i < NUM_JOINT; i++){
+                        module->feeding_profile_acc[i] = 100;//50;
+                        module->feeding_profile_vel[i] = 2000;//static_cast<uint32_t>((500/64.0)*module->feeding_profile_acc[i]);
+                        module->feeding_pos_p_gain[i] = default_pos_p_gain[i];
+                    }
+                    module->setGroupSyncWriteIndirectAddress(module->feeding_profile_acc, module->feeding_profile_vel, module->feeding_pos_p_gain, NUM_JOINT);
+                    for(unsigned int i = 0; i < NUM_JOINT; i++){
+                        dataControl->RobotData.desired_q[i] = dataControl->readyJoints.wp[dataControl->section_indx*6 + i]*dataControl->DEG2RAD;
+                    }
+                    dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
+                    module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
+                    usleep(module->feeding_profile_vel[0]*1000);
+
+                    dataControl->ClientToServer.opMode = DataControl::OpMode::Wait;
+
+                    dataControl->feeding = false;
+
+//                    dataControl->section_indx++;
+//                    if(dataControl->section_indx >= 5) {
+//                        dataControl->section_indx = 0;
+//                    }
+//                    rt_printf("Section Index : %d\n", dataControl->section_indx);
+
+                    break;
+                }
+                case 2: // feeding
+                {
+
+                    break;
+                }
+                default:
+                {
                     break;
                 }
             }
@@ -1762,11 +2303,11 @@ void ControlMain::robotOperate()
             dataControl->jointPositionRAD2ENC(dataControl->RobotData.desired_q, dataControl->RobotData.command_joint_position);
             module->setGroupSyncWriteGoalPosition(dataControl->RobotData.command_joint_position, NUM_JOINT);
             usleep(module->feeding_profile_vel[0]*1000);
-            rt_printf("Wait....\n");
-            usleep(3000000); 
-            dataControl->KITECHData.camera_request = true;
-            usleep(3000000);
-            dataControl->KITECHData.camera_request = false;
+//            rt_printf("Wait....\n");
+//            usleep(3000000);
+//            dataControl->KITECHData.camera_request = true;
+//            usleep(3000000);
+//            dataControl->KITECHData.camera_request = false;
 
 //            if(dataControl->section_indx == 4 || dataControl->section_indx == 3){
 //                for(int i = 0; i < 6; i++){
@@ -1925,56 +2466,116 @@ void ControlMain::goalReach(double desired_pose[], double present_pose[], bool *
     }
 }
 
-void ControlMain::path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path)
+void ControlMain::path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path, int path_index)
 {
-//    rt_printf("Start path generator, x0 : %f, xf : %f, tf : %f, ta : %f, h : %f\n", x0, xf, tf, ta, h);
-    double td = tf - ta;
-    double vd = (xf - x0)/td;
-    double xa = x0 + 0.5*ta*vd;
-    double xd = xf - 0.5*ta*vd;
+    // if(path_index == 1){
+    //     double x_step = (xf - x0)/(tf/h);
+    //     double x = x0;
+    //     for(double t = 0; t < tf; t += h){
+    //         path->push_back(x);
+    //         x += x_step;
+    //     }
+    // }
+    // else{
+        double td = tf - ta;
+        double vd = (xf - x0)/td;
+        double xa = x0 + 0.5*ta*vd;
+        double xd = xf - 0.5*ta*vd;
 
-    double pos0, posf, vel0, velf, acc0, accf, ts;
-    double a0, a1, a2, a3, a4, a5;
+        double pos0, posf, vel0, velf, acc0, accf, ts;
+        double a0, a1, a2, a3, a4, a5;
 
-    // section of acceleration
-    pos0 = x0; posf = xa; vel0 = 0; velf = vd; acc0 = 0; accf = 0; ts = ta;
-    a0 = pos0;
-    a1 = vel0;
-    a2 = acc0/2;
-    a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
-    a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
-    a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
+        // section of acceleration
+        pos0 = x0; posf = xa; vel0 = 0; velf = vd; acc0 = 0; accf = 0; ts = ta;
+        a0 = pos0;
+        a1 = vel0;
+        a2 = acc0/2;
+        a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
+        a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
+        a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
 
-    for(double t = 0; t < ts; t += h){
-        path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
-    }
+        for(double t = 0; t < ts; t += h){
+            path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
+        }
 
-    // section of constant velocity
-    pos0 = xa; posf = xd; vel0 = vd; velf = vd; acc0 = 0; accf = 0; ts = td - ta;
-    a0 = pos0;
-    a1 = vel0;
-    a2 = acc0/2;
-    a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
-    a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
-    a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
+        // section of constant velocity
+        pos0 = xa; posf = xd; vel0 = vd; velf = vd; acc0 = 0; accf = 0; ts = td - ta;
+        a0 = pos0;
+        a1 = vel0;
+        a2 = acc0/2;
+        a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
+        a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
+        a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
 
-    for(double t = 0; t < ts; t += h){
-        path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
-    }
+        for(double t = 0; t < ts; t += h){
+            path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
+        }
 
-    // section of deceleration
-    pos0 = xd; posf = xf; vel0 = vd; velf = 0; acc0 = 0; accf = 0; ts = tf - td;
-    a0 = pos0;
-    a1 = vel0;
-    a2 = acc0/2;
-    a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
-    a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
-    a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
+        // section of deceleration
+        pos0 = xd; posf = xf; vel0 = vd; velf = 0; acc0 = 0; accf = 0; ts = tf - td;
+        a0 = pos0;
+        a1 = vel0;
+        a2 = acc0/2;
+        a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
+        a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
+        a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
 
-    for(double t = 0; t < ts; t += h){
-        path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
-    }
+        for(double t = 0; t < ts; t += h){
+            path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
+        }
+    // }
 }
+
+// void ControlMain::path_generator(double x0, double xf, double tf, double ta, double h, std::vector<double> *path, int path_index)
+// {
+// //    rt_printf("Start path generator, x0 : %f, xf : %f, tf : %f, ta : %f, h : %f\n", x0, xf, tf, ta, h);
+//     double td = tf - ta;
+//     double vd = (xf - x0)/td;
+//     double xa = x0 + 0.5*ta*vd;
+//     double xd = xf - 0.5*ta*vd;
+
+//     double pos0, posf, vel0, velf, acc0, accf, ts;
+//     double a0, a1, a2, a3, a4, a5;
+
+//     // section of acceleration
+//     pos0 = x0; posf = xa; vel0 = 0; velf = vd; acc0 = 0; accf = 0; ts = ta;
+//     a0 = pos0;
+//     a1 = vel0;
+//     a2 = acc0/2;
+//     a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
+//     a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
+//     a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
+
+//     for(double t = 0; t < ts; t += h){
+//         path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
+//     }
+
+//     // section of constant velocity
+//     pos0 = xa; posf = xd; vel0 = vd; velf = vd; acc0 = 0; accf = 0; ts = td - ta;
+//     a0 = pos0;
+//     a1 = vel0;
+//     a2 = acc0/2;
+//     a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
+//     a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
+//     a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
+
+//     for(double t = 0; t < ts; t += h){
+//         path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
+//     }
+
+//     // section of deceleration
+//     pos0 = xd; posf = xf; vel0 = vd; velf = 0; acc0 = 0; accf = 0; ts = tf - td;
+//     a0 = pos0;
+//     a1 = vel0;
+//     a2 = acc0/2;
+//     a3 = (20*(posf - pos0) - (8*velf + 12*vel0)*ts - (3*acc0 - accf)*pow(ts,2))/(2*pow(ts,3));
+//     a4 = (30*(pos0 - posf) + (14*velf + 16*vel0)*ts + (3*acc0 - 2*accf)*pow(ts,2))/(2*pow(ts, 4));
+//     a5 = (12*(posf - pos0) - (6*velf + 6*vel0)*ts - (acc0 - accf)*pow(ts,2))/(2*pow(ts,5));
+
+//     for(double t = 0; t < ts; t += h){
+//         path->push_back(a0 + a1*t + a2*pow(t,2) + a3*pow(t,3) + a4*pow(t,4)+ a5*pow(t,5));
+//     }
+// }
 
 void ControlMain::getPresentEnc(int32_t enc[])
 {

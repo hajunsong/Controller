@@ -15,6 +15,7 @@ DataControl::DataControl()
     RobotData.offset_setting = false;
     RobotData.ik_flag = true;
     tablet_mode = false;
+    fork_flag = false;
     section_indx = -1;
     trayInfor.section1 = 0;
     trayInfor.section2 = 0;
@@ -56,6 +57,85 @@ DataControl::DataControl()
         printf("camera_joint[%d] = %f\n", i, camera_joint_json[i].GetDouble());
         operateCameraReadyJoint[i] = camera_joint_json[i].GetDouble();
     }
+    const Value& module_type_json = document["MODULE_TYPE"];
+    assert(module_type_json.IsNumber());
+    MODULE_TYPE = static_cast<uint8_t>(module_type_json.GetUint());
+    printf("module type version : %d\n", MODULE_TYPE);
+
+    load_data("data/wp_rice_1.csv", &wp_rice1.wp, ",", wp_rice1.size);
+    load_data("data/wp_rice_2.csv", &wp_rice2.wp, ",", wp_rice2.size);
+    load_data("data/wp_rice_3.csv", &wp_rice3.wp, ",", wp_rice3.size);
+    load_data("data/wp_rice_4.csv", &wp_rice4.wp, ",", wp_rice4.size);
+    load_data("data/wp_rice_5.csv", &wp_rice5.wp, ",", wp_rice5.size);
+    load_data("data/wp_rice_6.csv", &wp_rice6.wp, ",", wp_rice6.size);
+    load_data("data/wp_rice_7.csv", &wp_rice7.wp, ",", wp_rice7.size);
+    load_data("data/wp_rice_8.csv", &wp_rice8.wp, ",", wp_rice8.size);
+    load_data("data/wp_rice_9.csv", &wp_rice9.wp, ",", wp_rice9.size);
+    wp_rice.push_back(wp_rice1);
+    wp_rice.push_back(wp_rice2);
+    wp_rice.push_back(wp_rice3);
+    wp_rice.push_back(wp_rice4);
+    wp_rice.push_back(wp_rice5);
+    wp_rice.push_back(wp_rice6);
+    wp_rice.push_back(wp_rice7);
+    wp_rice.push_back(wp_rice8);
+    wp_rice.push_back(wp_rice9);
+    for(unsigned int i = 0; i < wp_rice.size(); i++){
+        printf("rice : %d size : %d, %d\n", i+1, wp_rice[i].size[0], wp_rice[i].size[1]);
+    }
+    for(unsigned int i = 0; i < wp_rice.size(); i++){
+        printf("wp_rice_%d\n", i+1);
+        for(unsigned int j = 0; j < wp_rice[i].size[0]; j++){
+            for(unsigned int k = 0; k < wp_rice[i].size[1]; k++){
+                printf("%f ", wp_rice[i].wp[j*wp_rice[i].size[1] + k]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+
+    load_data("data/wp_side1_1.csv", &wp_side1_1.wp, ",", wp_side1_1.size);
+    load_data("data/wp_side1_2.csv", &wp_side1_2.wp, ",", wp_side1_2.size);
+    wp_side1.push_back(wp_side1_1);
+    wp_side1.push_back(wp_side1_2);
+    for(unsigned int i = 0; i < wp_side1.size(); i++){
+        printf("side1 : %d size : %d, %d\n", i+1, wp_side1[i].size[0], wp_side1[i].size[1]);
+    }
+    for(unsigned int i = 0; i < wp_side1.size(); i++){
+        printf("side1_%d\n", i+1);
+        for(unsigned int j = 0; j < wp_side1[i].size[0]; j++){
+            for(unsigned int k = 0; k < wp_side1[i].size[1]; k++){
+                printf("%f ", wp_side1[i].wp[j*wp_side1[i].size[1] + k]);
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+
+    load_data("data/wp_side2_1.csv", &wp_side2_1.wp, ",", wp_side2_1.size);
+    load_data("data/wp_side2_2.csv", &wp_side2_2.wp, ",", wp_side2_2.size);
+    wp_side2.push_back(wp_side2_1);
+    wp_side2.push_back(wp_side2_2);
+    for(unsigned int i = 0; i < wp_side2.size(); i++){
+        printf("side2 : %d size : %d, %d\n", i+1, wp_side2[i].size[0], wp_side2[i].size[1]);
+    }
+
+    load_data("data/wp_side3_1.csv", &wp_side3_1.wp, ",", wp_side3_1.size);
+    load_data("data/wp_side3_2.csv", &wp_side3_2.wp, ",", wp_side3_2.size);
+    wp_side3.push_back(wp_side3_1);
+    wp_side3.push_back(wp_side3_2);
+    for(unsigned int i = 0; i < wp_side3.size(); i++){
+        printf("side3 : %d size : %d, %d\n", i+1, wp_side3[i].size[0], wp_side3[i].size[1]);
+    }
+
+    load_data("data/wp_soup.csv", &wp_soup1.wp, ",", wp_soup1.size);
+    wp_soup.push_back(wp_soup1);
+    for(unsigned int i = 0; i < wp_soup.size(); i++){
+        printf("soup : %d size : %d, %d\n", i+1, wp_soup[i].size[0], wp_soup[i].size[1]);
+    }
+
+    load_data("data/ready_joint.csv", &readyJoints.wp, ",", readyJoints.size);
+    printf("ready joint : size : %d, %d\n", readyJoints.size[0], readyJoints.size[1]);
 }
 
 DataControl::~DataControl()
@@ -78,6 +158,8 @@ DataControl::~DataControl()
         rice_motion[i].file_data.clear();
     }
     soup_motion.file_data.clear();
+
+    wp_rice.clear();
 }
 
 void DataControl::DataReset()

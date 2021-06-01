@@ -151,6 +151,7 @@ public:
     }StructOperateMode;
 
     typedef struct _StructKITECHData{
+        int interface_cmd, interface_sub;
         char food_pixel[20];
         int food_pos[10];
         bool tablet_connect, tablet_check, tablet_check_old;
@@ -178,8 +179,8 @@ public:
     bool joint_goal_reach;
     bool feeding;
     bool tablet_mode;
-    unsigned char obi_section_indx;
-    char obi_section_indx2;
+    char section_indx;
+    char section_indx2;
 
     DataControl();
     ~DataControl();
@@ -221,7 +222,7 @@ public:
     const double RAW2mA = 2.69;
     const double mA2RAW = 0.371747212;
 
-    const double initJoint2Deg = 20;
+    const double initJoint2Deg = 30;
     const double initJoint4Deg = -200;
 
 //    const double operateCameraReadyJoint[6] = {1.173420, -0.086010, -0.637394, -0.824773, -1.154989, -1.549713};
@@ -235,9 +236,6 @@ public:
     int32_t joint_offset[6];
     double tool_offset[3];
     double operateCameraReadyJoint[6];
-    // int32_t initJoint_2, initJoint_4;
-
-    double obi_ready_joint[5*6];
 };
 
 #endif // DATACONTROL_H

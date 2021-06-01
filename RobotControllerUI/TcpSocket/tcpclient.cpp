@@ -79,18 +79,18 @@ void *TcpClient::comm_rx_func(void *arg)
 
             if(pThis->byteLen > 0){
                 if(pThis->byteLen == 1){
-                    cout << pThis->buf[0] << endl;
+//                    cout << pThis->buf[0] << endl;
                     if(pThis->buf[0] == 'X'){
                         cout << "Client & Server configuration is difference" << endl;
                         static_cast<MainWindow*>(pThis->mainWindow)->disConnectServer();
                     }
-                    else if(pThis->buf[0] == 'S'){
+                    else if(pThis->buf[0] == 'S' || pThis->buf[0] == 'E'){
                         static_cast<MainWindow*>(pThis->mainWindow)->componentEnable(true);
                     }
                 }
                 else{
                     if(pThis->buf[0] == 'N' && pThis->buf[1] == 'C'){
-//                printf("Received byteLen : %ld\n", pThis->byteLen);
+//                        printf("Received byteLen : %ld\n", pThis->byteLen);
 //                        printf("received data : ");
 //                        for(uint8_t i = 0; i < pThis->byteLen; i++){
 //                            printf("%d ", pThis->buf[i]);
@@ -168,6 +168,10 @@ void *TcpClient::comm_rx_func(void *arg)
                             pThis->dataControl->ServerToClient.presentJointResidual[i] = atof(buf);
                             indx += MOTION_DATA_LEN;
                         }
+
+                        pThis->dataControl->ServerToClient.opMode = pThis->buf[indx];
+                        indx++;
+//                        printf("Op Mode : %d\n", pThis->dataControl->ServerToClient.opMode);
 
                         if(pThis->dataControl->logging_start){
                             QString logStr;

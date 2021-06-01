@@ -1,14 +1,14 @@
 #!/bin/bash
 
 echo 'make directory'
-mkdir -p ../Deploy/FARController3/src
-mkdir -p ../Deploy/FARController3/include
-mkdir -p ../Deploy/FARController3/lib
+mkdir -p ../Deploy/DARController/src
+mkdir -p ../Deploy/DARController/include
+mkdir -p ../Deploy/DARController/lib
 
 echo 'file copy'
-cp src/controlmain_custom.cpp ../Deploy/FARController3/src
-cp src/main.cpp ../Deploy/FARController3/src
-cp -r include ../Deploy/FARController3
-cp -r lib ../Deploy/FARController3
+cp src/controlmain_custom.cpp ../Deploy/DARController/src
+cp src/main.cpp ../Deploy/DARController/src
+cp -r include ../Deploy/DARController
+cp -r lib ../Deploy/DARController
 
 echo 'complete!!'

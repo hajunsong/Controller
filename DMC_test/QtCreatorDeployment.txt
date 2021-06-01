@@ -1,0 +1,2 @@
+
+bin/DMC_test:/mnt/mtd5/daincube
